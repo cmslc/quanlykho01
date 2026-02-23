@@ -498,7 +498,7 @@ $('#form-add-order').on('submit', function(e){
         dataType: 'json',
         success: function(res){
             if(res.status == 'success'){
-                Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){
+                Swal.fire({icon: 'success', title: res.msg, showConfirmButton: true, confirmButtonText: 'OK'}).then(function(){
                     window.location.href = '<?= base_url('admin/orders-detail') ?>&id=' + res.order_id;
                 });
             } else {
