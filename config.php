@@ -1,7 +1,7 @@
 <?php
 
 $config = [
-    'project'       => 'CMS01',
+    'project'       => 'ToryHub',
     'version'       => '1.0',
     'max_time_load' => 4,
     'limit_block_login'     => 10,

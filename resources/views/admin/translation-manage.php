@@ -17,7 +17,7 @@ $flagMap = [
 $editLangId = intval(input_get('lang_id') ?? 0);
 
 if ($editLangId) {
-    $editLang = $CMSNT->get_row_safe("SELECT * FROM `languages` WHERE `id` = ?", [$editLangId]);
+    $editLang = $ToryHub->get_row_safe("SELECT * FROM `languages` WHERE `id` = ?", [$editLangId]);
     if (!$editLang) {
         header('Location: ' . base_url('admin/translation-manage'));
         exit;
@@ -50,7 +50,7 @@ if ($editLangId) {
     sort($allKeys);
 
     // Get translations for this language
-    $translations = $CMSNT->get_list_safe("SELECT * FROM `translate` WHERE `lang_id` = ?", [$editLangId]);
+    $translations = $ToryHub->get_list_safe("SELECT * FROM `translate` WHERE `lang_id` = ?", [$editLangId]);
     $transMap = [];
     foreach ($translations as $t) {
         $transMap[$t['name']] = $t['value'];
@@ -388,7 +388,7 @@ $(function(){
 // ====== MAIN PAGE: Language List ======
 $page_title = __('Quản lý dịch');
 
-$languages = $CMSNT->get_list_safe("SELECT * FROM `languages` ORDER BY `lang_default` DESC, `id` ASC", []);
+$languages = $ToryHub->get_list_safe("SELECT * FROM `languages` ORDER BY `lang_default` DESC, `id` ASC", []);
 
 // Count translation stats per language
 $baseDir = realpath(__DIR__ . '/../../../');
@@ -415,7 +415,7 @@ $totalKeys = count($allKeys);
 
 $langStats = [];
 foreach ($languages as $l) {
-    $count = $CMSNT->get_row_safe("SELECT COUNT(*) as cnt FROM `translate` WHERE `lang_id` = ?", [$l['id']]);
+    $count = $ToryHub->get_row_safe("SELECT COUNT(*) as cnt FROM `translate` WHERE `lang_id` = ?", [$l['id']]);
     $langStats[$l['id']] = intval($count['cnt'] ?? 0);
 }
 

@@ -16,7 +16,7 @@ $type = input_get('type');
 $dateFrom = input_get('date_from') ?: date('Y-m-01');
 $dateTo = input_get('date_to') ?: date('Y-m-d');
 
-$filename = "CMS01_{$type}_{$dateFrom}_{$dateTo}.csv";
+$filename = "ToryHub_{$type}_{$dateFrom}_{$dateTo}.csv";
 
 header('Content-Type: text/csv; charset=utf-8');
 header('Content-Disposition: attachment; filename="' . $filename . '"');
@@ -31,7 +31,7 @@ fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
 if ($type === 'revenue') {
     fputcsv($output, ['Kỳ', 'Số đơn', 'Tiền hàng CNY', 'Tiền hàng VND', 'Phí dịch vụ', 'Phí vận chuyển', 'Phí khác', 'Tổng phí', 'Tổng cộng']);
 
-    $data = $CMSNT->get_list_safe("SELECT DATE_FORMAT(create_date, '%Y-%m-%d') as period,
+    $data = $ToryHub->get_list_safe("SELECT DATE_FORMAT(create_date, '%Y-%m-%d') as period,
         COUNT(*) as order_count,
         COALESCE(SUM(total_cny),0) as total_cny,
         COALESCE(SUM(total_vnd),0) as total_vnd,
@@ -59,7 +59,7 @@ if ($type === 'revenue') {
 elseif ($type === 'orders') {
     fputcsv($output, ['Mã đơn', 'Khách hàng', 'Mã khách hàng', 'Nền tảng', 'Sản phẩm', 'Số lượng', 'Đơn giá CNY', 'Tổng CNY', 'Tỷ giá', 'Tiền hàng VND', 'Phí dịch vụ', 'Ship nội Trung Quốc', 'Ship quốc tế', 'Đóng gỗ', 'Bảo hiểm', 'Phí khác', 'Tổng cộng', 'Trạng thái', 'Mã vận đơn Trung Quốc', 'Mã quốc tế', 'Mã Việt Nam', 'Cân tính phí', 'Ngày tạo']);
 
-    $data = $CMSNT->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code
+    $data = $ToryHub->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code
         FROM `orders` o LEFT JOIN `customers` c ON o.customer_id = c.id
         WHERE DATE(o.create_date) >= ? AND DATE(o.create_date) <= ?
         ORDER BY o.create_date ASC", [$dateFrom, $dateTo]);
@@ -91,7 +91,7 @@ elseif ($type === 'orders') {
 elseif ($type === 'customers') {
     fputcsv($output, ['Mã khách hàng', 'Họ tên', 'Điện thoại', 'Email', 'Loại khách hàng', 'Tổng đơn', 'Tổng chi tiêu', 'Số dư', 'Zalo', 'WeChat', 'Địa chỉ Việt Nam', 'Ngày tạo']);
 
-    $data = $CMSNT->get_list_safe("SELECT * FROM `customers` ORDER BY `id` ASC", []);
+    $data = $ToryHub->get_list_safe("SELECT * FROM `customers` ORDER BY `id` ASC", []);
 
     $typeLabel = ['normal' => 'Thường', 'vip' => 'VIP', 'agent' => 'Đại lý'];
 
@@ -112,7 +112,7 @@ elseif ($type === 'customers') {
 elseif ($type === 'transactions') {
     fputcsv($output, ['ID', 'Khách hàng', 'Mã khách hàng', 'Loại', 'Số tiền', 'Số dư trước', 'Số dư sau', 'Mô tả', 'Ngày']);
 
-    $data = $CMSNT->get_list_safe("SELECT t.*, c.fullname as customer_name, c.customer_code
+    $data = $ToryHub->get_list_safe("SELECT t.*, c.fullname as customer_name, c.customer_code
         FROM `transactions` t LEFT JOIN `customers` c ON t.customer_id = c.id
         WHERE DATE(t.create_date) >= ? AND DATE(t.create_date) <= ?
         ORDER BY t.create_date ASC", [$dateFrom, $dateTo]);

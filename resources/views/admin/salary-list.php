@@ -28,7 +28,7 @@ if ($filterStaff) {
     $params[] = intval($filterStaff);
 }
 
-$salaries = $CMSNT->get_list_safe(
+$salaries = $ToryHub->get_list_safe(
     "SELECT s.*, u.fullname, u.username, u.role, u.phone
      FROM `salaries` s
      JOIN `users` u ON s.user_id = u.id
@@ -46,7 +46,7 @@ foreach ($salaries as $s) {
 }
 
 // Staff list for filter
-$staffList = $CMSNT->get_list_safe(
+$staffList = $ToryHub->get_list_safe(
     "SELECT id, fullname, username, role FROM `users` WHERE `role` IN ('staff_cn','staff_vn') AND `active` = 1 ORDER BY `fullname` ASC",
     []
 );

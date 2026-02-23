@@ -5,7 +5,7 @@ require_once(__DIR__.'/../../../libs/csrf.php');
 $page_title = __('Lịch sử giao dịch');
 
 // Get customer info
-$customer = $CMSNT->get_row_safe("SELECT * FROM `customers` WHERE `user_id` = ?", [$getUser['id']]);
+$customer = $ToryHub->get_row_safe("SELECT * FROM `customers` WHERE `user_id` = ?", [$getUser['id']]);
 $customer_id = $customer ? $customer['id'] : 0;
 
 // Filters
@@ -29,16 +29,16 @@ if ($filterTo) {
     $params[] = $filterTo . ' 23:59:59';
 }
 
-$transactions = $CMSNT->get_list_safe("SELECT t.*, o.order_code
+$transactions = $ToryHub->get_list_safe("SELECT t.*, o.order_code
     FROM `transactions` t
     LEFT JOIN `orders` o ON t.order_id = o.id
     WHERE $where ORDER BY t.create_date DESC", $params);
 
 // Summary stats
 $balance = $customer ? $customer['balance'] : 0;
-$totalDeposit = $CMSNT->get_row_safe("SELECT COALESCE(SUM(amount),0) as total FROM `transactions` WHERE `customer_id` = ? AND `type` = 'deposit'", [$customer_id]);
-$totalPayment = $CMSNT->get_row_safe("SELECT COALESCE(SUM(ABS(amount)),0) as total FROM `transactions` WHERE `customer_id` = ? AND `type` = 'payment'", [$customer_id]);
-$totalCount = $CMSNT->num_rows_safe("SELECT * FROM `transactions` WHERE `customer_id` = ?", [$customer_id]) ?: 0;
+$totalDeposit = $ToryHub->get_row_safe("SELECT COALESCE(SUM(amount),0) as total FROM `transactions` WHERE `customer_id` = ? AND `type` = 'deposit'", [$customer_id]);
+$totalPayment = $ToryHub->get_row_safe("SELECT COALESCE(SUM(ABS(amount)),0) as total FROM `transactions` WHERE `customer_id` = ? AND `type` = 'payment'", [$customer_id]);
+$totalCount = $ToryHub->num_rows_safe("SELECT * FROM `transactions` WHERE `customer_id` = ?", [$customer_id]) ?: 0;
 
 $txnTypes = ['deposit', 'payment', 'refund', 'adjustment'];
 $txnBadge = ['deposit' => 'success', 'payment' => 'primary', 'refund' => 'warning', 'adjustment' => 'info'];

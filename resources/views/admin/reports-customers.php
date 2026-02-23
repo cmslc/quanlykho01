@@ -7,16 +7,16 @@ $filterDateFrom = input_get('date_from') ?: date('Y-m-01');
 $filterDateTo = input_get('date_to') ?: date('Y-m-d');
 
 // Customer stats
-$totalCustomers = $CMSNT->num_rows_safe("SELECT * FROM `customers`", []) ?: 0;
-$newCustomers = $CMSNT->num_rows_safe("SELECT * FROM `customers` WHERE DATE(create_date) >= ? AND DATE(create_date) <= ?", [$filterDateFrom, $filterDateTo]) ?: 0;
-$activeCustomers = $CMSNT->get_row_safe("SELECT COUNT(DISTINCT customer_id) as cnt FROM `orders` WHERE DATE(create_date) >= ? AND DATE(create_date) <= ?", [$filterDateFrom, $filterDateTo])['cnt'];
+$totalCustomers = $ToryHub->num_rows_safe("SELECT * FROM `customers`", []) ?: 0;
+$newCustomers = $ToryHub->num_rows_safe("SELECT * FROM `customers` WHERE DATE(create_date) >= ? AND DATE(create_date) <= ?", [$filterDateFrom, $filterDateTo]) ?: 0;
+$activeCustomers = $ToryHub->get_row_safe("SELECT COUNT(DISTINCT customer_id) as cnt FROM `orders` WHERE DATE(create_date) >= ? AND DATE(create_date) <= ?", [$filterDateFrom, $filterDateTo])['cnt'];
 
 // Customer type breakdown
-$typeStats = $CMSNT->get_list_safe("SELECT customer_type, COUNT(*) as cnt, COALESCE(SUM(total_spent),0) as spent, COALESCE(SUM(balance),0) as balance
+$typeStats = $ToryHub->get_list_safe("SELECT customer_type, COUNT(*) as cnt, COALESCE(SUM(total_spent),0) as spent, COALESCE(SUM(balance),0) as balance
     FROM `customers` GROUP BY customer_type", []);
 
 // Top customers by spending in period
-$topCustomers = $CMSNT->get_list_safe("SELECT c.id, c.customer_code, c.fullname, c.customer_type, c.balance,
+$topCustomers = $ToryHub->get_list_safe("SELECT c.id, c.customer_code, c.fullname, c.customer_type, c.balance,
     COUNT(o.id) as period_orders, COALESCE(SUM(o.grand_total),0) as period_spent
     FROM `customers` c
     LEFT JOIN `orders` o ON c.id = o.customer_id AND o.status != 'cancelled'
@@ -25,7 +25,7 @@ $topCustomers = $CMSNT->get_list_safe("SELECT c.id, c.customer_code, c.fullname,
     ORDER BY period_spent DESC LIMIT 20", [$filterDateFrom, $filterDateTo]);
 
 // Customers with no orders in period (inactive)
-$inactiveCustomers = $CMSNT->get_list_safe("SELECT c.id, c.customer_code, c.fullname, c.customer_type, c.balance, c.total_orders,
+$inactiveCustomers = $ToryHub->get_list_safe("SELECT c.id, c.customer_code, c.fullname, c.customer_type, c.balance, c.total_orders,
     (SELECT MAX(o.create_date) FROM orders o WHERE o.customer_id = c.id) as last_order_date
     FROM `customers` c
     WHERE c.id NOT IN (SELECT DISTINCT customer_id FROM orders WHERE DATE(create_date) >= ? AND DATE(create_date) <= ? AND status != 'cancelled')

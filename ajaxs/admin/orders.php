@@ -53,7 +53,7 @@ if ($request === 'add') {
     // Check customer exists (if provided)
     $customer = null;
     if ($customer_id) {
-        $customer = $CMSNT->get_row_safe("SELECT * FROM `customers` WHERE `id` = ?", [$customer_id]);
+        $customer = $ToryHub->get_row_safe("SELECT * FROM `customers` WHERE `id` = ?", [$customer_id]);
         if (!$customer) {
             echo json_encode(['status' => 'error', 'msg' => __('Khách hàng không tồn tại')]);
             exit;
@@ -63,7 +63,7 @@ if ($request === 'add') {
     // Check duplicate product_code (mã hàng)
     $product_code = strtoupper(trim(input_post('product_code')));
     if ($product_code !== '') {
-        $existOrder = $CMSNT->get_row_safe("SELECT `id` FROM `orders` WHERE `product_code` = ?", [$product_code]);
+        $existOrder = $ToryHub->get_row_safe("SELECT `id` FROM `orders` WHERE `product_code` = ?", [$product_code]);
         if ($existOrder) {
             echo json_encode(['status' => 'error', 'msg' => __('Mã hàng đã tồn tại') . ': ' . $product_code]);
             exit;
@@ -76,7 +76,7 @@ if ($request === 'add') {
         foreach ($packages_input as $pkg) {
             $tracking = strtoupper(trim($pkg['tracking_cn'] ?? ''));
             if ($tracking !== '') {
-                $existPkg = $CMSNT->get_row_safe("SELECT `id` FROM `packages` WHERE `tracking_cn` = ?", [$tracking]);
+                $existPkg = $ToryHub->get_row_safe("SELECT `id` FROM `packages` WHERE `tracking_cn` = ?", [$tracking]);
                 if ($existPkg) {
                     echo json_encode(['status' => 'error', 'msg' => __('Mã vận đơn đã tồn tại') . ': ' . $tracking]);
                     exit;
@@ -101,7 +101,7 @@ if ($request === 'add') {
     $total_vnd = $total_cny * $exchange_rate;
     $service_fee = 0;
     if ($order_type === 'purchase') {
-        $service_fee_percent = floatval($CMSNT->site('service_fee_percent') ?: 3);
+        $service_fee_percent = floatval($ToryHub->site('service_fee_percent') ?: 3);
         $service_fee = round($total_vnd * $service_fee_percent / 100);
     }
 
@@ -148,7 +148,7 @@ if ($request === 'add') {
 
     $cargo_type = in_array(input_post('cargo_type'), ['easy', 'difficult']) ? input_post('cargo_type') : null;
 
-    $insertResult = $CMSNT->insert_safe("orders", [
+    $insertResult = $ToryHub->insert_safe("orders", [
         'order_code' => '', // Will update
         'customer_id' => $customer_id,
         'order_type' => $order_type,
@@ -193,17 +193,17 @@ if ($request === 'add') {
         exit;
     }
 
-    $newId = $CMSNT->insert_id();
+    $newId = $ToryHub->insert_id();
     $orderCode = str_pad($newId, 6, '0', STR_PAD_LEFT);
-    $CMSNT->update_safe("orders", ['order_code' => $orderCode], "id = ?", [$newId]);
+    $ToryHub->update_safe("orders", ['order_code' => $orderCode], "id = ?", [$newId]);
 
     // Update customer total_orders
     if ($customer_id) {
-        $CMSNT->cong_safe("customers", "total_orders", 1, "id = ?", [$customer_id]);
+        $ToryHub->cong_safe("customers", "total_orders", 1, "id = ?", [$customer_id]);
     }
 
     // Log initial status
-    $CMSNT->insert_safe("order_status_history", [
+    $ToryHub->insert_safe("order_status_history", [
         'order_id' => $newId,
         'old_status' => '',
         'new_status' => $status,
@@ -218,7 +218,7 @@ if ($request === 'add') {
     $packages = isset($_POST['packages']) ? $_POST['packages'] : [];
     if (!empty($packages)) {
         $Packages = new Packages();
-        $volume_divisor = floatval($CMSNT->site('volume_divisor') ?: 6000);
+        $volume_divisor = floatval($ToryHub->site('volume_divisor') ?: 6000);
         foreach ($packages as $pkg) {
             $pkg_qty = max(1, intval($pkg['qty'] ?? 1));
             $pkg_weight = floatval($pkg['weight'] ?? 0);
@@ -281,7 +281,7 @@ if ($request === 'add') {
 // ======== EDIT ========
 if ($request === 'edit') {
     $id = intval(input_post('id'));
-    $order = $CMSNT->get_row_safe("SELECT * FROM `orders` WHERE `id` = ?", [$id]);
+    $order = $ToryHub->get_row_safe("SELECT * FROM `orders` WHERE `id` = ?", [$id]);
     if (!$order) {
         echo json_encode(['status' => 'error', 'msg' => __('Đơn hàng không tồn tại')]);
         exit;
@@ -306,7 +306,7 @@ if ($request === 'edit') {
     // Check duplicate product_code (exclude current order)
     $product_code = strtoupper(trim(input_post('product_code')));
     if ($product_code !== '') {
-        $existOrder = $CMSNT->get_row_safe("SELECT `id` FROM `orders` WHERE `product_code` = ? AND `id` != ?", [$product_code, $id]);
+        $existOrder = $ToryHub->get_row_safe("SELECT `id` FROM `orders` WHERE `product_code` = ? AND `id` != ?", [$product_code, $id]);
         if ($existOrder) {
             echo json_encode(['status' => 'error', 'msg' => __('Mã hàng đã tồn tại') . ': ' . $product_code]);
             exit;
@@ -351,7 +351,7 @@ if ($request === 'edit') {
 
     // Log status change
     if ($status !== $order['status']) {
-        $CMSNT->insert_safe("order_status_history", [
+        $ToryHub->insert_safe("order_status_history", [
             'order_id' => $id,
             'old_status' => $order['status'],
             'new_status' => $status,
@@ -365,16 +365,16 @@ if ($request === 'edit') {
     $oldCustomerId = $order['customer_id'];
     if ($oldCustomerId != $customer_id) {
         if ($oldCustomerId) {
-            $CMSNT->tru_safe("customers", "total_orders", 1, "id = ?", [$oldCustomerId]);
+            $ToryHub->tru_safe("customers", "total_orders", 1, "id = ?", [$oldCustomerId]);
         }
         if ($customer_id) {
-            $CMSNT->cong_safe("customers", "total_orders", 1, "id = ?", [$customer_id]);
+            $ToryHub->cong_safe("customers", "total_orders", 1, "id = ?", [$customer_id]);
         }
     }
 
     $cargo_type = in_array(input_post('cargo_type'), ['easy', 'difficult']) ? input_post('cargo_type') : null;
 
-    $CMSNT->update_safe("orders", [
+    $ToryHub->update_safe("orders", [
         'customer_id' => $customer_id,
         'order_type' => 'shipping',
         'product_type' => $product_type,
@@ -397,7 +397,7 @@ if ($request === 'edit') {
 // ======== DELETE ========
 if ($request === 'delete') {
     $id = intval(input_post('id'));
-    $order = $CMSNT->get_row_safe("SELECT * FROM `orders` WHERE `id` = ?", [$id]);
+    $order = $ToryHub->get_row_safe("SELECT * FROM `orders` WHERE `id` = ?", [$id]);
     if (!$order) {
         echo json_encode(['status' => 'error', 'msg' => __('Đơn hàng không tồn tại')]);
         exit;
@@ -409,31 +409,31 @@ if ($request === 'delete') {
     }
 
     // Get all packages linked to this order
-    $linkedPackages = $CMSNT->get_list_safe(
+    $linkedPackages = $ToryHub->get_list_safe(
         "SELECT p.id FROM `packages` p INNER JOIN `package_orders` po ON p.id = po.package_id WHERE po.order_id = ?", [$id]
     );
 
     foreach ($linkedPackages as $lp) {
         $pkgId = $lp['id'];
         // Check if this package is linked to other orders
-        $otherLinks = $CMSNT->num_rows_safe(
+        $otherLinks = $ToryHub->num_rows_safe(
             "SELECT po.id FROM `package_orders` po WHERE po.package_id = ? AND po.order_id != ?", [$pkgId, $id]
         );
         if ($otherLinks < 1) {
             // No other orders linked - delete package entirely
-            $CMSNT->remove_safe("bag_packages", "package_id = ?", [$pkgId]);
-            $CMSNT->remove_safe("package_status_history", "package_id = ?", [$pkgId]);
-            $CMSNT->remove_safe("packages", "id = ?", [$pkgId]);
+            $ToryHub->remove_safe("bag_packages", "package_id = ?", [$pkgId]);
+            $ToryHub->remove_safe("package_status_history", "package_id = ?", [$pkgId]);
+            $ToryHub->remove_safe("packages", "id = ?", [$pkgId]);
         }
     }
 
-    $CMSNT->remove_safe("package_orders", "order_id = ?", [$id]);
-    $CMSNT->remove_safe("order_status_history", "order_id = ?", [$id]);
-    $CMSNT->remove_safe("orders", "id = ?", [$id]);
+    $ToryHub->remove_safe("package_orders", "order_id = ?", [$id]);
+    $ToryHub->remove_safe("order_status_history", "order_id = ?", [$id]);
+    $ToryHub->remove_safe("orders", "id = ?", [$id]);
 
     // Update customer total_orders
     if ($order['customer_id']) {
-        $CMSNT->tru_safe("customers", "total_orders", 1, "id = ?", [$order['customer_id']]);
+        $ToryHub->tru_safe("customers", "total_orders", 1, "id = ?", [$order['customer_id']]);
     }
 
     add_log('delete_order', 'Xóa đơn hàng: ' . $order['order_code']);

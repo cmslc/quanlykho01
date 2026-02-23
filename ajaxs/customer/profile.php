@@ -10,7 +10,7 @@ require_once(__DIR__.'/../../libs/csrf.php');
 
 header('Content-Type: application/json; charset=utf-8');
 
-$CMSNT = new DB();
+$ToryHub = new DB();
 
 $csrf = new Csrf();
 if (!$csrf->validate()) {
@@ -24,7 +24,7 @@ if (!isset($_SESSION['customer_login'])) {
     exit;
 }
 
-$getUser = $CMSNT->get_row_safe("SELECT * FROM `users` WHERE `role` = 'customer' AND `token` = ?", [$_SESSION['customer_login']]);
+$getUser = $ToryHub->get_row_safe("SELECT * FROM `users` WHERE `role` = 'customer' AND `token` = ?", [$_SESSION['customer_login']]);
 if (!$getUser) {
     echo json_encode(['status' => 'error', 'msg' => __('Phiên đăng nhập hết hạn')]);
     exit;
@@ -53,7 +53,7 @@ if ($request === 'update_profile') {
             exit;
         }
         // Check duplicate email (exclude current user)
-        $existEmail = $CMSNT->get_row_safe("SELECT `id` FROM `users` WHERE `email` = ? AND `id` != ?", [$email, $getUser['id']]);
+        $existEmail = $ToryHub->get_row_safe("SELECT `id` FROM `users` WHERE `email` = ? AND `id` != ?", [$email, $getUser['id']]);
         if ($existEmail) {
             echo json_encode(['status' => 'error', 'msg' => __('Email đã được sử dụng bởi tài khoản khác')]);
             exit;
@@ -67,7 +67,7 @@ if ($request === 'update_profile') {
     }
 
     // Update users table
-    $CMSNT->update_safe('users', [
+    $ToryHub->update_safe('users', [
         'fullname' => $fullname,
         'email' => $email,
         'phone' => $phone,
@@ -75,9 +75,9 @@ if ($request === 'update_profile') {
     ], "`id` = ?", [$getUser['id']]);
 
     // Update customers table
-    $customer = $CMSNT->get_row_safe("SELECT `id` FROM `customers` WHERE `user_id` = ?", [$getUser['id']]);
+    $customer = $ToryHub->get_row_safe("SELECT `id` FROM `customers` WHERE `user_id` = ?", [$getUser['id']]);
     if ($customer) {
-        $CMSNT->update_safe('customers', [
+        $ToryHub->update_safe('customers', [
             'fullname' => $fullname,
             'email' => $email,
             'phone' => $phone,

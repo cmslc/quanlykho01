@@ -4,7 +4,7 @@ require_once(__DIR__.'/../../../libs/csrf.php');
 require_once(__DIR__.'/../../../libs/database/packages.php');
 
 $id = intval(input_get('id'));
-$order = $CMSNT->get_row_safe("SELECT o.*, c.fullname as customer_name, c.customer_code, c.phone as customer_phone
+$order = $ToryHub->get_row_safe("SELECT o.*, c.fullname as customer_name, c.customer_code, c.phone as customer_phone
     FROM `orders` o LEFT JOIN `customers` c ON o.customer_id = c.id
     WHERE o.id = ?", [$id]);
 if (!$order) {
@@ -31,7 +31,7 @@ if (!$isRetail && !empty($order['product_code'])) {
 }
 
 // Status history
-$history = $CMSNT->get_list_safe("SELECT h.*, u.username FROM `order_status_history` h
+$history = $ToryHub->get_list_safe("SELECT h.*, u.username FROM `order_status_history` h
     LEFT JOIN `users` u ON h.changed_by = u.id
     WHERE h.order_id = ? ORDER BY h.create_date ASC", [$id]);
 

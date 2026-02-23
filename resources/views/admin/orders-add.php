@@ -4,7 +4,7 @@ require_once(__DIR__.'/../../../libs/csrf.php');
 
 $page_title = __('Tạo đơn hàng mới');
 
-$customers = $CMSNT->get_list_safe("SELECT `id`, `customer_code`, `fullname` FROM `customers` ORDER BY `fullname` ASC", []);
+$customers = $ToryHub->get_list_safe("SELECT `id`, `customer_code`, `fullname` FROM `customers` ORDER BY `fullname` ASC", []);
 $exchange_rate = get_exchange_rate();
 $preselect_customer = input_get('customer_id') ?: '';
 

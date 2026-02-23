@@ -10,7 +10,7 @@ require_once(__DIR__.'/../../libs/csrf.php');
 
 header('Content-Type: application/json; charset=utf-8');
 
-$CMSNT = new DB();
+$ToryHub = new DB();
 
 $csrf = new Csrf();
 if (!$csrf->validate()) {
@@ -24,7 +24,7 @@ if (!isset($_SESSION['customer_login'])) {
     exit;
 }
 
-$getUser = $CMSNT->get_row_safe("SELECT * FROM `users` WHERE `role` = 'customer' AND `token` = ?", [$_SESSION['customer_login']]);
+$getUser = $ToryHub->get_row_safe("SELECT * FROM `users` WHERE `role` = 'customer' AND `token` = ?", [$_SESSION['customer_login']]);
 if (!$getUser) {
     echo json_encode(['status' => 'error', 'msg' => __('Phiên đăng nhập hết hạn')]);
     exit;
@@ -68,7 +68,7 @@ if ($request === 'change_password') {
 
     // Update password
     $hashed = TypePassword($new_password);
-    $CMSNT->update_safe('users', [
+    $ToryHub->update_safe('users', [
         'password' => $hashed,
         'update_date' => gettime()
     ], "`id` = ?", [$getUser['id']]);

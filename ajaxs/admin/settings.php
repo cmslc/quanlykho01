@@ -55,11 +55,11 @@ if ($request === 'update_settings') {
             $value = trim($_POST[$field]);
         }
 
-        $existing = $CMSNT->get_row_safe("SELECT `id` FROM `settings` WHERE `name` = ?", [$field]);
+        $existing = $ToryHub->get_row_safe("SELECT `id` FROM `settings` WHERE `name` = ?", [$field]);
         if ($existing) {
-            $CMSNT->update_safe("settings", ['value' => $value], "id = ?", [$existing['id']]);
+            $ToryHub->update_safe("settings", ['value' => $value], "id = ?", [$existing['id']]);
         } else {
-            $CMSNT->insert_safe("settings", ['name' => $field, 'value' => $value]);
+            $ToryHub->insert_safe("settings", ['name' => $field, 'value' => $value]);
         }
     }
 
@@ -73,8 +73,8 @@ if ($request === 'test_telegram') {
     require_once(__DIR__.'/../../libs/telegram.php');
 
     // Use settings from DB if available, fallback to .env
-    $botToken = $CMSNT->site('telegram_bot_token') ?: ($_ENV['TELEGRAM_BOT_TOKEN'] ?? '');
-    $chatId = $CMSNT->site('telegram_chat_id') ?: ($_ENV['TELEGRAM_CHAT_ID'] ?? '');
+    $botToken = $ToryHub->site('telegram_bot_token') ?: ($_ENV['TELEGRAM_BOT_TOKEN'] ?? '');
+    $chatId = $ToryHub->site('telegram_chat_id') ?: ($_ENV['TELEGRAM_CHAT_ID'] ?? '');
 
     if (empty($botToken) || empty($chatId)) {
         echo json_encode(['status' => 'error', 'msg' => __('Chưa cấu hình Bot Token hoặc Chat ID')]);
@@ -82,7 +82,7 @@ if ($request === 'test_telegram') {
     }
 
     $bot = new TelegramBot();
-    $result = $bot->sendMessage("✅ <b>CMS01 Test</b>\n\nKết nối Telegram thành công!\n📅 " . date('d/m/Y H:i:s'));
+    $result = $bot->sendMessage("✅ <b>ToryHub Test</b>\n\nKết nối Telegram thành công!\n📅 " . date('d/m/Y H:i:s'));
 
     if ($result) {
         echo json_encode(['status' => 'success', 'msg' => __('Gửi thành công')]);
@@ -107,7 +107,7 @@ if ($request === 'test_email') {
              <p>' . __('Kết nối email thành công!') . '</p>
              <p style="color:#888;">' . date('d/m/Y H:i:s') . '</p>';
 
-    $result = $email->send($test_email, 'CMS01 - Test Email', $body);
+    $result = $email->send($test_email, 'ToryHub - Test Email', $body);
 
     if ($result) {
         echo json_encode(['status' => 'success', 'msg' => __('Gửi email thành công')]);

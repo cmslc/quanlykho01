@@ -5,7 +5,7 @@
         <div class="container-fluid">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <span class="text-muted fs-13">Copyright &copy; <?= date('Y') ?> CMS01 - Warehouse & Shipping Management</span>
+                    <span class="text-muted fs-13">Copyright &copy; <?= date('Y') ?> ToryHub - Warehouse & Shipping Management</span>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <span class="text-muted fs-13">v1.0</span>

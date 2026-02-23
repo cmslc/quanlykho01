@@ -17,14 +17,14 @@ if ($filterStatus && in_array($filterStatus, $cnStatuses)) {
     $params[] = $filterStatus;
 }
 
-$orders = $CMSNT->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code
+$orders = $ToryHub->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code
     FROM `orders` o LEFT JOIN `customers` c ON o.customer_id = c.id
     WHERE $where ORDER BY o.create_date DESC", $params);
 
 // Status counts
 $statusCounts = [];
 foreach ($cnStatuses as $s) {
-    $statusCounts[$s] = $CMSNT->num_rows_safe("SELECT * FROM `orders` WHERE `status` = ?", [$s]) ?: 0;
+    $statusCounts[$s] = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` = ?", [$s]) ?: 0;
 }
 
 require_once(__DIR__.'/header.php');

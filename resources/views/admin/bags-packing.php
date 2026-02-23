@@ -7,12 +7,12 @@ $bag = null;
 $bagPackages = [];
 
 if ($bagId) {
-    $bag = $CMSNT->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bagId]);
+    $bag = $ToryHub->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bagId]);
     if (!$bag) {
         redirect(base_url('admin/bags-list'));
     }
     // Get packages in this bag
-    $bagPackages = $CMSNT->get_list_safe(
+    $bagPackages = $ToryHub->get_list_safe(
         "SELECT p.*, bp.scanned_at,
                 o.product_name as order_product, o.product_code as order_code,
                 o.product_type, c.fullname as customer_name

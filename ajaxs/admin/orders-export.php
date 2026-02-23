@@ -52,7 +52,7 @@ if ($filterSearch) {
     $params[] = $searchLike;
 }
 
-$orders = $CMSNT->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code
+$orders = $ToryHub->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code
     FROM `orders` o LEFT JOIN `customers` c ON o.customer_id = c.id
     WHERE $where ORDER BY o.create_date DESC", $params);
 
@@ -62,7 +62,7 @@ $trackingMap = [];
 $weightMap = [];
 if (!empty($orderIds)) {
     $placeholders = implode(',', array_fill(0, count($orderIds), '?'));
-    $packages = $CMSNT->get_list_safe(
+    $packages = $ToryHub->get_list_safe(
         "SELECT po.order_id, p.tracking_cn, p.weight_charged FROM `package_orders` po
          JOIN `packages` p ON po.package_id = p.id
          WHERE po.order_id IN ($placeholders)",

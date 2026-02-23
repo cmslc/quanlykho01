@@ -32,7 +32,7 @@ if ($request === 'create') {
 
     if ($bag_code_input !== '') {
         // Manual bag code - check duplicate
-        $exists = $CMSNT->get_row_safe("SELECT `id` FROM `bags` WHERE `bag_code` = ?", [$bag_code_input]);
+        $exists = $ToryHub->get_row_safe("SELECT `id` FROM `bags` WHERE `bag_code` = ?", [$bag_code_input]);
         if ($exists) {
             echo json_encode(['status' => 'error', 'msg' => __('Mã bao đã tồn tại') . ': ' . $bag_code_input]);
             exit;
@@ -41,7 +41,7 @@ if ($request === 'create') {
     } else {
         // Auto-generate bag code: BAO-YYYYMMDD-NNN
         $prefix = 'BAO-' . date('Ymd') . '-';
-        $last = $CMSNT->get_row_safe(
+        $last = $ToryHub->get_row_safe(
             "SELECT `bag_code` FROM `bags` WHERE `bag_code` LIKE ? ORDER BY `id` DESC LIMIT 1",
             [$prefix . '%']
         );
@@ -49,7 +49,7 @@ if ($request === 'create') {
         $bag_code = $prefix . str_pad($seq, 3, '0', STR_PAD_LEFT);
     }
 
-    $result = $CMSNT->insert_safe("bags", [
+    $result = $ToryHub->insert_safe("bags", [
         'bag_code' => $bag_code,
         'status' => 'open',
         'total_packages' => 0,
@@ -66,7 +66,7 @@ if ($request === 'create') {
         exit;
     }
 
-    $bagId = $CMSNT->insert_id();
+    $bagId = $ToryHub->insert_id();
     add_log('create_bag', 'Tạo bao hàng: ' . $bag_code);
 
     echo json_encode([
@@ -89,7 +89,7 @@ if ($request === 'scan') {
     }
 
     // Check bag exists and is open
-    $bag = $CMSNT->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bag_id]);
+    $bag = $ToryHub->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bag_id]);
     if (!$bag) {
         echo json_encode(['status' => 'error', 'msg' => __('Bao hàng không tồn tại')]);
         exit;
@@ -100,7 +100,7 @@ if ($request === 'scan') {
     }
 
     // Find package by tracking_cn
-    $package = $CMSNT->get_row_safe("SELECT * FROM `packages` WHERE `tracking_cn` = ?", [$tracking_cn]);
+    $package = $ToryHub->get_row_safe("SELECT * FROM `packages` WHERE `tracking_cn` = ?", [$tracking_cn]);
     if (!$package) {
         echo json_encode(['status' => 'error', 'msg' => __('Không tìm thấy kiện hàng với mã') . ': ' . $tracking_cn]);
         exit;
@@ -114,7 +114,7 @@ if ($request === 'scan') {
     }
 
     // Check if already in a bag
-    $existingBag = $CMSNT->get_row_safe(
+    $existingBag = $ToryHub->get_row_safe(
         "SELECT b.bag_code FROM `bag_packages` bp JOIN `bags` b ON bp.bag_id = b.id WHERE bp.package_id = ?",
         [$package['id']]
     );
@@ -124,7 +124,7 @@ if ($request === 'scan') {
     }
 
     // Add to bag
-    $CMSNT->insert_safe("bag_packages", [
+    $ToryHub->insert_safe("bag_packages", [
         'bag_id' => $bag_id,
         'package_id' => $package['id'],
         'scanned_by' => $getUser['id'],
@@ -136,19 +136,19 @@ if ($request === 'scan') {
     $Packages->updateStatus($package['id'], 'packed', $getUser['id'], __('Đóng vào bao') . ' ' . $bag['bag_code']);
 
     // Update bag totals
-    $totals = $CMSNT->get_row_safe(
+    $totals = $ToryHub->get_row_safe(
         "SELECT COUNT(*) as cnt, COALESCE(SUM(p.weight_charged), 0) as total_w
          FROM `bag_packages` bp JOIN `packages` p ON bp.package_id = p.id
          WHERE bp.bag_id = ?", [$bag_id]
     );
-    $CMSNT->update_safe("bags", [
+    $ToryHub->update_safe("bags", [
         'total_packages' => $totals['cnt'],
         'total_weight' => $totals['total_w'],
         'update_date' => gettime()
     ], "id = ?", [$bag_id]);
 
     // Get order info for this package
-    $orderInfo = $CMSNT->get_row_safe(
+    $orderInfo = $ToryHub->get_row_safe(
         "SELECT o.id, o.product_code, o.product_name, o.product_type, c.fullname as customer_name
          FROM `package_orders` po
          JOIN `orders` o ON po.order_id = o.id
@@ -180,29 +180,29 @@ if ($request === 'unscan') {
     $bag_id = intval(input_post('bag_id'));
     $package_id = intval(input_post('package_id'));
 
-    $bag = $CMSNT->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bag_id]);
+    $bag = $ToryHub->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bag_id]);
     if (!$bag || $bag['status'] !== 'open') {
         echo json_encode(['status' => 'error', 'msg' => __('Bao hàng đã đóng, không thể gỡ kiện')]);
         exit;
     }
 
     // Remove from bag
-    $CMSNT->remove_safe("bag_packages", "bag_id = ? AND package_id = ?", [$bag_id, $package_id]);
+    $ToryHub->remove_safe("bag_packages", "bag_id = ? AND package_id = ?", [$bag_id, $package_id]);
 
     // Revert package status to cn_warehouse
     $Packages = new Packages();
-    $package = $CMSNT->get_row_safe("SELECT * FROM `packages` WHERE `id` = ?", [$package_id]);
+    $package = $ToryHub->get_row_safe("SELECT * FROM `packages` WHERE `id` = ?", [$package_id]);
     if ($package && $package['status'] === 'packed') {
         $Packages->updateStatus($package_id, 'cn_warehouse', $getUser['id'], __('Gỡ khỏi bao') . ' ' . $bag['bag_code']);
     }
 
     // Update bag totals
-    $totals = $CMSNT->get_row_safe(
+    $totals = $ToryHub->get_row_safe(
         "SELECT COUNT(*) as cnt, COALESCE(SUM(p.weight_charged), 0) as total_w
          FROM `bag_packages` bp JOIN `packages` p ON bp.package_id = p.id
          WHERE bp.bag_id = ?", [$bag_id]
     );
-    $CMSNT->update_safe("bags", [
+    $ToryHub->update_safe("bags", [
         'total_packages' => $totals['cnt'],
         'total_weight' => $totals['total_w'],
         'update_date' => gettime()
@@ -226,13 +226,13 @@ if ($request === 'update_bag_weight') {
     $height_cm = floatval(input_post('height_cm'));
     $weight_volume = ($length_cm * $width_cm * $height_cm) / 1000000;
 
-    $bag = $CMSNT->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bag_id]);
+    $bag = $ToryHub->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bag_id]);
     if (!$bag || $bag['status'] !== 'open') {
         echo json_encode(['status' => 'error', 'msg' => __('Bao hàng đã đóng, không thể cập nhật')]);
         exit;
     }
 
-    $CMSNT->update_safe("bags", [
+    $ToryHub->update_safe("bags", [
         'total_weight' => $weight,
         'length_cm' => $length_cm,
         'width_cm' => $width_cm,
@@ -253,7 +253,7 @@ if ($request === 'update_bag_weight') {
 if ($request === 'seal') {
     $bag_id = intval(input_post('bag_id'));
 
-    $bag = $CMSNT->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bag_id]);
+    $bag = $ToryHub->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bag_id]);
     if (!$bag) {
         echo json_encode(['status' => 'error', 'msg' => __('Bao hàng không tồn tại')]);
         exit;
@@ -267,7 +267,7 @@ if ($request === 'seal') {
         exit;
     }
 
-    $CMSNT->update_safe("bags", [
+    $ToryHub->update_safe("bags", [
         'status' => 'sealed',
         'sealed_by' => $getUser['id'],
         'sealed_date' => gettime(),
@@ -284,7 +284,7 @@ if ($request === 'seal') {
 if ($request === 'unseal') {
     $bag_id = intval(input_post('bag_id'));
 
-    $bag = $CMSNT->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bag_id]);
+    $bag = $ToryHub->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bag_id]);
     if (!$bag) {
         echo json_encode(['status' => 'error', 'msg' => __('Bao hàng không tồn tại')]);
         exit;
@@ -294,7 +294,7 @@ if ($request === 'unseal') {
         exit;
     }
 
-    $CMSNT->update_safe("bags", [
+    $ToryHub->update_safe("bags", [
         'status' => 'open',
         'sealed_by' => null,
         'sealed_date' => null,
@@ -311,7 +311,7 @@ if ($request === 'unseal') {
 if ($request === 'ship') {
     $bag_id = intval(input_post('bag_id'));
 
-    $bag = $CMSNT->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bag_id]);
+    $bag = $ToryHub->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bag_id]);
     if (!$bag) {
         echo json_encode(['status' => 'error', 'msg' => __('Bao hàng không tồn tại')]);
         exit;
@@ -322,14 +322,14 @@ if ($request === 'ship') {
     }
 
     // Update bag status
-    $CMSNT->update_safe("bags", [
+    $ToryHub->update_safe("bags", [
         'status' => 'shipping',
         'update_date' => gettime()
     ], "id = ?", [$bag_id]);
 
     // Update all packages in this bag to shipping
     $Packages = new Packages();
-    $bagPackages = $CMSNT->get_list_safe(
+    $bagPackages = $ToryHub->get_list_safe(
         "SELECT package_id FROM `bag_packages` WHERE `bag_id` = ?", [$bag_id]
     );
     foreach ($bagPackages as $bp) {
@@ -346,7 +346,7 @@ if ($request === 'ship') {
 if ($request === 'delete') {
     $bag_id = intval(input_post('bag_id'));
 
-    $bag = $CMSNT->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bag_id]);
+    $bag = $ToryHub->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bag_id]);
     if (!$bag) {
         echo json_encode(['status' => 'error', 'msg' => __('Bao hàng không tồn tại')]);
         exit;
@@ -358,7 +358,7 @@ if ($request === 'delete') {
 
     // Revert all packages back to cn_warehouse
     $Packages = new Packages();
-    $bagPackages = $CMSNT->get_list_safe(
+    $bagPackages = $ToryHub->get_list_safe(
         "SELECT bp.package_id FROM `bag_packages` bp JOIN `packages` p ON bp.package_id = p.id WHERE bp.bag_id = ? AND p.status = 'packed'",
         [$bag_id]
     );
@@ -366,8 +366,8 @@ if ($request === 'delete') {
         $Packages->updateStatus($bp['package_id'], 'cn_warehouse', $getUser['id'], __('Xóa bao') . ' ' . $bag['bag_code']);
     }
 
-    $CMSNT->remove_safe("bag_packages", "bag_id = ?", [$bag_id]);
-    $CMSNT->remove_safe("bags", "id = ?", [$bag_id]);
+    $ToryHub->remove_safe("bag_packages", "bag_id = ?", [$bag_id]);
+    $ToryHub->remove_safe("bags", "id = ?", [$bag_id]);
 
     add_log('delete_bag', 'Xóa bao hàng: ' . $bag['bag_code']);
 
@@ -379,7 +379,7 @@ if ($request === 'delete') {
 if ($request === 'upload_images') {
     $bag_id = intval(input_post('bag_id'));
 
-    $bag = $CMSNT->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bag_id]);
+    $bag = $ToryHub->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bag_id]);
     if (!$bag) {
         echo json_encode(['status' => 'error', 'msg' => __('Bao hàng không tồn tại')]);
         exit;
@@ -411,7 +411,7 @@ if ($request === 'upload_images') {
     }
 
     $allImages = array_merge($currentImages, $newPaths);
-    $CMSNT->update_safe("bags", [
+    $ToryHub->update_safe("bags", [
         'images' => implode(',', $allImages),
         'update_date' => gettime()
     ], "id = ?", [$bag_id]);
@@ -435,7 +435,7 @@ if ($request === 'delete_image') {
     $bag_id = intval(input_post('bag_id'));
     $image_path = trim(input_post('image_path'));
 
-    $bag = $CMSNT->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bag_id]);
+    $bag = $ToryHub->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bag_id]);
     if (!$bag) {
         echo json_encode(['status' => 'error', 'msg' => __('Bao hàng không tồn tại')]);
         exit;
@@ -449,7 +449,7 @@ if ($request === 'delete_image') {
     // Delete file
     delete_uploaded_file($image_path);
 
-    $CMSNT->update_safe("bags", [
+    $ToryHub->update_safe("bags", [
         'images' => !empty($remaining) ? implode(',', $remaining) : null,
         'update_date' => gettime()
     ], "id = ?", [$bag_id]);

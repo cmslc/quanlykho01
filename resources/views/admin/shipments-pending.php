@@ -12,10 +12,10 @@ $filterType = input_get('type') ?: '';
 $notInShipment = "p.id NOT IN (SELECT sp.package_id FROM `shipment_packages` sp JOIN `shipments` s ON sp.shipment_id = s.id WHERE s.status IN ('preparing','in_transit'))";
 
 // === Summary counts ===
-$cntCnWarehouse = $CMSNT->num_rows_safe(
+$cntCnWarehouse = $ToryHub->num_rows_safe(
     "SELECT p.id FROM `packages` p WHERE p.status = 'cn_warehouse' AND $notInShipment", []
 );
-$cntPacked = $CMSNT->num_rows_safe(
+$cntPacked = $ToryHub->num_rows_safe(
     "SELECT p.id FROM `packages` p WHERE p.status = 'packed' AND p.id IN (SELECT bp2.package_id FROM `bag_packages` bp2 JOIN `bags` b2 ON bp2.bag_id = b2.id WHERE b2.status = 'sealed') AND $notInShipment", []
 );
 $totalPendingPkgs = $cntCnWarehouse + $cntPacked;
@@ -37,7 +37,7 @@ if ($filterType !== 'wholesale') {
         $bagParams[] = intval($filterCustomer);
     }
 
-    $sealedBags = $CMSNT->get_list_safe(
+    $sealedBags = $ToryHub->get_list_safe(
         "SELECT b.id as bag_id, b.bag_code, b.images as bag_images,
             COUNT(p.id) as pkg_count,
             b.total_weight as bag_weight,
@@ -60,7 +60,7 @@ if ($filterType !== 'wholesale') {
         $ph = implode(',', array_fill(0, count($bagIds), '?'));
 
         // Package IDs per bag
-        $bagPkgs = $CMSNT->get_list_safe(
+        $bagPkgs = $ToryHub->get_list_safe(
             "SELECT bp.bag_id, p.id as package_id FROM `bag_packages` bp
              JOIN `packages` p ON bp.package_id = p.id
              WHERE bp.bag_id IN ($ph) AND p.status = 'packed' AND $notInShipment",
@@ -71,7 +71,7 @@ if ($filterType !== 'wholesale') {
         }
 
         // Customer info per bag
-        $bagCusts = $CMSNT->get_list_safe(
+        $bagCusts = $ToryHub->get_list_safe(
             "SELECT DISTINCT bp.bag_id, c.id as cid, c.fullname
              FROM `bag_packages` bp
              JOIN `packages` p ON bp.package_id = p.id
@@ -104,7 +104,7 @@ if ($filterType !== 'retail') {
         $orderParams[] = intval($filterCustomer);
     }
 
-    $wholesaleOrders = $CMSNT->get_list_safe(
+    $wholesaleOrders = $ToryHub->get_list_safe(
         "SELECT o.id, o.product_code, o.cargo_type, o.product_image, o.customer_id,
             c.fullname as customer_name, c.customer_code,
             COUNT(p.id) as pkg_count,
@@ -125,7 +125,7 @@ if ($filterType !== 'retail') {
 
 $totalRows = count($sealedBags) + count($wholesaleOrders);
 
-$customers = $CMSNT->get_list_safe("SELECT `id`, `customer_code`, `fullname` FROM `customers` ORDER BY `fullname` ASC", []);
+$customers = $ToryHub->get_list_safe("SELECT `id`, `customer_code`, `fullname` FROM `customers` ORDER BY `fullname` ASC", []);
 
 require_once(__DIR__.'/header.php');
 require_once(__DIR__.'/sidebar.php');

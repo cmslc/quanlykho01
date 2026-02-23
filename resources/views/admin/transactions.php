@@ -30,18 +30,18 @@ if ($filterDateTo) {
     $params[] = $filterDateTo;
 }
 
-$transactions = $CMSNT->get_list_safe("SELECT t.*, c.fullname as customer_name, c.customer_code, u.username as created_by_name
+$transactions = $ToryHub->get_list_safe("SELECT t.*, c.fullname as customer_name, c.customer_code, u.username as created_by_name
     FROM `transactions` t
     LEFT JOIN `customers` c ON t.customer_id = c.id
     LEFT JOIN `users` u ON t.created_by = u.id
     WHERE $where ORDER BY t.create_date DESC LIMIT 500", $params);
 
-$customers = $CMSNT->get_list_safe("SELECT `id`, `customer_code`, `fullname` FROM `customers` ORDER BY `fullname` ASC", []);
+$customers = $ToryHub->get_list_safe("SELECT `id`, `customer_code`, `fullname` FROM `customers` ORDER BY `fullname` ASC", []);
 
 // Summary
-$totalDeposit = $CMSNT->get_row_safe("SELECT COALESCE(SUM(amount),0) as total FROM `transactions` WHERE `type` = 'deposit'", []);
-$totalPayment = $CMSNT->get_row_safe("SELECT COALESCE(SUM(ABS(amount)),0) as total FROM `transactions` WHERE `type` = 'payment'", []);
-$totalRefund = $CMSNT->get_row_safe("SELECT COALESCE(SUM(amount),0) as total FROM `transactions` WHERE `type` = 'refund'", []);
+$totalDeposit = $ToryHub->get_row_safe("SELECT COALESCE(SUM(amount),0) as total FROM `transactions` WHERE `type` = 'deposit'", []);
+$totalPayment = $ToryHub->get_row_safe("SELECT COALESCE(SUM(ABS(amount)),0) as total FROM `transactions` WHERE `type` = 'payment'", []);
+$totalRefund = $ToryHub->get_row_safe("SELECT COALESCE(SUM(amount),0) as total FROM `transactions` WHERE `type` = 'refund'", []);
 
 require_once(__DIR__.'/header.php');
 require_once(__DIR__.'/sidebar.php');
@@ -209,7 +209,7 @@ require_once(__DIR__.'/sidebar.php');
                                         <td class="fw-bold"><?= format_vnd($txn['balance_after']) ?></td>
                                         <td>
                                             <?php if ($txn['order_id']): ?>
-                                            <?php $txnOrder = $CMSNT->get_row_safe("SELECT order_code FROM orders WHERE id = ?", [$txn['order_id']]); ?>
+                                            <?php $txnOrder = $ToryHub->get_row_safe("SELECT order_code FROM orders WHERE id = ?", [$txn['order_id']]); ?>
                                             <a href="<?= base_url('admin/orders-detail&id=' . $txn['order_id']) ?>"><?= $txnOrder['order_code'] ?? '' ?></a>
                                             <?php else: ?>-<?php endif; ?>
                                         </td>

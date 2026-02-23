@@ -41,7 +41,7 @@ if ($request === 'add') {
     }
 
     // Check duplicate phone
-    $exists = $CMSNT->get_row_safe("SELECT `id` FROM `customers` WHERE `phone` = ?", [$phone]);
+    $exists = $ToryHub->get_row_safe("SELECT `id` FROM `customers` WHERE `phone` = ?", [$phone]);
     if ($exists) {
         echo json_encode(['status' => 'error', 'msg' => __('Số điện thoại đã tồn tại')]);
         exit;
@@ -52,7 +52,7 @@ if ($request === 'add') {
         $customer_type = 'normal';
     }
 
-    $CMSNT->insert_safe("customers", [
+    $ToryHub->insert_safe("customers", [
         'fullname' => $fullname,
         'phone' => $phone,
         'email' => $email,
@@ -70,11 +70,11 @@ if ($request === 'add') {
         'update_date' => gettime()
     ]);
 
-    $newId = $CMSNT->insert_id();
+    $newId = $ToryHub->insert_id();
 
     // Generate customer code: KH + padded ID
     $customerCode = generate_customer_code($newId);
-    $CMSNT->update_safe("customers", ['customer_code' => $customerCode], "id = ?", [$newId]);
+    $ToryHub->update_safe("customers", ['customer_code' => $customerCode], "id = ?", [$newId]);
 
     add_log('add_customer', 'Thêm khách hàng: ' . $customerCode . ' - ' . $fullname);
     echo json_encode([
@@ -90,7 +90,7 @@ if ($request === 'add') {
 // ======== EDIT ========
 if ($request === 'edit') {
     $id = intval(input_post('id'));
-    $customer = $CMSNT->get_row_safe("SELECT * FROM `customers` WHERE `id` = ?", [$id]);
+    $customer = $ToryHub->get_row_safe("SELECT * FROM `customers` WHERE `id` = ?", [$id]);
     if (!$customer) {
         echo json_encode(['status' => 'error', 'msg' => __('Khách hàng không tồn tại')]);
         exit;
@@ -112,7 +112,7 @@ if ($request === 'edit') {
 
     // Check duplicate phone (exclude current)
     if (!empty($phone)) {
-        $exists = $CMSNT->get_row_safe("SELECT `id` FROM `customers` WHERE `phone` = ? AND `id` != ?", [$phone, $id]);
+        $exists = $ToryHub->get_row_safe("SELECT `id` FROM `customers` WHERE `phone` = ? AND `id` != ?", [$phone, $id]);
         if ($exists) {
             echo json_encode(['status' => 'error', 'msg' => __('Số điện thoại đã tồn tại')]);
             exit;
@@ -124,7 +124,7 @@ if ($request === 'edit') {
         $customer_type = $customer['customer_type'];
     }
 
-    $CMSNT->update_safe("customers", [
+    $ToryHub->update_safe("customers", [
         'fullname' => $fullname,
         'phone' => $phone,
         'email' => $email,
@@ -144,20 +144,20 @@ if ($request === 'edit') {
 // ======== DELETE ========
 if ($request === 'delete') {
     $id = intval(input_post('id'));
-    $customer = $CMSNT->get_row_safe("SELECT * FROM `customers` WHERE `id` = ?", [$id]);
+    $customer = $ToryHub->get_row_safe("SELECT * FROM `customers` WHERE `id` = ?", [$id]);
     if (!$customer) {
         echo json_encode(['status' => 'error', 'msg' => __('Khách hàng không tồn tại')]);
         exit;
     }
 
     // Check if customer has orders
-    $orderCount = $CMSNT->num_rows_safe("SELECT * FROM `orders` WHERE `customer_id` = ?", [$id]);
+    $orderCount = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `customer_id` = ?", [$id]);
     if ($orderCount > 0) {
         echo json_encode(['status' => 'error', 'msg' => __('Không thể xóa khách hàng có đơn hàng. Hãy xóa đơn hàng trước.')]);
         exit;
     }
 
-    $CMSNT->remove_safe("customers", "id = ?", [$id]);
+    $ToryHub->remove_safe("customers", "id = ?", [$id]);
     add_log('delete_customer', 'Xóa khách hàng: ' . $customer['customer_code'] . ' - ' . $customer['fullname']);
     echo json_encode(['status' => 'success', 'msg' => __('Xóa thành công')]);
     exit;

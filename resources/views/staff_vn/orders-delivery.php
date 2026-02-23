@@ -5,13 +5,13 @@ require_once(__DIR__.'/../../../libs/csrf.php');
 $page_title = __('Giao hàng');
 
 // Orders at VN warehouse ready for delivery
-$orders_ready = $CMSNT->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code, c.phone as customer_phone, c.address_vn as customer_address
+$orders_ready = $ToryHub->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code, c.phone as customer_phone, c.address_vn as customer_address
     FROM `orders` o LEFT JOIN `customers` c ON o.customer_id = c.id
     WHERE o.status = 'vn_warehouse'
     ORDER BY o.create_date ASC", []);
 
 // Recently delivered orders
-$orders_delivered = $CMSNT->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code
+$orders_delivered = $ToryHub->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code
     FROM `orders` o LEFT JOIN `customers` c ON o.customer_id = c.id
     WHERE o.status = 'delivered'
     ORDER BY o.delivered_date DESC LIMIT 20", []);

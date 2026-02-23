@@ -3,7 +3,7 @@ require_once(__DIR__.'/../../../models/is_admin.php');
 require_once(__DIR__.'/../../../libs/csrf.php');
 
 $id = intval(input_get('id'));
-$customer = $CMSNT->get_row_safe("SELECT * FROM `customers` WHERE `id` = ?", [$id]);
+$customer = $ToryHub->get_row_safe("SELECT * FROM `customers` WHERE `id` = ?", [$id]);
 if (!$customer) {
     redirect(base_url('admin/customers-list'));
 }
@@ -11,10 +11,10 @@ if (!$customer) {
 $page_title = __('Chi tiết khách hàng') . ': ' . $customer['customer_code'];
 
 // Orders of this customer
-$orders = $CMSNT->get_list_safe("SELECT * FROM `orders` WHERE `customer_id` = ? ORDER BY `create_date` DESC", [$id]);
+$orders = $ToryHub->get_list_safe("SELECT * FROM `orders` WHERE `customer_id` = ? ORDER BY `create_date` DESC", [$id]);
 
 // Transactions
-$transactions = $CMSNT->get_list_safe("SELECT * FROM `transactions` WHERE `customer_id` = ? ORDER BY `create_date` DESC LIMIT 50", [$id]);
+$transactions = $ToryHub->get_list_safe("SELECT * FROM `transactions` WHERE `customer_id` = ? ORDER BY `create_date` DESC LIMIT 50", [$id]);
 
 require_once(__DIR__.'/header.php');
 require_once(__DIR__.'/sidebar.php');

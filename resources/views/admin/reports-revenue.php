@@ -10,7 +10,7 @@ $filterGroup = input_get('group_by') ?: 'day';
 // Revenue by period
 $groupFormat = $filterGroup === 'month' ? '%Y-%m' : ($filterGroup === 'week' ? '%Y-%u' : '%Y-%m-%d');
 
-$revenueData = $CMSNT->get_list_safe("SELECT DATE_FORMAT(create_date, '$groupFormat') as period,
+$revenueData = $ToryHub->get_list_safe("SELECT DATE_FORMAT(create_date, '$groupFormat') as period,
     COUNT(*) as order_count,
     COALESCE(SUM(total_cny),0) as total_cny,
     COALESCE(SUM(total_vnd),0) as total_vnd,
@@ -35,7 +35,7 @@ foreach ($revenueData as $r) {
 unset($v);
 
 // Revenue by platform
-$platformData = $CMSNT->get_list_safe("SELECT platform, COUNT(*) as cnt, COALESCE(SUM(grand_total),0) as total
+$platformData = $ToryHub->get_list_safe("SELECT platform, COUNT(*) as cnt, COALESCE(SUM(grand_total),0) as total
     FROM `orders` WHERE `status` != 'cancelled'
     AND DATE(create_date) >= ? AND DATE(create_date) <= ?
     GROUP BY platform ORDER BY total DESC", [$filterDateFrom, $filterDateTo]);

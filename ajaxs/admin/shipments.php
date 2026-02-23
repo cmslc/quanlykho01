@@ -37,7 +37,7 @@ if ($request === 'create') {
 
     $shipment_id = $Shipments->createShipment($data);
     if ($shipment_id) {
-        $shipment = $CMSNT->get_row_safe("SELECT * FROM `shipments` WHERE `id` = ?", [$shipment_id]);
+        $shipment = $ToryHub->get_row_safe("SELECT * FROM `shipments` WHERE `id` = ?", [$shipment_id]);
         add_log('create_shipment', 'Tạo chuyến xe: ' . $shipment['shipment_code']);
         echo json_encode([
             'status' => 'success',
@@ -54,7 +54,7 @@ if ($request === 'create') {
 // ======== EDIT SHIPMENT ========
 if ($request === 'edit') {
     $id = intval(input_post('id'));
-    $shipment = $CMSNT->get_row_safe("SELECT * FROM `shipments` WHERE `id` = ?", [$id]);
+    $shipment = $ToryHub->get_row_safe("SELECT * FROM `shipments` WHERE `id` = ?", [$id]);
     if (!$shipment) {
         echo json_encode(['status' => 'error', 'msg' => __('Chuyến xe không tồn tại')]);
         exit;
@@ -72,7 +72,7 @@ if ($request === 'edit') {
         'update_date'     => gettime()
     ];
 
-    $CMSNT->update_safe('shipments', $data, "`id` = ?", [$id]);
+    $ToryHub->update_safe('shipments', $data, "`id` = ?", [$id]);
     add_log('edit_shipment', 'Sửa chuyến xe: ' . $shipment['shipment_code']);
     echo json_encode(['status' => 'success', 'msg' => __('Cập nhật chuyến xe thành công')]);
     exit;
@@ -81,7 +81,7 @@ if ($request === 'edit') {
 // ======== DELETE SHIPMENT (only preparing) ========
 if ($request === 'delete') {
     $id = intval(input_post('id'));
-    $shipment = $CMSNT->get_row_safe("SELECT * FROM `shipments` WHERE `id` = ?", [$id]);
+    $shipment = $ToryHub->get_row_safe("SELECT * FROM `shipments` WHERE `id` = ?", [$id]);
     if (!$shipment) {
         echo json_encode(['status' => 'error', 'msg' => __('Chuyến xe không tồn tại')]);
         exit;
@@ -91,8 +91,8 @@ if ($request === 'delete') {
         exit;
     }
 
-    $CMSNT->remove_safe('shipment_packages', "`shipment_id` = ?", [$id]);
-    $CMSNT->remove_safe('shipments', "`id` = ?", [$id]);
+    $ToryHub->remove_safe('shipment_packages', "`shipment_id` = ?", [$id]);
+    $ToryHub->remove_safe('shipments', "`id` = ?", [$id]);
 
     add_log('delete_shipment', 'Xóa chuyến xe: ' . $shipment['shipment_code']);
     echo json_encode(['status' => 'success', 'msg' => __('Đã xóa chuyến xe')]);
@@ -102,7 +102,7 @@ if ($request === 'delete') {
 // ======== ADD PACKAGES ========
 if ($request === 'add_packages') {
     $shipment_id = intval(input_post('shipment_id'));
-    $shipment = $CMSNT->get_row_safe("SELECT * FROM `shipments` WHERE `id` = ?", [$shipment_id]);
+    $shipment = $ToryHub->get_row_safe("SELECT * FROM `shipments` WHERE `id` = ?", [$shipment_id]);
     if (!$shipment) {
         echo json_encode(['status' => 'error', 'msg' => __('Chuyến xe không tồn tại')]);
         exit;
@@ -136,7 +136,7 @@ if ($request === 'remove_package') {
     $shipment_id = intval(input_post('shipment_id'));
     $package_id = intval(input_post('package_id'));
 
-    $shipment = $CMSNT->get_row_safe("SELECT * FROM `shipments` WHERE `id` = ?", [$shipment_id]);
+    $shipment = $ToryHub->get_row_safe("SELECT * FROM `shipments` WHERE `id` = ?", [$shipment_id]);
     if (!$shipment || $shipment['status'] !== 'preparing') {
         echo json_encode(['status' => 'error', 'msg' => __('Chỉ có thể gỡ kiện khi chuyến đang chuẩn bị')]);
         exit;
@@ -158,7 +158,7 @@ if ($request === 'update_status') {
         exit;
     }
 
-    $shipment = $CMSNT->get_row_safe("SELECT * FROM `shipments` WHERE `id` = ?", [$id]);
+    $shipment = $ToryHub->get_row_safe("SELECT * FROM `shipments` WHERE `id` = ?", [$id]);
     if (!$shipment) {
         echo json_encode(['status' => 'error', 'msg' => __('Chuyến xe không tồn tại')]);
         exit;
@@ -176,7 +176,7 @@ if ($request === 'update_status') {
 
 // ======== GET PREPARING SHIPMENTS (for modal in orders-list) ========
 if ($request === 'get_preparing') {
-    $shipments = $CMSNT->get_list_safe(
+    $shipments = $ToryHub->get_list_safe(
         "SELECT * FROM `shipments` WHERE `status` = 'preparing' ORDER BY `create_date` DESC", []
     );
     echo json_encode(['status' => 'success', 'shipments' => $shipments]);

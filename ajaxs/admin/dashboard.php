@@ -29,7 +29,7 @@ if ($request === 'revenue_chart') {
     }
 
     if ($period === '12m') {
-        $data = $CMSNT->get_list_safe(
+        $data = $ToryHub->get_list_safe(
             "SELECT DATE_FORMAT(create_date, '%Y-%m-01') as date,
                     COALESCE(SUM(grand_total),0) as revenue,
                     COUNT(*) as orders_count
@@ -42,7 +42,7 @@ if ($request === 'revenue_chart') {
         );
     } else {
         $days = intval(str_replace('d', '', $period));
-        $data = $CMSNT->get_list_safe(
+        $data = $ToryHub->get_list_safe(
             "SELECT DATE(create_date) as date,
                     COALESCE(SUM(grand_total),0) as revenue,
                     COUNT(*) as orders_count

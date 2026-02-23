@@ -25,9 +25,9 @@ $inserted = 0;
 foreach ($missing as $name => $langs) {
     foreach ($langs as $code => $value) {
         $langId = ($code === 'zh') ? 2 : 3;
-        $existing = $CMSNT->get_row_safe("SELECT id FROM translate WHERE lang_id = ? AND name = ?", [$langId, $name]);
+        $existing = $ToryHub->get_row_safe("SELECT id FROM translate WHERE lang_id = ? AND name = ?", [$langId, $name]);
         if (!$existing) {
-            $CMSNT->insert_safe('translate', ['lang_id' => $langId, 'name' => $name, 'value' => $value]);
+            $ToryHub->insert_safe('translate', ['lang_id' => $langId, 'name' => $name, 'value' => $value]);
             echo "INSERT: [{$code}] {$name} => {$value}" . PHP_EOL;
             $inserted++;
         } else {
@@ -41,7 +41,7 @@ echo PHP_EOL . "Inserted: {$inserted}" . PHP_EOL;
 echo PHP_EOL . "=== Verify status labels ===" . PHP_EOL;
 $labels = ['Chờ xử lý','Đã mua hàng','Shop Trung Quốc đã gửi','Đã về kho Trung Quốc','Đang vận chuyển','Đã về kho Việt Nam','Đã giao hàng','Đã hủy'];
 foreach ($labels as $l) {
-    $zh = $CMSNT->get_row_safe("SELECT value FROM translate WHERE lang_id = 2 AND name = ?", [$l]);
-    $en = $CMSNT->get_row_safe("SELECT value FROM translate WHERE lang_id = 3 AND name = ?", [$l]);
+    $zh = $ToryHub->get_row_safe("SELECT value FROM translate WHERE lang_id = 2 AND name = ?", [$l]);
+    $en = $ToryHub->get_row_safe("SELECT value FROM translate WHERE lang_id = 3 AND name = ?", [$l]);
     echo $l . " => zh: " . ($zh['value'] ?? 'MISSING!') . " | en: " . ($en['value'] ?? 'MISSING!') . PHP_EOL;
 }

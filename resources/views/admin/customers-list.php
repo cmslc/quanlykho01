@@ -3,7 +3,7 @@ require_once(__DIR__.'/../../../models/is_admin.php');
 require_once(__DIR__.'/../../../libs/csrf.php');
 
 $page_title = __('Quản lý khách hàng');
-$customers = $CMSNT->get_list_safe("SELECT * FROM `customers` ORDER BY `id` DESC", []);
+$customers = $ToryHub->get_list_safe("SELECT * FROM `customers` ORDER BY `id` DESC", []);
 
 require_once(__DIR__.'/header.php');
 require_once(__DIR__.'/sidebar.php');

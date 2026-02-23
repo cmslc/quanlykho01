@@ -1,10 +1,10 @@
 <?php
-$CMSNT = new DB();
+$ToryHub = new DB();
 $csrf = new Csrf();
 
 // If already logged in, redirect to dashboard
 if (isset($_SESSION['customer_login'])) {
-    $getUser = $CMSNT->get_row_safe("SELECT * FROM `users` WHERE `role` = 'customer' AND `token` = ?", [$_SESSION['customer_login']]);
+    $getUser = $ToryHub->get_row_safe("SELECT * FROM `users` WHERE `role` = 'customer' AND `token` = ?", [$_SESSION['customer_login']]);
     if ($getUser) {
         redirect(base_url('customer/home'));
     }
@@ -15,7 +15,7 @@ if (isset($_SESSION['customer_login'])) {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title><?= $CMSNT->site('title') ?> - <?= __('Đăng ký tài khoản') ?></title>
+    <title><?= $ToryHub->site('title') ?> - <?= __('Đăng ký tài khoản') ?></title>
     <link rel="shortcut icon" href="<?= base_url('public/material/assets/images/favicon.ico') ?>">
     <link href="<?= base_url('public/material/assets/css/bootstrap.min.css') ?>" rel="stylesheet">
     <link href="<?= base_url('public/material/assets/css/icons.min.css') ?>" rel="stylesheet">
@@ -105,7 +105,7 @@ if (isset($_SESSION['customer_login'])) {
                         </div>
                     </div>
                     <div class="text-center mt-3">
-                        <p class="text-white-50 fs-12">&copy; <?= date('Y') ?> CMS01 v1.0</p>
+                        <p class="text-white-50 fs-12">&copy; <?= date('Y') ?> ToryHub v1.0</p>
                     </div>
                 </div>
             </div>

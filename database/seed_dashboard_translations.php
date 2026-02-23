@@ -36,9 +36,9 @@ $inserted = 0;
 foreach ($translations as $name => $langs) {
     foreach ($langs as $code => $value) {
         $langId = ($code === 'zh') ? 2 : 3;
-        $existing = $CMSNT->get_row_safe("SELECT id FROM translate WHERE lang_id = ? AND name = ?", [$langId, $name]);
+        $existing = $ToryHub->get_row_safe("SELECT id FROM translate WHERE lang_id = ? AND name = ?", [$langId, $name]);
         if (!$existing) {
-            $CMSNT->insert_safe('translate', ['lang_id' => $langId, 'name' => $name, 'value' => $value]);
+            $ToryHub->insert_safe('translate', ['lang_id' => $langId, 'name' => $name, 'value' => $value]);
             echo "INSERT: [{$code}] {$name} => {$value}" . PHP_EOL;
             $inserted++;
         } else {

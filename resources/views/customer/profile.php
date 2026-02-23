@@ -5,7 +5,7 @@ require_once(__DIR__.'/../../../libs/csrf.php');
 $page_title = __('Hồ sơ cá nhân');
 
 // Get customer info
-$customer = $CMSNT->get_row_safe("SELECT * FROM `customers` WHERE `user_id` = ?", [$getUser['id']]);
+$customer = $ToryHub->get_row_safe("SELECT * FROM `customers` WHERE `user_id` = ?", [$getUser['id']]);
 
 require_once(__DIR__.'/header.php');
 require_once(__DIR__.'/sidebar.php');

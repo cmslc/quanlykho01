@@ -32,7 +32,7 @@ if (!$order_id) {
 }
 
 // Get order
-$order = $CMSNT->get_row_safe("SELECT * FROM `orders` WHERE `id` = ?", [$order_id]);
+$order = $ToryHub->get_row_safe("SELECT * FROM `orders` WHERE `id` = ?", [$order_id]);
 if (!$order) {
     echo json_encode(['status' => 'error', 'msg' => __('Đơn hàng không tồn tại')]);
     exit;
@@ -50,7 +50,7 @@ $result = $Orders->updateStatus($order_id, 'delivered', $getUser['id'], $note);
 
 if ($result) {
     // Update delivery date
-    $CMSNT->update_safe('orders', [
+    $ToryHub->update_safe('orders', [
         'delivery_date' => gettime()
     ], "`id` = ?", [$order_id]);
 

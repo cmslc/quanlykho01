@@ -80,7 +80,7 @@ if (!in_array($targetStatus, $validTargets)) {
 }
 
 // ===== PHASE 1: Package-first search =====
-$package = $CMSNT->get_row_safe(
+$package = $ToryHub->get_row_safe(
     "SELECT * FROM `packages` WHERE `tracking_cn` = ? OR `package_code` = ? LIMIT 1",
     [$barcode, $barcode]
 );
@@ -165,7 +165,7 @@ if ($package) {
 }
 
 // ===== PHASE 2: Fallback - search orders (backward compatible) =====
-$order = $CMSNT->get_row_safe("SELECT o.*, c.fullname as customer_name, c.customer_code
+$order = $ToryHub->get_row_safe("SELECT o.*, c.fullname as customer_name, c.customer_code
     FROM `orders` o LEFT JOIN `customers` c ON o.customer_id = c.id
     WHERE o.cn_tracking = ? OR o.order_code = ?
     LIMIT 1", [$barcode, $barcode]);
@@ -237,12 +237,12 @@ $updateData = [
     $dateField    => gettime()
 ];
 
-$result = $CMSNT->update_safe('orders', $updateData, "`id` = ?", [$order['id']]);
+$result = $ToryHub->update_safe('orders', $updateData, "`id` = ?", [$order['id']]);
 
 if ($result) {
     add_log($getUser['id'], $logAction, 'Quét ' . $order['order_code'] . ': ' . $oldStatus . ' -> ' . $targetStatus . ' (barcode: ' . $barcode . ')');
 
-    $CMSNT->insert_safe('order_status_history', [
+    $ToryHub->insert_safe('order_status_history', [
         'order_id'    => $order['id'],
         'old_status'  => $oldStatus,
         'new_status'  => $targetStatus,

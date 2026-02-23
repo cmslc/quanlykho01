@@ -47,11 +47,11 @@ function _sanitize_menu_id($label) {
     <div class="navbar-brand-box">
         <a href="<?= base_url('staff_vn/home') ?>" class="logo logo-dark">
             <span class="logo-sm"><b>KVN</b></span>
-            <span class="logo-lg"><b>Kho Việt Nam</b> - CMS01</span>
+            <span class="logo-lg"><b>Kho Việt Nam</b> - ToryHub</span>
         </a>
         <a href="<?= base_url('staff_vn/home') ?>" class="logo logo-light">
             <span class="logo-sm"><b>KVN</b></span>
-            <span class="logo-lg"><b>Kho Việt Nam</b> - CMS01</span>
+            <span class="logo-lg"><b>Kho Việt Nam</b> - ToryHub</span>
         </a>
         <button type="button" class="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover" id="vertical-hover">
             <i class="ri-record-circle-line"></i>

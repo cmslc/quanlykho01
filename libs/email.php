@@ -16,17 +16,17 @@ class EmailService
 
     public function __construct()
     {
-        global $CMSNT;
+        global $ToryHub;
 
         // Check if email is enabled in settings
-        $this->enabled = ($CMSNT->site('email_enabled') == '1');
+        $this->enabled = ($ToryHub->site('email_enabled') == '1');
 
-        $host = $CMSNT->site('mail_host') ?: ($_ENV['MAIL_HOST'] ?? '');
-        $username = $CMSNT->site('mail_username') ?: ($_ENV['MAIL_USERNAME'] ?? '');
-        $password = $CMSNT->site('mail_password') ?: ($_ENV['MAIL_PASSWORD'] ?? '');
-        $port = intval($CMSNT->site('mail_port') ?: ($_ENV['MAIL_PORT'] ?? 587));
-        $from_name = $CMSNT->site('site_name') ?: ($_ENV['MAIL_FROM_NAME'] ?? 'CMS01');
-        $encryption = $CMSNT->site('mail_encryption') ?: ($_ENV['MAIL_ENCRYPTION'] ?? 'tls');
+        $host = $ToryHub->site('mail_host') ?: ($_ENV['MAIL_HOST'] ?? '');
+        $username = $ToryHub->site('mail_username') ?: ($_ENV['MAIL_USERNAME'] ?? '');
+        $password = $ToryHub->site('mail_password') ?: ($_ENV['MAIL_PASSWORD'] ?? '');
+        $port = intval($ToryHub->site('mail_port') ?: ($_ENV['MAIL_PORT'] ?? 587));
+        $from_name = $ToryHub->site('site_name') ?: ($_ENV['MAIL_FROM_NAME'] ?? 'ToryHub');
+        $encryption = $ToryHub->site('mail_encryption') ?: ($_ENV['MAIL_ENCRYPTION'] ?? 'tls');
 
         if (empty($host) || empty($username) || empty($password)) {
             $this->enabled = false;
@@ -71,8 +71,8 @@ class EmailService
 
     private function wrapTemplate($title, $content)
     {
-        global $CMSNT;
-        $siteName = htmlspecialchars($CMSNT->site('site_name') ?: 'CMS01');
+        global $ToryHub;
+        $siteName = htmlspecialchars($ToryHub->site('site_name') ?: 'ToryHub');
 
         return '<!DOCTYPE html>
 <html>

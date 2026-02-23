@@ -5,19 +5,19 @@ require_once(__DIR__.'/../../../libs/csrf.php');
 $page_title = 'Dashboard';
 
 // Stats relevant to CN warehouse
-$cn_warehouse_orders = $CMSNT->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'cn_warehouse'", []) ?: 0;
-$cn_shipped_orders = $CMSNT->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'cn_shipped'", []) ?: 0;
-$purchased_orders = $CMSNT->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'purchased'", []) ?: 0;
-$today_scanned = $CMSNT->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'cn_warehouse' AND DATE(`update_date`) = CURDATE()", []) ?: 0;
+$cn_warehouse_orders = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'cn_warehouse'", []) ?: 0;
+$cn_shipped_orders = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'cn_shipped'", []) ?: 0;
+$purchased_orders = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'purchased'", []) ?: 0;
+$today_scanned = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'cn_warehouse' AND DATE(`update_date`) = CURDATE()", []) ?: 0;
 
 // Recent orders in CN-relevant statuses
-$recent_orders = $CMSNT->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code
+$recent_orders = $ToryHub->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code
     FROM `orders` o LEFT JOIN `customers` c ON o.customer_id = c.id
     WHERE o.status IN ('purchased', 'cn_shipped', 'cn_warehouse')
     ORDER BY o.update_date DESC LIMIT 15", []);
 
 // Recent activity logs by this user
-$recent_logs = $CMSNT->get_list_safe("SELECT * FROM `logs` WHERE `user_id` = ? ORDER BY `create_date` DESC LIMIT 10", [$getUser['id']]);
+$recent_logs = $ToryHub->get_list_safe("SELECT * FROM `logs` WHERE `user_id` = ? ORDER BY `create_date` DESC LIMIT 10", [$getUser['id']]);
 
 require_once(__DIR__.'/header.php');
 require_once(__DIR__.'/sidebar.php');

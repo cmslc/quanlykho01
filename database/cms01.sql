@@ -1,4 +1,4 @@
--- CMS01 - Warehouse & Shipping Management System
+-- ToryHub - Warehouse & Shipping Management System
 -- Database Schema
 
 SET NAMES utf8mb4;
@@ -17,7 +17,7 @@ CREATE TABLE `settings` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `settings` (`name`, `value`) VALUES
-('title', 'CMS01 - Quản lý Kho & Vận chuyển'),
+('title', 'ToryHub - Quản lý Kho & Vận chuyển'),
 ('timezone', 'Asia/Ho_Chi_Minh'),
 ('session_login', '86400'),
 ('type_password', 'bcrypt'),

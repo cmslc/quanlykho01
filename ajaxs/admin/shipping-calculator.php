@@ -33,7 +33,7 @@ if ($request === 'search_items') {
     $items = [];
 
     // Wholesale orders
-    $orders = $CMSNT->get_list_safe(
+    $orders = $ToryHub->get_list_safe(
         "SELECT o.id, o.product_code as code, 'order' as type, COALESCE(o.cargo_type, '') as cargo_type,
             COUNT(p.id) as pkg_count,
             SUM(COALESCE(p.weight_charged, GREATEST(COALESCE(p.weight_actual,0), COALESCE(p.weight_volume,0)))) as weight,
@@ -61,7 +61,7 @@ if ($request === 'search_items') {
     }
 
     // Sealed bags
-    $bags = $CMSNT->get_list_safe(
+    $bags = $ToryHub->get_list_safe(
         "SELECT b.id, b.bag_code as code, 'bag' as type,
             COUNT(p.id) as pkg_count,
             COALESCE(b.total_weight, SUM(COALESCE(p.weight_charged, GREATEST(COALESCE(p.weight_actual,0), COALESCE(p.weight_volume,0))))) as weight,
@@ -97,7 +97,7 @@ if ($request === 'get_all_pending') {
     $items = [];
 
     // Sealed bags (retail)
-    $bags = $CMSNT->get_list_safe(
+    $bags = $ToryHub->get_list_safe(
         "SELECT b.id, b.bag_code as code, 'bag' as type,
             COUNT(p.id) as pkg_count,
             COALESCE(b.total_weight, SUM(COALESCE(p.weight_charged, GREATEST(COALESCE(p.weight_actual,0), COALESCE(p.weight_volume,0))))) as weight,
@@ -123,7 +123,7 @@ if ($request === 'get_all_pending') {
     }
 
     // Wholesale orders
-    $orders = $CMSNT->get_list_safe(
+    $orders = $ToryHub->get_list_safe(
         "SELECT o.id, o.product_code as code, 'order' as type, COALESCE(o.cargo_type, '') as cargo_type,
             COUNT(p.id) as pkg_count,
             SUM(COALESCE(p.weight_charged, GREATEST(COALESCE(p.weight_actual,0), COALESCE(p.weight_volume,0)))) as weight,
@@ -164,7 +164,7 @@ if ($request === 'save_domestic_cost') {
     }
 
     $table = $itemType === 'bag' ? 'bags' : 'orders';
-    $CMSNT->update_safe($table, ['domestic_cost' => $cost], 'id = ?', [$itemId]);
+    $ToryHub->update_safe($table, ['domestic_cost' => $cost], 'id = ?', [$itemId]);
 
     echo json_encode(['status' => 'success']);
     exit;
@@ -183,7 +183,7 @@ if ($request === 'save_rates') {
     }
 
     $table = $itemType === 'bag' ? 'bags' : 'orders';
-    $CMSNT->update_safe($table, ['custom_rate_kg' => $rateKg, 'custom_rate_cbm' => $rateCbm], 'id = ?', [$itemId]);
+    $ToryHub->update_safe($table, ['custom_rate_kg' => $rateKg, 'custom_rate_cbm' => $rateCbm], 'id = ?', [$itemId]);
 
     echo json_encode(['status' => 'success']);
     exit;

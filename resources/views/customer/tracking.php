@@ -1,6 +1,6 @@
 <?php
 // Public tracking page - no login required
-$CMSNT = new DB();
+$ToryHub = new DB();
 $csrf = new Csrf();
 ?>
 <!doctype html>
@@ -8,7 +8,7 @@ $csrf = new Csrf();
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title><?= __('Tra cứu đơn hàng') ?> - CMS01</title>
+    <title><?= __('Tra cứu đơn hàng') ?> - ToryHub</title>
     <link rel="shortcut icon" href="<?= base_url('public/material/assets/images/favicon.ico') ?>">
     <!-- Bootstrap 5 Css -->
     <link href="<?= base_url('public/material/assets/css/bootstrap.min.css') ?>" rel="stylesheet" type="text/css">
@@ -47,7 +47,7 @@ $csrf = new Csrf();
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-8 text-center">
-                    <h2 class="text-white mb-3"><b>CMS01</b> - <?= __('Tra cứu đơn hàng') ?></h2>
+                    <h2 class="text-white mb-3"><b>ToryHub</b> - <?= __('Tra cứu đơn hàng') ?></h2>
                     <p class="text-white-50 mb-4"><?= __('Nhập mã đơn hàng để theo dõi trạng thái') ?></p>
                     <div class="row justify-content-center">
                         <div class="col-lg-8">

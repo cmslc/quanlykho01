@@ -24,12 +24,12 @@ if ($filterSearch) {
 
 $perPage = 10;
 $page = max(1, intval(input_get('page') ?: 1));
-$totalShipments = $CMSNT->num_rows_safe("SELECT s.id FROM `shipments` s WHERE $where", $params);
+$totalShipments = $ToryHub->num_rows_safe("SELECT s.id FROM `shipments` s WHERE $where", $params);
 $totalPages = max(1, ceil($totalShipments / $perPage));
 if ($page > $totalPages) $page = $totalPages;
 $offset = ($page - 1) * $perPage;
 
-$shipments = $CMSNT->get_list_safe("SELECT s.*, u.fullname as creator_name
+$shipments = $ToryHub->get_list_safe("SELECT s.*, u.fullname as creator_name
     FROM `shipments` s LEFT JOIN `users` u ON s.created_by = u.id
     WHERE $where ORDER BY s.create_date DESC LIMIT $perPage OFFSET $offset", $params);
 
@@ -91,7 +91,7 @@ require_once(__DIR__.'/sidebar.php');
         <!-- Status Summary -->
         <div class="row">
             <?php foreach ($statuses as $s):
-                $cnt = $CMSNT->num_rows_safe("SELECT id FROM `shipments` WHERE `status` = ?", [$s]);
+                $cnt = $ToryHub->num_rows_safe("SELECT id FROM `shipments` WHERE `status` = ?", [$s]);
                 $cfg = $statusLabels[$s];
             ?>
             <div class="col">

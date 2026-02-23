@@ -10,8 +10,8 @@ require_once(__DIR__.'/config.php');
 require_once(__DIR__.'/libs/helper.php');
 
 // Get language IDs
-$zhLang = $CMSNT->get_row_safe("SELECT id FROM languages WHERE lang = ?", ['zh']);
-$enLang = $CMSNT->get_row_safe("SELECT id FROM languages WHERE lang = ?", ['en']);
+$zhLang = $ToryHub->get_row_safe("SELECT id FROM languages WHERE lang = ?", ['zh']);
+$enLang = $ToryHub->get_row_safe("SELECT id FROM languages WHERE lang = ?", ['en']);
 
 if (!$zhLang || !$enLang) {
     die("ERROR: zh or en language not found in database.");
@@ -713,20 +713,20 @@ foreach ($translations as $key => $langs) {
         $value = $langs[$langCode] ?? '';
         if ($value === '') continue;
 
-        $existing = $CMSNT->get_row_safe(
+        $existing = $ToryHub->get_row_safe(
             "SELECT * FROM `translate` WHERE `lang_id` = ? AND `name` = ?",
             [$langId, $key]
         );
 
         if ($existing) {
             if ($existing['value'] !== $value) {
-                $CMSNT->update_safe('translate', ['value' => $value], 'id = ?', [$existing['id']]);
+                $ToryHub->update_safe('translate', ['value' => $value], 'id = ?', [$existing['id']]);
                 $updated++;
             } else {
                 $skipped++;
             }
         } else {
-            $CMSNT->insert_safe('translate', [
+            $ToryHub->insert_safe('translate', [
                 'lang_id' => $langId,
                 'name' => $key,
                 'value' => $value

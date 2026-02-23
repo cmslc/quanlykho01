@@ -8,7 +8,7 @@ require_once(__DIR__.'/../../libs/session.php');
 
 header('Content-Type: application/json');
 
-$CMSNT = new DB();
+$ToryHub = new DB();
 
 $order_code = check_string(input_post('order_code'));
 
@@ -18,7 +18,7 @@ if (empty($order_code)) {
 }
 
 // Find order by order_code
-$order = $CMSNT->get_row_safe("SELECT `id`, `order_code`, `product_name`, `quantity`, `status`,
+$order = $ToryHub->get_row_safe("SELECT `id`, `order_code`, `product_name`, `quantity`, `status`,
     `cn_tracking`, `intl_tracking`, `vn_tracking`, `create_date`, `update_date`
     FROM `orders` WHERE `order_code` = ?", [$order_code]);
 
@@ -35,7 +35,7 @@ foreach ($statusFlow as $s) {
 }
 
 // Get status history
-$history = $CMSNT->get_list_safe("SELECT `old_status`, `new_status`, `note`, `create_date`
+$history = $ToryHub->get_list_safe("SELECT `old_status`, `new_status`, `note`, `create_date`
     FROM `order_status_history` WHERE `order_id` = ? ORDER BY `create_date` ASC", [$order['id']]);
 
 $historyData = [];

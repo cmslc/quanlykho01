@@ -22,12 +22,12 @@ if ($filterSearch) {
 // Pagination
 $perPage = 10;
 $page = max(1, intval(input_get('page') ?: 1));
-$totalBags = $CMSNT->num_rows_safe("SELECT b.id FROM `bags` b WHERE $where", $params);
+$totalBags = $ToryHub->num_rows_safe("SELECT b.id FROM `bags` b WHERE $where", $params);
 $totalPages = max(1, ceil($totalBags / $perPage));
 if ($page > $totalPages) $page = $totalPages;
 $offset = ($page - 1) * $perPage;
 
-$bags = $CMSNT->get_list_safe("SELECT b.*, u.fullname as creator_name
+$bags = $ToryHub->get_list_safe("SELECT b.*, u.fullname as creator_name
     FROM `bags` b LEFT JOIN `users` u ON b.created_by = u.id
     WHERE $where ORDER BY b.create_date DESC LIMIT $perPage OFFSET $offset", $params);
 
@@ -90,7 +90,7 @@ require_once(__DIR__.'/sidebar.php');
         <!-- Status Summary -->
         <div class="row">
             <?php foreach ($bagStatuses as $s):
-                $cnt = $CMSNT->num_rows_safe("SELECT id FROM `bags` WHERE `status` = ?", [$s]) ?: 0;
+                $cnt = $ToryHub->num_rows_safe("SELECT id FROM `bags` WHERE `status` = ?", [$s]) ?: 0;
                 $sl = $bagStatusLabels[$s];
             ?>
             <div class="col">

@@ -8,58 +8,58 @@ $page_title = 'Dashboard';
 // ===== KPI Data =====
 $monthStart = date('Y-m-01');
 
-$revenueThisMonth = $CMSNT->get_row_safe(
+$revenueThisMonth = $ToryHub->get_row_safe(
     "SELECT COALESCE(SUM(grand_total),0) as total FROM `orders` WHERE `status` != 'cancelled' AND DATE(create_date) >= ?",
     [$monthStart]
 )['total'];
 
-$ordersThisMonth = $CMSNT->num_rows_safe(
+$ordersThisMonth = $ToryHub->num_rows_safe(
     "SELECT * FROM `orders` WHERE DATE(create_date) >= ?", [$monthStart]
 ) ?: 0;
 
-$packagesInTransit = $CMSNT->num_rows_safe(
+$packagesInTransit = $ToryHub->num_rows_safe(
     "SELECT * FROM `packages` WHERE `status` IN ('cn_warehouse','shipping','vn_warehouse')", []
 ) ?: 0;
 
-$totalCustomers = $CMSNT->num_rows_safe("SELECT * FROM `customers`", []) ?: 0;
+$totalCustomers = $ToryHub->num_rows_safe("SELECT * FROM `customers`", []) ?: 0;
 
-$pendingOrders = $CMSNT->num_rows_safe(
+$pendingOrders = $ToryHub->num_rows_safe(
     "SELECT * FROM `orders` WHERE `status` = 'cn_warehouse'", []
 ) ?: 0;
 
 $exchangeRate = get_exchange_rate();
 
 // ===== Chart Data (initial load) =====
-$revenueChartData = $CMSNT->get_list_safe(
+$revenueChartData = $ToryHub->get_list_safe(
     "SELECT DATE(create_date) as date, COALESCE(SUM(grand_total),0) as revenue, COUNT(*) as orders_count
      FROM `orders` WHERE `status` != 'cancelled' AND create_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
      GROUP BY DATE(create_date) ORDER BY date ASC", []
 );
 
-$orderStatusData = $CMSNT->get_list_safe(
+$orderStatusData = $ToryHub->get_list_safe(
     "SELECT `status`, COUNT(*) as count FROM `orders` WHERE `status` != 'cancelled'
      GROUP BY `status` ORDER BY FIELD(status,'cn_warehouse','packed','shipping','vn_warehouse','delivered')", []
 );
 
-$packagePipelineData = $CMSNT->get_list_safe(
+$packagePipelineData = $ToryHub->get_list_safe(
     "SELECT `status`, COUNT(*) as count FROM `packages` GROUP BY `status`
      ORDER BY FIELD(status,'cn_warehouse','packed','shipping','vn_warehouse','delivered')", []
 );
 
-$topCustomersData = $CMSNT->get_list_safe(
+$topCustomersData = $ToryHub->get_list_safe(
     "SELECT `customer_code`, `fullname`, `total_spent` FROM `customers` ORDER BY `total_spent` DESC LIMIT 5", []
 );
 
 // ===== Table Data =====
-$recentOrders = $CMSNT->get_list_safe(
+$recentOrders = $ToryHub->get_list_safe(
     "SELECT o.*, c.fullname as customer_name, c.customer_code
      FROM `orders` o LEFT JOIN `customers` c ON o.customer_id = c.id
      ORDER BY o.create_date DESC LIMIT 10", []
 );
 
-$cnWarehouseOrders = $CMSNT->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'cn_warehouse'", []) ?: 0;
-$shippingOrders = $CMSNT->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'shipping'", []) ?: 0;
-$vnWarehouseOrders = $CMSNT->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'vn_warehouse'", []) ?: 0;
+$cnWarehouseOrders = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'cn_warehouse'", []) ?: 0;
+$shippingOrders = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'shipping'", []) ?: 0;
+$vnWarehouseOrders = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'vn_warehouse'", []) ?: 0;
 
 require_once(__DIR__.'/header.php');
 require_once(__DIR__.'/sidebar.php');

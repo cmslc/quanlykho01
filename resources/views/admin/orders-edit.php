@@ -4,16 +4,16 @@ require_once(__DIR__.'/../../../libs/csrf.php');
 require_once(__DIR__.'/../../../libs/database/packages.php');
 
 $id = intval(input_get('id'));
-$order = $CMSNT->get_row_safe("SELECT * FROM `orders` WHERE `id` = ?", [$id]);
+$order = $ToryHub->get_row_safe("SELECT * FROM `orders` WHERE `id` = ?", [$id]);
 if (!$order) {
     redirect(base_url('admin/orders-list'));
 }
 
 $page_title = __('Sửa đơn hàng') . ' #' . $order['id'];
-$customers = $CMSNT->get_list_safe("SELECT `id`, `customer_code`, `fullname` FROM `customers` ORDER BY `fullname` ASC", []);
+$customers = $ToryHub->get_list_safe("SELECT `id`, `customer_code`, `fullname` FROM `customers` ORDER BY `fullname` ASC", []);
 
 // Get packages for this order
-$packages = $CMSNT->get_list_safe(
+$packages = $ToryHub->get_list_safe(
     "SELECT p.* FROM `packages` p
      JOIN `package_orders` po ON p.id = po.package_id
      WHERE po.order_id = ? ORDER BY p.id ASC", [$id]

@@ -5,20 +5,20 @@ require_once(__DIR__.'/../../../libs/csrf.php');
 $page_title = 'Dashboard';
 
 // Get customer info from customers table linked to this user
-$customer = $CMSNT->get_row_safe("SELECT * FROM `customers` WHERE `user_id` = ?", [$getUser['id']]);
+$customer = $ToryHub->get_row_safe("SELECT * FROM `customers` WHERE `user_id` = ?", [$getUser['id']]);
 $customer_id = $customer ? $customer['id'] : 0;
 
 // Stats - only this customer's orders
-$total_orders = $CMSNT->num_rows_safe("SELECT * FROM `orders` WHERE `customer_id` = ?", [$customer_id]) ?: 0;
-$pending_orders = $CMSNT->num_rows_safe("SELECT * FROM `orders` WHERE `customer_id` = ? AND `status` = 'cn_warehouse'", [$customer_id]) ?: 0;
-$shipping_orders = $CMSNT->num_rows_safe("SELECT * FROM `orders` WHERE `customer_id` = ? AND `status` IN ('cn_shipped','shipping')", [$customer_id]) ?: 0;
-$delivered_orders = $CMSNT->num_rows_safe("SELECT * FROM `orders` WHERE `customer_id` = ? AND `status` = 'delivered'", [$customer_id]) ?: 0;
+$total_orders = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `customer_id` = ?", [$customer_id]) ?: 0;
+$pending_orders = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `customer_id` = ? AND `status` = 'cn_warehouse'", [$customer_id]) ?: 0;
+$shipping_orders = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `customer_id` = ? AND `status` IN ('cn_shipped','shipping')", [$customer_id]) ?: 0;
+$delivered_orders = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `customer_id` = ? AND `status` = 'delivered'", [$customer_id]) ?: 0;
 
 // Customer balance
 $balance = $customer ? ($customer['balance'] ?? 0) : 0;
 
 // Recent orders
-$recent_orders = $CMSNT->get_list_safe("SELECT * FROM `orders` WHERE `customer_id` = ? ORDER BY `create_date` DESC LIMIT 10", [$customer_id]);
+$recent_orders = $ToryHub->get_list_safe("SELECT * FROM `orders` WHERE `customer_id` = ? ORDER BY `create_date` DESC LIMIT 10", [$customer_id]);
 
 // Exchange rate
 $exchange_rate = get_exchange_rate();

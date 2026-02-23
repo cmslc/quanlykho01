@@ -44,7 +44,7 @@ if ($request === 'bulk_update_status') {
 
     foreach ($order_ids as $oid) {
         $oid = intval($oid);
-        $order = $CMSNT->get_row_safe("SELECT * FROM `orders` WHERE `id` = ?", [$oid]);
+        $order = $ToryHub->get_row_safe("SELECT * FROM `orders` WHERE `id` = ?", [$oid]);
         if (!$order || $order['status'] === $new_status) {
             $skipped++;
             continue;
@@ -70,7 +70,7 @@ $order_id = intval(input_post('order_id'));
 $new_status = input_post('new_status');
 $note = trim(input_post('note'));
 
-$order = $CMSNT->get_row_safe("SELECT * FROM `orders` WHERE `id` = ?", [$order_id]);
+$order = $ToryHub->get_row_safe("SELECT * FROM `orders` WHERE `id` = ?", [$order_id]);
 if (!$order) {
     echo json_encode(['status' => 'error', 'msg' => __('Đơn hàng không tồn tại')]);
     exit;
@@ -100,7 +100,7 @@ if ($result) {
 
     // Email notification to customer
     require_once(__DIR__.'/../../libs/email.php');
-    $customer = $CMSNT->get_row_safe("SELECT `email` FROM `customers` WHERE `id` = ?", [$order['customer_id']]);
+    $customer = $ToryHub->get_row_safe("SELECT `email` FROM `customers` WHERE `id` = ?", [$order['customer_id']]);
     if (!empty($customer['email'])) {
         email_notify('notifyStatusChange', $order, $customer['email'], $order['status'], $new_status);
     }

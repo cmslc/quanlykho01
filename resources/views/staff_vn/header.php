@@ -2,7 +2,7 @@
 if (!defined('IN_SITE')) {
     die('The Request Not Found');
 }
-$CMSNT = new DB();
+$ToryHub = new DB();
 $csrf = new Csrf();
 ?>
 <!doctype html>
@@ -10,7 +10,7 @@ $csrf = new Csrf();
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title><?= $page_title ?? __('Kho Việt Nam') ?> - Kho Việt Nam - CMS01</title>
+    <title><?= $page_title ?? __('Kho Việt Nam') ?> - Kho Việt Nam - ToryHub</title>
     <link rel="shortcut icon" href="<?= base_url('public/material/assets/images/favicon.ico') ?>">
     <!-- Layout config Js (MUST be first) -->
     <script src="<?= base_url('public/material/assets/js/layout.js') ?>"></script>

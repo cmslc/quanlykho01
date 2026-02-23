@@ -31,13 +31,13 @@ if ($request === 'add_language') {
     }
 
     // Check duplicate lang code
-    $existing = $CMSNT->get_row_safe("SELECT * FROM `languages` WHERE `lang` = ?", [$lang]);
+    $existing = $ToryHub->get_row_safe("SELECT * FROM `languages` WHERE `lang` = ?", [$lang]);
     if ($existing) {
         echo json_encode(['status' => 'error', 'msg' => 'Mã ngôn ngữ "' . $lang . '" đã tồn tại']);
         exit;
     }
 
-    $CMSNT->insert_safe('languages', [
+    $ToryHub->insert_safe('languages', [
         'name' => $name,
         'lang' => $lang,
         'lang_default' => 0,
@@ -59,13 +59,13 @@ if ($request === 'edit_language') {
         exit;
     }
 
-    $lang = $CMSNT->get_row_safe("SELECT * FROM `languages` WHERE `id` = ?", [$id]);
+    $lang = $ToryHub->get_row_safe("SELECT * FROM `languages` WHERE `id` = ?", [$id]);
     if (!$lang) {
         echo json_encode(['status' => 'error', 'msg' => 'Ngôn ngữ không tồn tại']);
         exit;
     }
 
-    $CMSNT->update_safe('languages', ['name' => $name, 'status' => $status], 'id = ?', [$id]);
+    $ToryHub->update_safe('languages', ['name' => $name, 'status' => $status], 'id = ?', [$id]);
 
     echo json_encode(['status' => 'success', 'msg' => 'Đã cập nhật ngôn ngữ']);
     exit;
@@ -79,7 +79,7 @@ if ($request === 'delete_language') {
         exit;
     }
 
-    $lang = $CMSNT->get_row_safe("SELECT * FROM `languages` WHERE `id` = ?", [$id]);
+    $lang = $ToryHub->get_row_safe("SELECT * FROM `languages` WHERE `id` = ?", [$id]);
     if (!$lang) {
         echo json_encode(['status' => 'error', 'msg' => 'Ngôn ngữ không tồn tại']);
         exit;
@@ -91,9 +91,9 @@ if ($request === 'delete_language') {
     }
 
     // Delete all translations for this language
-    $CMSNT->delete_safe('translate', 'lang_id = ?', [$id]);
+    $ToryHub->delete_safe('translate', 'lang_id = ?', [$id]);
     // Delete the language
-    $CMSNT->delete_safe('languages', 'id = ?', [$id]);
+    $ToryHub->delete_safe('languages', 'id = ?', [$id]);
 
     echo json_encode(['status' => 'success', 'msg' => 'Đã xóa ngôn ngữ "' . $lang['name'] . '" và tất cả bản dịch']);
     exit;
@@ -107,16 +107,16 @@ if ($request === 'set_default') {
         exit;
     }
 
-    $lang = $CMSNT->get_row_safe("SELECT * FROM `languages` WHERE `id` = ?", [$id]);
+    $lang = $ToryHub->get_row_safe("SELECT * FROM `languages` WHERE `id` = ?", [$id]);
     if (!$lang) {
         echo json_encode(['status' => 'error', 'msg' => 'Ngôn ngữ không tồn tại']);
         exit;
     }
 
     // Remove default from all
-    $CMSNT->update_safe('languages', ['lang_default' => 0], '1 = 1', []);
+    $ToryHub->update_safe('languages', ['lang_default' => 0], '1 = 1', []);
     // Set new default
-    $CMSNT->update_safe('languages', ['lang_default' => 1], 'id = ?', [$id]);
+    $ToryHub->update_safe('languages', ['lang_default' => 1], 'id = ?', [$id]);
 
     echo json_encode(['status' => 'success', 'msg' => 'Đã đặt "' . $lang['name'] . '" làm mặc định']);
     exit;
@@ -150,7 +150,7 @@ if ($request === 'scan_keys') {
     sort($allKeys);
 
     // Get existing keys in translate table
-    $existing = $CMSNT->get_list_safe("SELECT DISTINCT `name` FROM `translate`", []);
+    $existing = $ToryHub->get_list_safe("SELECT DISTINCT `name` FROM `translate`", []);
     $existingKeys = array_column($existing, 'name');
 
     $newKeys = array_diff($allKeys, $existingKeys);
@@ -177,24 +177,24 @@ if ($request === 'save_translation') {
     }
 
     // Check language exists
-    $lang = $CMSNT->get_row_safe("SELECT * FROM `languages` WHERE `id` = ?", [$langId]);
+    $lang = $ToryHub->get_row_safe("SELECT * FROM `languages` WHERE `id` = ?", [$langId]);
     if (!$lang) {
         echo json_encode(['status' => 'error', 'msg' => 'Ngôn ngữ không tồn tại']);
         exit;
     }
 
-    $existing = $CMSNT->get_row_safe("SELECT * FROM `translate` WHERE `lang_id` = ? AND `name` = ?", [$langId, $name]);
+    $existing = $ToryHub->get_row_safe("SELECT * FROM `translate` WHERE `lang_id` = ? AND `name` = ?", [$langId, $name]);
 
     if ($value === '') {
         // Delete if empty
         if ($existing) {
-            $CMSNT->delete_safe('translate', 'id = ?', [$existing['id']]);
+            $ToryHub->delete_safe('translate', 'id = ?', [$existing['id']]);
         }
     } else {
         if ($existing) {
-            $CMSNT->update_safe('translate', ['value' => $value], 'id = ?', [$existing['id']]);
+            $ToryHub->update_safe('translate', ['value' => $value], 'id = ?', [$existing['id']]);
         } else {
-            $CMSNT->insert_safe('translate', ['lang_id' => $langId, 'name' => $name, 'value' => $value]);
+            $ToryHub->insert_safe('translate', ['lang_id' => $langId, 'name' => $name, 'value' => $value]);
         }
     }
 
@@ -219,21 +219,21 @@ if ($request === 'save_bulk') {
 
         if (!$langId || !$name) continue;
 
-        $existing = $CMSNT->get_row_safe("SELECT * FROM `translate` WHERE `lang_id` = ? AND `name` = ?", [$langId, $name]);
+        $existing = $ToryHub->get_row_safe("SELECT * FROM `translate` WHERE `lang_id` = ? AND `name` = ?", [$langId, $name]);
 
         if ($value === '') {
             if ($existing) {
-                $CMSNT->delete_safe('translate', 'id = ?', [$existing['id']]);
+                $ToryHub->delete_safe('translate', 'id = ?', [$existing['id']]);
                 $deleted++;
             }
         } else {
             if ($existing) {
                 if ($existing['value'] !== $value) {
-                    $CMSNT->update_safe('translate', ['value' => $value], 'id = ?', [$existing['id']]);
+                    $ToryHub->update_safe('translate', ['value' => $value], 'id = ?', [$existing['id']]);
                     $saved++;
                 }
             } else {
-                $CMSNT->insert_safe('translate', ['lang_id' => $langId, 'name' => $name, 'value' => $value]);
+                $ToryHub->insert_safe('translate', ['lang_id' => $langId, 'name' => $name, 'value' => $value]);
                 $saved++;
             }
         }
@@ -250,7 +250,7 @@ if ($request === 'delete_translation') {
         echo json_encode(['status' => 'error', 'msg' => 'Thiếu ID']);
         exit;
     }
-    $CMSNT->delete_safe('translate', 'id = ?', [$id]);
+    $ToryHub->delete_safe('translate', 'id = ?', [$id]);
     echo json_encode(['status' => 'success', 'msg' => 'Đã xóa']);
     exit;
 }

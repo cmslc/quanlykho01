@@ -5,7 +5,7 @@ require_once(__DIR__.'/../../../libs/csrf.php');
 $page_title = __('Sửa khách hàng');
 
 $id = intval(input_get('id'));
-$customer = $CMSNT->get_row_safe("SELECT * FROM `customers` WHERE `id` = ?", [$id]);
+$customer = $ToryHub->get_row_safe("SELECT * FROM `customers` WHERE `id` = ?", [$id]);
 if (!$customer) {
     redirect(base_url('admin/customers-list'));
 }

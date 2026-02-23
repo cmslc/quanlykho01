@@ -1,8 +1,8 @@
 <?php
-$CMSNT = new DB();
+$ToryHub = new DB();
 
 if (isset($_SESSION['staff_cn_login'])) {
-    $CMSNT->update_safe('users', ['token' => ''], "`token` = ? AND `role` = 'staff_cn'", [$_SESSION['staff_cn_login']]);
+    $ToryHub->update_safe('users', ['token' => ''], "`token` = ? AND `role` = 'staff_cn'", [$_SESSION['staff_cn_login']]);
 }
 
 session_destroy();

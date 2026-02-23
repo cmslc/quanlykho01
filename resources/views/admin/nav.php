@@ -5,10 +5,10 @@
             <div class="d-flex">
                 <div class="navbar-brand-box horizontal-logo">
                     <a href="<?= base_url('admin/home') ?>" class="logo logo-dark">
-                        <span class="logo-lg"><b>CMS01</b></span>
+                        <span class="logo-lg"><b>ToryHub</b></span>
                     </a>
                     <a href="<?= base_url('admin/home') ?>" class="logo logo-light">
-                        <span class="logo-lg"><b>CMS01</b></span>
+                        <span class="logo-lg"><b>ToryHub</b></span>
                     </a>
                 </div>
 

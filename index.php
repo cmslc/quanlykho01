@@ -9,7 +9,7 @@ require_once(__DIR__.'/libs/session.php');
 require_once(__DIR__.'/libs/role.php');
 require_once(__DIR__.'/libs/csrf.php');
 
-$CMSNT = new DB();
+$ToryHub = new DB();
 
 $module = !empty($_GET['module']) ? check_path($_GET['module']) : 'admin';
 $home = 'home';
@@ -17,7 +17,7 @@ $action = !empty($_GET['action']) ? check_path($_GET['action']) : $home;
 
 // Maintenance mode check (only for customer module)
 if ($module == 'customer') {
-    if ($CMSNT->site('status') != 1 && !isset($_SESSION['admin_login'])) {
+    if ($ToryHub->site('status') != 1 && !isset($_SESSION['admin_login'])) {
         require_once(__DIR__.'/resources/views/common/maintenance.php');
         exit();
     }

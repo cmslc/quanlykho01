@@ -5,7 +5,7 @@ require_once(__DIR__.'/../../../libs/csrf.php');
 $page_title = __('Đơn hàng của tôi');
 
 // Get customer info
-$customer = $CMSNT->get_row_safe("SELECT * FROM `customers` WHERE `user_id` = ?", [$getUser['id']]);
+$customer = $ToryHub->get_row_safe("SELECT * FROM `customers` WHERE `user_id` = ?", [$getUser['id']]);
 $customer_id = $customer ? $customer['id'] : 0;
 
 // Filters
@@ -19,14 +19,14 @@ if ($filterStatus) {
     $params[] = $filterStatus;
 }
 
-$orders = $CMSNT->get_list_safe("SELECT * FROM `orders` WHERE $where ORDER BY `create_date` DESC", $params);
+$orders = $ToryHub->get_list_safe("SELECT * FROM `orders` WHERE $where ORDER BY `create_date` DESC", $params);
 
 $statuses = ['cn_warehouse', 'packed', 'shipping', 'vn_warehouse', 'delivered', 'cancelled'];
 
 // Status counts for this customer
 $statusCounts = [];
 foreach ($statuses as $s) {
-    $statusCounts[$s] = $CMSNT->num_rows_safe("SELECT * FROM `orders` WHERE `customer_id` = ? AND `status` = ?", [$customer_id, $s]) ?: 0;
+    $statusCounts[$s] = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `customer_id` = ? AND `status` = ?", [$customer_id, $s]) ?: 0;
 }
 
 require_once(__DIR__.'/header.php');

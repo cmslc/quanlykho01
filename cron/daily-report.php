@@ -3,7 +3,7 @@
  * Cron Job: Báo cáo tổng hợp hàng ngày qua Telegram
  *
  * Chạy: php cron/daily-report.php
- * Hoặc cấu hình crontab: 0 8 * * * php /path/to/CMS01/cron/daily-report.php
+ * Hoặc cấu hình crontab: 0 8 * * * php /path/to/ToryHub/cron/daily-report.php
  * (Chạy lúc 8:00 sáng mỗi ngày)
  */
 
@@ -14,17 +14,17 @@ require_once(__DIR__.'/../libs/lang.php');
 require_once(__DIR__.'/../libs/helper.php');
 require_once(__DIR__.'/../libs/telegram.php');
 
-$CMSNT = new DB();
+$ToryHub = new DB();
 
 $today = date('Y/m/d');
 $yesterday = date('Y/m/d', strtotime('-1 day'));
 
 // === Thống kê đơn hàng hôm nay ===
-$orders_today = $CMSNT->get_row_safe(
+$orders_today = $ToryHub->get_row_safe(
     "SELECT COUNT(*) as total FROM `orders` WHERE DATE(`create_date`) = CURDATE()", []
 );
 
-$orders_by_status = $CMSNT->get_list_safe(
+$orders_by_status = $ToryHub->get_list_safe(
     "SELECT `status`, COUNT(*) as total FROM `orders` GROUP BY `status`", []
 );
 
@@ -34,24 +34,24 @@ foreach ($orders_by_status as $s) {
 }
 
 // Đơn hàng mới hôm nay
-$new_orders = $CMSNT->get_row_safe(
+$new_orders = $ToryHub->get_row_safe(
     "SELECT COUNT(*) as total, COALESCE(SUM(`grand_total`), 0) as revenue
      FROM `orders` WHERE DATE(`create_date`) = CURDATE()", []
 );
 
 // Đơn giao hôm nay
-$delivered_today = $CMSNT->get_row_safe(
+$delivered_today = $ToryHub->get_row_safe(
     "SELECT COUNT(*) as total FROM `order_status_history`
      WHERE `new_status` = 'delivered' AND DATE(`create_date`) = CURDATE()", []
 );
 
 // === Thống kê tài chính ===
-$deposits_today = $CMSNT->get_row_safe(
+$deposits_today = $ToryHub->get_row_safe(
     "SELECT COUNT(*) as total, COALESCE(SUM(`amount`), 0) as sum_amount
      FROM `transactions` WHERE `type` = 'deposit' AND DATE(`create_date`) = CURDATE()", []
 );
 
-$payments_today = $CMSNT->get_row_safe(
+$payments_today = $ToryHub->get_row_safe(
     "SELECT COUNT(*) as total, COALESCE(SUM(ABS(`amount`)), 0) as sum_amount
      FROM `transactions` WHERE `type` = 'payment' AND DATE(`create_date`) = CURDATE()", []
 );
@@ -62,7 +62,7 @@ $shipping_count = $status_summary['shipping'] ?? 0;
 $vn_warehouse_count = $status_summary['vn_warehouse'] ?? 0;
 
 // === Tổng khách hàng ===
-$total_customers = $CMSNT->get_row_safe("SELECT COUNT(*) as total FROM `customers`", []);
+$total_customers = $ToryHub->get_row_safe("SELECT COUNT(*) as total FROM `customers`", []);
 
 // === Build message ===
 $message = "📊 <b>BÁO CÁO NGÀY " . date('d/m/Y') . "</b>\n";

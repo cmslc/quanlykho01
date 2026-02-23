@@ -1,10 +1,10 @@
 <?php
-$CMSNT = new DB();
+$ToryHub = new DB();
 $csrf = new Csrf();
 
 // If already logged in, redirect to dashboard
 if (isset($_SESSION['admin_login'])) {
-    $getUser = $CMSNT->get_row_safe("SELECT * FROM `users` WHERE `role` = 'admin' AND `token` = ?", [$_SESSION['admin_login']]);
+    $getUser = $ToryHub->get_row_safe("SELECT * FROM `users` WHERE `role` = 'admin' AND `token` = ?", [$_SESSION['admin_login']]);
     if ($getUser) {
         redirect(base_url('admin/home'));
     }
@@ -15,7 +15,7 @@ if (isset($_SESSION['admin_login'])) {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title><?= $CMSNT->site('title') ?> - Admin Login</title>
+    <title><?= $ToryHub->site('title') ?> - Admin Login</title>
     <link rel="shortcut icon" href="<?= base_url('public/material/assets/images/favicon.ico') ?>">
     <link href="<?= base_url('public/material/assets/css/bootstrap.min.css') ?>" rel="stylesheet">
     <link href="<?= base_url('public/material/assets/css/icons.min.css') ?>" rel="stylesheet">
@@ -41,7 +41,7 @@ if (isset($_SESSION['admin_login'])) {
                                         <i class="ri-truck-line"></i>
                                     </div>
                                 </div>
-                                <h4 class="mb-1"><b>CMS01</b></h4>
+                                <h4 class="mb-1"><b>ToryHub</b></h4>
                                 <p class="text-muted fs-13"><?= __('Quản lý Kho & Vận chuyển') ?></p>
                             </div>
 
@@ -94,7 +94,7 @@ if (isset($_SESSION['admin_login'])) {
                         </a>
                     </div>
                     <div class="text-center mt-3">
-                        <p class="text-white-50 fs-12">&copy; <?= date('Y') ?> CMS01 v1.0</p>
+                        <p class="text-white-50 fs-12">&copy; <?= date('Y') ?> ToryHub v1.0</p>
                     </div>
                 </div>
             </div>

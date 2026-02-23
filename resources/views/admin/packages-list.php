@@ -48,24 +48,24 @@ if ($filterDateTo) {
 // Pagination
 $perPage = 20;
 $page = max(1, intval(input_get('page') ?: 1));
-$totalPackages = $CMSNT->num_rows_safe("SELECT p.id FROM `packages` p WHERE $where", $params);
+$totalPackages = $ToryHub->num_rows_safe("SELECT p.id FROM `packages` p WHERE $where", $params);
 $totalPages = max(1, ceil($totalPackages / $perPage));
 if ($page > $totalPages) $page = $totalPages;
 $offset = ($page - 1) * $perPage;
 
-$packages = $CMSNT->get_list_safe("SELECT p.*,
+$packages = $ToryHub->get_list_safe("SELECT p.*,
     (SELECT GROUP_CONCAT(DISTINCT o.order_code SEPARATOR ', ') FROM orders o INNER JOIN package_orders po ON o.id = po.order_id WHERE po.package_id = p.id) as order_codes,
     (SELECT GROUP_CONCAT(DISTINCT o.product_code SEPARATOR ', ') FROM orders o INNER JOIN package_orders po ON o.id = po.order_id WHERE po.package_id = p.id) as product_codes,
     (SELECT GROUP_CONCAT(DISTINCT c.fullname SEPARATOR ', ') FROM customers c INNER JOIN orders o ON c.id = o.customer_id INNER JOIN package_orders po ON o.id = po.order_id WHERE po.package_id = p.id) as customer_names
     FROM `packages` p WHERE $where ORDER BY p.create_date DESC LIMIT $perPage OFFSET $offset", $params);
 
 $pkgStatuses = ['cn_warehouse', 'packed', 'shipping', 'vn_warehouse', 'delivered'];
-$customers = $CMSNT->get_list_safe("SELECT `id`, `customer_code`, `fullname` FROM `customers` ORDER BY `fullname` ASC", []);
+$customers = $ToryHub->get_list_safe("SELECT `id`, `customer_code`, `fullname` FROM `customers` ORDER BY `fullname` ASC", []);
 
 // If filtering by order_id, get order info for display
 $filterOrderInfo = null;
 if ($filterOrderId) {
-    $filterOrderInfo = $CMSNT->get_row_safe("SELECT id, order_code, product_code, product_name FROM `orders` WHERE `id` = ?", [intval($filterOrderId)]);
+    $filterOrderInfo = $ToryHub->get_row_safe("SELECT id, order_code, product_code, product_name FROM `orders` WHERE `id` = ?", [intval($filterOrderId)]);
 }
 
 require_once(__DIR__.'/header.php');
@@ -156,7 +156,7 @@ require_once(__DIR__.'/sidebar.php');
             <?php
             $statusColors = ['cn_warehouse' => 'info', 'packed' => 'secondary', 'shipping' => 'dark', 'vn_warehouse' => 'primary', 'delivered' => 'success'];
             foreach ($pkgStatuses as $s):
-                $cnt = $CMSNT->num_rows_safe("SELECT * FROM `packages` WHERE `status` = ?", [$s]) ?: 0;
+                $cnt = $ToryHub->num_rows_safe("SELECT * FROM `packages` WHERE `status` = ?", [$s]) ?: 0;
             ?>
             <div class="col">
                 <a href="<?= base_url('admin/packages-list&status=' . $s) ?>" class="text-decoration-none">

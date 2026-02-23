@@ -4,7 +4,7 @@ require_once(__DIR__.'/../../../libs/csrf.php');
 
 $page_title = __('Tạo giao dịch');
 
-$customers = $CMSNT->get_list_safe("SELECT `id`, `customer_code`, `fullname`, `balance` FROM `customers` ORDER BY `fullname` ASC", []);
+$customers = $ToryHub->get_list_safe("SELECT `id`, `customer_code`, `fullname`, `balance` FROM `customers` ORDER BY `fullname` ASC", []);
 $preselect_customer = input_get('customer_id') ?: '';
 $preselect_order = input_get('order_id') ?: '';
 $preselect_type = input_get('type') ?: 'deposit';

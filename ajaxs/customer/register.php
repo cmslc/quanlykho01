@@ -10,7 +10,7 @@ require_once(__DIR__.'/../../libs/csrf.php');
 
 header('Content-Type: application/json');
 
-$CMSNT = new DB();
+$ToryHub = new DB();
 $csrf = new Csrf(true, true, false);
 
 if (!is_submit('register')) {
@@ -67,7 +67,7 @@ if (!empty($phone) && !check_phone($phone)) {
 }
 
 // Check duplicate username
-$existUser = $CMSNT->get_row_safe("SELECT `id` FROM `users` WHERE `username` = ?", [$username]);
+$existUser = $ToryHub->get_row_safe("SELECT `id` FROM `users` WHERE `username` = ?", [$username]);
 if ($existUser) {
     echo json_encode(['status' => 'error', 'msg' => __('Tên đăng nhập đã tồn tại')]);
     exit();
@@ -75,7 +75,7 @@ if ($existUser) {
 
 // Check duplicate email
 if (!empty($email)) {
-    $existEmail = $CMSNT->get_row_safe("SELECT `id` FROM `users` WHERE `email` = ? AND `email` != ''", [$email]);
+    $existEmail = $ToryHub->get_row_safe("SELECT `id` FROM `users` WHERE `email` = ? AND `email` != ''", [$email]);
     if ($existEmail) {
         echo json_encode(['status' => 'error', 'msg' => __('Email đã được sử dụng')]);
         exit();
@@ -85,7 +85,7 @@ if (!empty($email)) {
 // Insert new customer
 $token = generateUltraSecureToken();
 
-$CMSNT->insert_safe('users', [
+$ToryHub->insert_safe('users', [
     'username'    => $username,
     'password'    => TypePassword($password),
     'fullname'    => $fullname,
@@ -100,7 +100,7 @@ $CMSNT->insert_safe('users', [
     'create_date' => gettime()
 ]);
 
-$newUser = $CMSNT->get_row_safe("SELECT `id` FROM `users` WHERE `username` = ?", [$username]);
+$newUser = $ToryHub->get_row_safe("SELECT `id` FROM `users` WHERE `username` = ?", [$username]);
 $newUserId = $newUser ? $newUser['id'] : 0;
 
 // Auto login
@@ -113,7 +113,7 @@ set_logged($username, 'customer');
 add_log($newUserId, 'REGISTER', 'Customer registration successful');
 
 // Clear failed attempts
-$CMSNT->remove_safe('failed_attempts', "`ip_address` = ? AND `type` = 'REGISTER'", [myip()]);
+$ToryHub->remove_safe('failed_attempts', "`ip_address` = ? AND `type` = 'REGISTER'", [myip()]);
 
 echo json_encode([
     'status'   => 'success',

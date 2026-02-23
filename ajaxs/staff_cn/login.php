@@ -11,7 +11,7 @@ require_once(__DIR__.'/../../libs/database/users.php');
 
 header('Content-Type: application/json');
 
-$CMSNT = new DB();
+$ToryHub = new DB();
 $csrf = new Csrf(true, true, false);
 
 if (!is_submit('login')) {
@@ -35,7 +35,7 @@ if ($blockResult) {
 }
 
 // Find user with role staff_cn specifically
-$getUser = $CMSNT->get_row_safe("SELECT * FROM `users` WHERE `username` = ? AND `role` = 'staff_cn'", [$username]);
+$getUser = $ToryHub->get_row_safe("SELECT * FROM `users` WHERE `username` = ? AND `role` = 'staff_cn'", [$username]);
 
 if (!$getUser) {
     echo json_encode(['status' => 'error', 'msg' => __('Sai tên đăng nhập hoặc mật khẩu')]);
@@ -57,7 +57,7 @@ if ($getUser['banned'] != 0) {
 // Generate token and login
 $token = generateUltraSecureToken();
 
-$CMSNT->update_safe('users', [
+$ToryHub->update_safe('users', [
     'token'        => $token,
     'ip'           => myip(),
     'device'       => $_SERVER['HTTP_USER_AGENT'] ?? '',
@@ -75,7 +75,7 @@ set_logged($getUser['username'], 'staff_cn');
 add_log($getUser['id'], 'LOGIN', 'Staff CN login successful');
 
 // Clear failed attempts for this IP
-$CMSNT->remove_safe('failed_attempts', "`ip_address` = ? AND `type` = 'STAFF_CN'", [myip()]);
+$ToryHub->remove_safe('failed_attempts', "`ip_address` = ? AND `type` = 'STAFF_CN'", [myip()]);
 
 echo json_encode([
     'status'   => 'success',

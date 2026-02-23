@@ -43,7 +43,7 @@ if ($request === 'add') {
         exit;
     }
 
-    $customer = $CMSNT->get_row_safe("SELECT * FROM `customers` WHERE `id` = ?", [$customer_id]);
+    $customer = $ToryHub->get_row_safe("SELECT * FROM `customers` WHERE `id` = ?", [$customer_id]);
     if (!$customer) {
         echo json_encode(['status' => 'error', 'msg' => __('Khách hàng không tồn tại')]);
         exit;
@@ -52,7 +52,7 @@ if ($request === 'add') {
     // Find order if order_code provided
     $order_id = null;
     if ($order_code) {
-        $order = $CMSNT->get_row_safe("SELECT `id` FROM `orders` WHERE `order_code` = ?", [$order_code]);
+        $order = $ToryHub->get_row_safe("SELECT `id` FROM `orders` WHERE `order_code` = ?", [$order_code]);
         if ($order) {
             $order_id = $order['id'];
         }
@@ -75,11 +75,11 @@ if ($request === 'add') {
     }
 
     // Use transaction for atomicity
-    $CMSNT->beginTransaction();
+    $ToryHub->beginTransaction();
 
     try {
         // Insert transaction record
-        $CMSNT->insert_safe("transactions", [
+        $ToryHub->insert_safe("transactions", [
             'customer_id' => $customer_id,
             'order_id' => $order_id,
             'type' => $type,
@@ -92,17 +92,17 @@ if ($request === 'add') {
         ]);
 
         // Update customer balance
-        $CMSNT->update_safe("customers", [
+        $ToryHub->update_safe("customers", [
             'balance' => $balance_after,
             'update_date' => gettime()
         ], "id = ?", [$customer_id]);
 
         // If payment linked to order, update customer total_spent
         if ($type === 'payment') {
-            $CMSNT->cong_safe("customers", "total_spent", $amount, "id = ?", [$customer_id]);
+            $ToryHub->cong_safe("customers", "total_spent", $amount, "id = ?", [$customer_id]);
         }
 
-        $CMSNT->commit();
+        $ToryHub->commit();
 
         $typeLabel = ['deposit' => 'Nạp tiền', 'payment' => 'Thanh toán', 'refund' => 'Hoàn tiền', 'adjustment' => 'Điều chỉnh'];
         add_log('add_transaction', $typeLabel[$type] . ' ' . format_vnd($amount) . ' cho ' . $customer['customer_code']);
@@ -122,7 +122,7 @@ if ($request === 'add') {
 
         echo json_encode(['status' => 'success', 'msg' => __('Tạo giao dịch thành công')]);
     } catch (Exception $e) {
-        $CMSNT->rollBack();
+        $ToryHub->rollBack();
         echo json_encode(['status' => 'error', 'msg' => __('Lỗi hệ thống')]);
     }
     exit;

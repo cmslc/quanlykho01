@@ -50,12 +50,12 @@ if ($filterSearch) {
 // Pagination
 $perPage = 10;
 $page = max(1, intval(input_get('page') ?: 1));
-$totalOrders = $CMSNT->num_rows_safe("SELECT o.id FROM `orders` o WHERE $where", $params);
+$totalOrders = $ToryHub->num_rows_safe("SELECT o.id FROM `orders` o WHERE $where", $params);
 $totalPages = max(1, ceil($totalOrders / $perPage));
 if ($page > $totalPages) $page = $totalPages;
 $offset = ($page - 1) * $perPage;
 
-$orders = $CMSNT->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code
+$orders = $ToryHub->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code
     FROM `orders` o LEFT JOIN `customers` c ON o.customer_id = c.id
     WHERE $where ORDER BY o.create_date DESC LIMIT $perPage OFFSET $offset", $params);
 
@@ -64,7 +64,7 @@ $orderIds = array_column($orders, 'id');
 $trackingMap = [];
 if (!empty($orderIds)) {
     $placeholders = implode(',', array_fill(0, count($orderIds), '?'));
-    $trackings = $CMSNT->get_list_safe(
+    $trackings = $ToryHub->get_list_safe(
         "SELECT po.order_id, p.tracking_cn FROM `package_orders` po
          JOIN `packages` p ON po.package_id = p.id
          WHERE po.order_id IN ($placeholders)",
@@ -79,7 +79,7 @@ if (!empty($orderIds)) {
 $weightMap = [];
 if (!empty($orderIds)) {
     $placeholders = implode(',', array_fill(0, count($orderIds), '?'));
-    $weights = $CMSNT->get_list_safe(
+    $weights = $ToryHub->get_list_safe(
         "SELECT po.order_id,
                 COUNT(p.id) as total_packages,
                 SUM(p.weight_charged) as total_weight_charged,
@@ -100,7 +100,7 @@ if (!empty($orderIds)) {
 $pkgStatusMap = [];
 if (!empty($orderIds)) {
     $placeholders = implode(',', array_fill(0, count($orderIds), '?'));
-    $pkgStatuses = $CMSNT->get_list_safe(
+    $pkgStatuses = $ToryHub->get_list_safe(
         "SELECT po.order_id, p.status, COUNT(*) as cnt
          FROM `package_orders` po
          JOIN `packages` p ON po.package_id = p.id
@@ -117,7 +117,7 @@ if (!empty($orderIds)) {
 $bagMap = [];
 if ($isRetailPage && !empty($orderIds)) {
     $placeholders = implode(',', array_fill(0, count($orderIds), '?'));
-    $bags = $CMSNT->get_list_safe(
+    $bags = $ToryHub->get_list_safe(
         "SELECT po.order_id, b.bag_code, b.status as bag_status, COUNT(p.id) as pkg_count
          FROM `package_orders` po
          JOIN `packages` p ON po.package_id = p.id
@@ -132,7 +132,7 @@ if ($isRetailPage && !empty($orderIds)) {
     }
 }
 
-$customers = $CMSNT->get_list_safe("SELECT `id`, `customer_code`, `fullname` FROM `customers` ORDER BY `fullname` ASC", []);
+$customers = $ToryHub->get_list_safe("SELECT `id`, `customer_code`, `fullname` FROM `customers` ORDER BY `fullname` ASC", []);
 
 $statuses = ['cn_warehouse', 'packed', 'shipping', 'vn_warehouse', 'delivered', 'cancelled'];
 
@@ -214,7 +214,7 @@ require_once(__DIR__.'/sidebar.php');
             $statusCounts = [];
             foreach ($statuses as $s) {
                 if ($s === 'packed' && !$isRetailPage) continue;
-                $statusCounts[$s] = $CMSNT->num_rows_safe("SELECT * FROM `orders` WHERE `status` = ? AND `product_type` = ?", [$s, $_productTypeFilter]) ?: 0;
+                $statusCounts[$s] = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` = ? AND `product_type` = ?", [$s, $_productTypeFilter]) ?: 0;
             }
             ?>
             <?php foreach ($statuses as $s): ?>

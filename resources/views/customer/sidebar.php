@@ -55,11 +55,11 @@ $sidebarMenu = [
     <div class="navbar-brand-box">
         <a href="<?= base_url('customer/home') ?>" class="logo logo-dark">
             <span class="logo-sm"><b>CMS</b></span>
-            <span class="logo-lg"><b>CMS01</b> Portal</span>
+            <span class="logo-lg"><b>ToryHub</b> Portal</span>
         </a>
         <a href="<?= base_url('customer/home') ?>" class="logo logo-light">
             <span class="logo-sm"><b>CMS</b></span>
-            <span class="logo-lg"><b>CMS01</b> Portal</span>
+            <span class="logo-lg"><b>ToryHub</b> Portal</span>
         </a>
         <button type="button" class="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover" id="vertical-hover">
             <i class="ri-record-circle-line"></i>

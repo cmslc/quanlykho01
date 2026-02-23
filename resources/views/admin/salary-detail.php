@@ -5,7 +5,7 @@ require_once(__DIR__.'/../../../libs/csrf.php');
 $salaryId = intval(input_get('id'));
 if (!$salaryId) { header('Location: ' . base_url('admin/salary-list')); exit; }
 
-$salary = $CMSNT->get_row_safe(
+$salary = $ToryHub->get_row_safe(
     "SELECT s.*, u.fullname, u.username, u.role, u.phone
      FROM `salaries` s
      JOIN `users` u ON s.user_id = u.id

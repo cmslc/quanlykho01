@@ -5,7 +5,7 @@ require_once(__DIR__.'/../../../libs/csrf.php');
 $page_title = __('Sửa nhân viên');
 
 $id = intval(input_get('id'));
-$editUser = $CMSNT->get_row_safe("SELECT * FROM `users` WHERE `id` = ?", [$id]);
+$editUser = $ToryHub->get_row_safe("SELECT * FROM `users` WHERE `id` = ?", [$id]);
 if (!$editUser) {
     redirect(base_url('admin/users-list'));
 }

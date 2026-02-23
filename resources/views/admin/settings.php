@@ -5,7 +5,7 @@ require_once(__DIR__.'/../../../libs/csrf.php');
 $page_title = __('Cài đặt hệ thống');
 
 // Get all settings
-$settings = $CMSNT->get_list_safe("SELECT * FROM `settings` ORDER BY `id` ASC", []);
+$settings = $ToryHub->get_list_safe("SELECT * FROM `settings` ORDER BY `id` ASC", []);
 $settingsMap = [];
 foreach ($settings as $s) {
     $settingsMap[$s['name']] = $s['value'];
@@ -61,7 +61,7 @@ require_once(__DIR__.'/sidebar.php');
 
                                     <div class="mb-3">
                                         <label class="form-label"><?= __('Tên website') ?></label>
-                                        <input type="text" class="form-control" name="site_name" value="<?= htmlspecialchars($settingsMap['site_name'] ?? 'CMS01') ?>">
+                                        <input type="text" class="form-control" name="site_name" value="<?= htmlspecialchars($settingsMap['site_name'] ?? 'ToryHub') ?>">
                                     </div>
 
                                     <div class="row">

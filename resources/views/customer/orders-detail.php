@@ -3,13 +3,13 @@ require_once(__DIR__.'/../../../models/is_customer.php');
 require_once(__DIR__.'/../../../libs/csrf.php');
 
 // Get customer info
-$customer = $CMSNT->get_row_safe("SELECT * FROM `customers` WHERE `user_id` = ?", [$getUser['id']]);
+$customer = $ToryHub->get_row_safe("SELECT * FROM `customers` WHERE `user_id` = ?", [$getUser['id']]);
 $customer_id = $customer ? $customer['id'] : 0;
 
 $id = intval(input_get('id'));
 
 // Only fetch orders belonging to this customer
-$order = $CMSNT->get_row_safe("SELECT * FROM `orders` WHERE `id` = ? AND `customer_id` = ?", [$id, $customer_id]);
+$order = $ToryHub->get_row_safe("SELECT * FROM `orders` WHERE `id` = ? AND `customer_id` = ?", [$id, $customer_id]);
 if (!$order) {
     redirect(base_url('customer/orders'));
 }
@@ -17,7 +17,7 @@ if (!$order) {
 $page_title = __('Chi tiết đơn') . ': ' . $order['order_code'];
 
 // Status history
-$history = $CMSNT->get_list_safe("SELECT h.*, u.username FROM `order_status_history` h
+$history = $ToryHub->get_list_safe("SELECT h.*, u.username FROM `order_status_history` h
     LEFT JOIN `users` u ON h.changed_by = u.id
     WHERE h.order_id = ? ORDER BY h.create_date ASC", [$id]);
 

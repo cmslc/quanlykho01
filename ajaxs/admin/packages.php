@@ -56,7 +56,7 @@ if ($request === 'add') {
 // ======== EDIT PACKAGE ========
 if ($request === 'edit') {
     $id = intval(input_post('id'));
-    $pkg = $CMSNT->get_row_safe("SELECT * FROM `packages` WHERE `id` = ?", [$id]);
+    $pkg = $ToryHub->get_row_safe("SELECT * FROM `packages` WHERE `id` = ?", [$id]);
     if (!$pkg) {
         echo json_encode(['status' => 'error', 'msg' => __('Kiện hàng không tồn tại')]);
         exit;
@@ -77,7 +77,7 @@ if ($request === 'edit') {
     $data['weight_volume'] = calculate_volume_weight($data['length_cm'], $data['width_cm'], $data['height_cm']);
     $data['weight_charged'] = calculate_charged_weight($data['weight_actual'], $data['weight_volume']);
 
-    $CMSNT->update_safe('packages', $data, "`id` = ?", [$id]);
+    $ToryHub->update_safe('packages', $data, "`id` = ?", [$id]);
 
     // Recalculate linked order fees
     $Orders = new Orders();
@@ -94,15 +94,15 @@ if ($request === 'edit') {
 // ======== DELETE PACKAGE ========
 if ($request === 'delete') {
     $id = intval(input_post('id'));
-    $pkg = $CMSNT->get_row_safe("SELECT * FROM `packages` WHERE `id` = ?", [$id]);
+    $pkg = $ToryHub->get_row_safe("SELECT * FROM `packages` WHERE `id` = ?", [$id]);
     if (!$pkg) {
         echo json_encode(['status' => 'error', 'msg' => __('Kiện hàng không tồn tại')]);
         exit;
     }
 
-    $CMSNT->remove_safe('package_status_history', "`package_id` = ?", [$id]);
-    $CMSNT->remove_safe('package_orders', "`package_id` = ?", [$id]);
-    $CMSNT->remove_safe('packages', "`id` = ?", [$id]);
+    $ToryHub->remove_safe('package_status_history', "`package_id` = ?", [$id]);
+    $ToryHub->remove_safe('package_orders', "`package_id` = ?", [$id]);
+    $ToryHub->remove_safe('packages', "`id` = ?", [$id]);
 
     add_log('delete_package', 'Xóa kiện ' . $pkg['package_code']);
     echo json_encode(['status' => 'success', 'msg' => __('Xóa kiện hàng thành công')]);
@@ -239,7 +239,7 @@ if ($request === 'split') {
 // ======== GET PACKAGES BY ORDER ========
 if ($request === 'get_order_packages') {
     $order_id = intval(input_post('order_id'));
-    $packages = $CMSNT->get_list_safe(
+    $packages = $ToryHub->get_list_safe(
         "SELECT p.* FROM `packages` p
          JOIN `package_orders` po ON p.id = po.package_id
          WHERE po.order_id = ? ORDER BY p.id ASC", [$order_id]
@@ -266,7 +266,7 @@ if ($request === 'get_order_packages') {
 // ======== GET BAG PACKAGES ========
 if ($request === 'get_bag_packages') {
     $bag_id = intval(input_post('bag_id'));
-    $packages = $CMSNT->get_list_safe(
+    $packages = $ToryHub->get_list_safe(
         "SELECT p.* FROM `packages` p
          JOIN `bag_packages` bp ON p.id = bp.package_id
          WHERE bp.bag_id = ? ORDER BY p.id ASC", [$bag_id]
@@ -297,7 +297,7 @@ if ($request === 'search_orders') {
         echo json_encode(['status' => 'error', 'msg' => __('Nhập ít nhất 2 ký tự')]);
         exit;
     }
-    $orders = $CMSNT->get_list_safe(
+    $orders = $ToryHub->get_list_safe(
         "SELECT o.id, o.order_code, o.product_name, o.status, c.fullname as customer_name
          FROM `orders` o LEFT JOIN `customers` c ON o.customer_id = c.id
          WHERE o.order_code LIKE ? OR o.cn_tracking LIKE ? OR c.customer_code LIKE ?

@@ -17,12 +17,12 @@ class TelegramBot
     public function __construct()
     {
         // Priority: DB settings > .env
-        global $CMSNT;
+        global $ToryHub;
         $enabled = '1';
-        if ($CMSNT) {
-            $this->botToken = $CMSNT->site('telegram_bot_token') ?: ($_ENV['TELEGRAM_BOT_TOKEN'] ?? '');
-            $this->chatId = $CMSNT->site('telegram_chat_id') ?: ($_ENV['TELEGRAM_CHAT_ID'] ?? '');
-            $enabled = $CMSNT->site('telegram_enabled') ?: '1';
+        if ($ToryHub) {
+            $this->botToken = $ToryHub->site('telegram_bot_token') ?: ($_ENV['TELEGRAM_BOT_TOKEN'] ?? '');
+            $this->chatId = $ToryHub->site('telegram_chat_id') ?: ($_ENV['TELEGRAM_CHAT_ID'] ?? '');
+            $enabled = $ToryHub->site('telegram_enabled') ?: '1';
         } else {
             $this->botToken = $_ENV['TELEGRAM_BOT_TOKEN'] ?? '';
             $this->chatId = $_ENV['TELEGRAM_CHAT_ID'] ?? '';

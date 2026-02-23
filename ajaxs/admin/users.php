@@ -11,7 +11,7 @@ require_once(__DIR__.'/../../libs/database/users.php');
 require_once(__DIR__.'/../../models/is_admin.php');
 
 header('Content-Type: application/json');
-$CMSNT = new DB();
+$ToryHub = new DB();
 $csrf = new Csrf(true, true, false);
 
 // ADD USER
@@ -34,12 +34,12 @@ if (is_submit('add')) {
         exit();
     }
 
-    if ($CMSNT->get_row_safe("SELECT * FROM `users` WHERE `username` = ?", [$username])) {
+    if ($ToryHub->get_row_safe("SELECT * FROM `users` WHERE `username` = ?", [$username])) {
         echo json_encode(['status' => 'error', 'msg' => __('Username already exists')]);
         exit();
     }
 
-    $CMSNT->insert_safe('users', [
+    $ToryHub->insert_safe('users', [
         'username'    => $username,
         'password'    => TypePassword($password),
         'fullname'    => $fullname,
@@ -84,7 +84,7 @@ if (is_submit('edit')) {
         $data['password'] = TypePassword($password);
     }
 
-    $CMSNT->update_safe('users', $data, "`id` = ?", [$id]);
+    $ToryHub->update_safe('users', $data, "`id` = ?", [$id]);
     add_log($getUser['id'], 'EDIT_USER', "Edited user ID: $id");
     echo json_encode(['status' => 'success', 'msg' => __('User updated successfully')]);
     exit();
@@ -99,7 +99,7 @@ if (is_submit('delete')) {
         exit();
     }
 
-    $CMSNT->remove_safe('users', "`id` = ?", [$id]);
+    $ToryHub->remove_safe('users', "`id` = ?", [$id]);
     add_log($getUser['id'], 'DELETE_USER', "Deleted user ID: $id");
     echo json_encode(['status' => 'success', 'msg' => __('User deleted successfully')]);
     exit();

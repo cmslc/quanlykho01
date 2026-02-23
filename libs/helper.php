@@ -4,10 +4,10 @@ if (!defined('IN_SITE')) {
     die('The Request Not Found');
 }
 
-$CMSNT = new DB;
-date_default_timezone_set($CMSNT->site('timezone') ?: 'Asia/Ho_Chi_Minh');
+$ToryHub = new DB;
+date_default_timezone_set($ToryHub->site('timezone') ?: 'Asia/Ho_Chi_Minh');
 
-$session_login = $CMSNT->site('session_login') ?: 86400;
+$session_login = $ToryHub->site('session_login') ?: 86400;
 
 if (session_status() == PHP_SESSION_NONE) {
     ini_set('session.gc_maxlifetime', $session_login);
@@ -20,7 +20,7 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 // Check banned IP
-if ($CMSNT->get_row_safe("SELECT * FROM `banned_ips` WHERE `ip` = ? AND `banned` = 1", [myip()])) {
+if ($ToryHub->get_row_safe("SELECT * FROM `banned_ips` WHERE `ip` = ? AND `banned` = 1", [myip()])) {
     require_once(__DIR__.'/../resources/views/common/block-ip.php');
     exit();
 }
@@ -28,9 +28,9 @@ if ($CMSNT->get_row_safe("SELECT * FROM `banned_ips` WHERE `ip` = ? AND `banned`
 // Auto-insert settings
 function insert_options($name, $value)
 {
-    global $CMSNT;
-    if (!$CMSNT->get_row_safe("SELECT * FROM `settings` WHERE `name` = ?", [$name])) {
-        $CMSNT->insert_safe("settings", [
+    global $ToryHub;
+    if (!$ToryHub->get_row_safe("SELECT * FROM `settings` WHERE `name` = ?", [$name])) {
+        $ToryHub->insert_safe("settings", [
             'name'  => $name,
             'value' => $value
         ]);
@@ -76,7 +76,7 @@ function myip()
 
 function checkBlockIP($type, $time = 15)
 {
-    global $CMSNT;
+    global $ToryHub;
     $ip_address = myip();
     $max_attempts = 10;
 
@@ -87,14 +87,14 @@ function checkBlockIP($type, $time = 15)
     ];
     $reason = $reasons[$type] ?? 'Too many requests';
 
-    $CMSNT->insert_safe("failed_attempts", [
+    $ToryHub->insert_safe("failed_attempts", [
         'ip_address'     => $ip_address,
         'attempts'       => 1,
         'type'           => $type,
         'create_gettime' => gettime()
     ]);
 
-    $attempts = $CMSNT->get_row_safe(
+    $attempts = $ToryHub->get_row_safe(
         "SELECT COUNT(*) as total FROM `failed_attempts`
         WHERE `ip_address` = ? AND `type` = ?
         AND `create_gettime` >= DATE_SUB(NOW(), INTERVAL ? MINUTE)",
@@ -102,14 +102,14 @@ function checkBlockIP($type, $time = 15)
     );
 
     if ($attempts['total'] >= $max_attempts) {
-        $CMSNT->insert_safe('banned_ips', [
+        $ToryHub->insert_safe('banned_ips', [
             'ip'             => $ip_address,
             'attempts'       => $attempts['total'],
             'create_gettime' => gettime(),
             'banned'         => 1,
             'reason'         => __($reason)
         ]);
-        $CMSNT->remove_safe('failed_attempts', "`ip_address` = ? AND `type` = ?", [$ip_address, $type]);
+        $ToryHub->remove_safe('failed_attempts', "`ip_address` = ? AND `type` = ?", [$ip_address, $type]);
         return json_encode(['status' => 'error', 'msg' => __('IP blocked. Please try again later.')]);
     }
     return false;
@@ -140,8 +140,8 @@ function validate_csrf_token($token)
 
 function base_url($url = '')
 {
-    global $CMSNT;
-    $allowed_domains = array_map('trim', explode(',', $CMSNT->site('domains')));
+    global $ToryHub;
+    $allowed_domains = array_map('trim', explode(',', $ToryHub->site('domains')));
     $host = $_SERVER['HTTP_HOST'] ?? '';
     if (!preg_match('/^[a-zA-Z0-9\-\.\:]+$/', $host)) {
         $host = $allowed_domains[0];
@@ -215,8 +215,8 @@ function is_submit($key)
 
 function TypePassword($password)
 {
-    $CMSNT = new DB();
-    $type = $CMSNT->site('type_password');
+    $ToryHub = new DB();
+    $type = $ToryHub->site('type_password');
     if ($type == 'bcrypt') {
         return password_hash($password, PASSWORD_BCRYPT);
     }
@@ -228,8 +228,8 @@ function TypePassword($password)
 
 function VerifyPassword($password, $hash)
 {
-    $CMSNT = new DB();
-    $type = $CMSNT->site('type_password');
+    $ToryHub = new DB();
+    $type = $ToryHub->site('type_password');
     if ($type == 'bcrypt') {
         return password_verify($password, $hash);
     }
@@ -243,8 +243,8 @@ function VerifyPassword($password, $hash)
 
 function getUser($id, $row)
 {
-    $CMSNT = new DB();
-    $result = $CMSNT->get_row_safe("SELECT * FROM `users` WHERE `id` = ?", [$id]);
+    $ToryHub = new DB();
+    $result = $ToryHub->get_row_safe("SELECT * FROM `users` WHERE `id` = ?", [$id]);
     return $result ? $result[$row] : null;
 }
 
@@ -317,8 +317,8 @@ function format_cny($amount)
 
 function get_exchange_rate()
 {
-    $CMSNT = new DB();
-    return floatval($CMSNT->site('exchange_rate_cny_vnd') ?: 3500);
+    $ToryHub = new DB();
+    return floatval($ToryHub->site('exchange_rate_cny_vnd') ?: 3500);
 }
 
 function cny_to_vnd($cny_amount)
@@ -335,19 +335,19 @@ function generate_order_code()
 
 function generate_customer_code()
 {
-    $CMSNT = new DB();
-    $last = $CMSNT->get_row_safe("SELECT `id` FROM `customers` ORDER BY `id` DESC LIMIT 1", []);
+    $ToryHub = new DB();
+    $last = $ToryHub->get_row_safe("SELECT `id` FROM `customers` ORDER BY `id` DESC LIMIT 1", []);
     $next_id = $last ? ($last['id'] + 1) : 1;
     return 'KH' . str_pad($next_id, 4, '0', STR_PAD_LEFT);
 }
 
 function calculate_shipping_fee($weight, $method = 'road')
 {
-    $CMSNT = new DB();
+    $ToryHub = new DB();
     $rates = [
-        'road' => floatval($CMSNT->site('shipping_rate_road') ?: 25000),
-        'sea'  => floatval($CMSNT->site('shipping_rate_sea') ?: 15000),
-        'air'  => floatval($CMSNT->site('shipping_rate_air') ?: 120000),
+        'road' => floatval($ToryHub->site('shipping_rate_road') ?: 25000),
+        'sea'  => floatval($ToryHub->site('shipping_rate_sea') ?: 15000),
+        'air'  => floatval($ToryHub->site('shipping_rate_air') ?: 120000),
     ];
     $rate = $rates[$method] ?? $rates['road'];
     return $weight * $rate;
@@ -355,8 +355,8 @@ function calculate_shipping_fee($weight, $method = 'road')
 
 function calculate_volume_weight($length, $width, $height)
 {
-    $CMSNT = new DB();
-    $divisor = floatval($CMSNT->site('volume_divisor') ?: 6000);
+    $ToryHub = new DB();
+    $divisor = floatval($ToryHub->site('volume_divisor') ?: 6000);
     return ($length * $width * $height) / $divisor;
 }
 
@@ -367,8 +367,8 @@ function calculate_charged_weight($actual, $volume)
 
 function calculate_service_fee($total_cny)
 {
-    $CMSNT = new DB();
-    $percent = floatval($CMSNT->site('service_fee_percent') ?: 3);
+    $ToryHub = new DB();
+    $percent = floatval($ToryHub->site('service_fee_percent') ?: 3);
     return ($total_cny * $percent) / 100;
 }
 
@@ -545,16 +545,16 @@ function get_upload_url($path)
 
 function setSecureCookie($name, $value)
 {
-    global $CMSNT;
-    return setcookie($name, $value, time() + ($CMSNT->site('session_login') ?: 86400), "/", "", false, true);
+    global $ToryHub;
+    return setcookie($name, $value, time() + ($ToryHub->site('session_login') ?: 86400), "/", "", false, true);
 }
 
 // ===== LOGGING =====
 
 function add_log($user_id, $action, $description = '')
 {
-    $CMSNT = new DB();
-    $CMSNT->insert_safe('logs', [
+    $ToryHub = new DB();
+    $ToryHub->insert_safe('logs', [
         'user_id'     => $user_id,
         'action'      => $action,
         'description' => $description,

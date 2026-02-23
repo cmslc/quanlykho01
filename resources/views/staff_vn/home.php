@@ -5,19 +5,19 @@ require_once(__DIR__.'/../../../libs/csrf.php');
 $page_title = 'Dashboard';
 
 // Stats relevant to VN warehouse
-$vn_warehouse_orders = $CMSNT->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'vn_warehouse'", []) ?: 0;
-$shipping_orders = $CMSNT->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'shipping'", []) ?: 0;
-$delivered_orders = $CMSNT->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'delivered'", []) ?: 0;
-$delivered_today = $CMSNT->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'delivered' AND DATE(`delivery_date`) = CURDATE()", []) ?: 0;
+$vn_warehouse_orders = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'vn_warehouse'", []) ?: 0;
+$shipping_orders = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'shipping'", []) ?: 0;
+$delivered_orders = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'delivered'", []) ?: 0;
+$delivered_today = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'delivered' AND DATE(`delivery_date`) = CURDATE()", []) ?: 0;
 
 // Recent orders at VN warehouse / shipping / delivered
-$recent_orders = $CMSNT->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code
+$recent_orders = $ToryHub->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code
     FROM `orders` o LEFT JOIN `customers` c ON o.customer_id = c.id
     WHERE o.status IN ('shipping', 'vn_warehouse', 'delivered')
     ORDER BY o.update_date DESC LIMIT 10", []);
 
 // Orders waiting for delivery (vn_warehouse status)
-$waiting_delivery = $CMSNT->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code, c.phone as customer_phone
+$waiting_delivery = $ToryHub->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code, c.phone as customer_phone
     FROM `orders` o LEFT JOIN `customers` c ON o.customer_id = c.id
     WHERE o.status = 'vn_warehouse'
     ORDER BY o.create_date ASC LIMIT 10", []);

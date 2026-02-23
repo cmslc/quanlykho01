@@ -7,24 +7,24 @@ $filterDateFrom = input_get('date_from') ?: date('Y-m-01');
 $filterDateTo = input_get('date_to') ?: date('Y-m-d');
 
 // Order stats by status
-$statusStats = $CMSNT->get_list_safe("SELECT status, COUNT(*) as cnt, COALESCE(SUM(grand_total),0) as total
+$statusStats = $ToryHub->get_list_safe("SELECT status, COUNT(*) as cnt, COALESCE(SUM(grand_total),0) as total
     FROM `orders` WHERE DATE(create_date) >= ? AND DATE(create_date) <= ?
     GROUP BY status ORDER BY cnt DESC", [$filterDateFrom, $filterDateTo]);
 
-$totalOrders = $CMSNT->get_row_safe("SELECT COUNT(*) as cnt FROM `orders` WHERE DATE(create_date) >= ? AND DATE(create_date) <= ?", [$filterDateFrom, $filterDateTo])['cnt'];
-$completedOrders = $CMSNT->get_row_safe("SELECT COUNT(*) as cnt FROM `orders` WHERE `status` = 'delivered' AND DATE(create_date) >= ? AND DATE(create_date) <= ?", [$filterDateFrom, $filterDateTo])['cnt'];
-$cancelledOrders = $CMSNT->get_row_safe("SELECT COUNT(*) as cnt FROM `orders` WHERE `status` = 'cancelled' AND DATE(create_date) >= ? AND DATE(create_date) <= ?", [$filterDateFrom, $filterDateTo])['cnt'];
+$totalOrders = $ToryHub->get_row_safe("SELECT COUNT(*) as cnt FROM `orders` WHERE DATE(create_date) >= ? AND DATE(create_date) <= ?", [$filterDateFrom, $filterDateTo])['cnt'];
+$completedOrders = $ToryHub->get_row_safe("SELECT COUNT(*) as cnt FROM `orders` WHERE `status` = 'delivered' AND DATE(create_date) >= ? AND DATE(create_date) <= ?", [$filterDateFrom, $filterDateTo])['cnt'];
+$cancelledOrders = $ToryHub->get_row_safe("SELECT COUNT(*) as cnt FROM `orders` WHERE `status` = 'cancelled' AND DATE(create_date) >= ? AND DATE(create_date) <= ?", [$filterDateFrom, $filterDateTo])['cnt'];
 
 // Average order value
-$avgOrder = $CMSNT->get_row_safe("SELECT COALESCE(AVG(grand_total),0) as avg_val FROM `orders` WHERE `status` != 'cancelled' AND DATE(create_date) >= ? AND DATE(create_date) <= ?", [$filterDateFrom, $filterDateTo])['avg_val'];
+$avgOrder = $ToryHub->get_row_safe("SELECT COALESCE(AVG(grand_total),0) as avg_val FROM `orders` WHERE `status` != 'cancelled' AND DATE(create_date) >= ? AND DATE(create_date) <= ?", [$filterDateFrom, $filterDateTo])['avg_val'];
 
 // Daily order count
-$dailyOrders = $CMSNT->get_list_safe("SELECT DATE(create_date) as day, COUNT(*) as cnt, COALESCE(SUM(grand_total),0) as total
+$dailyOrders = $ToryHub->get_list_safe("SELECT DATE(create_date) as day, COUNT(*) as cnt, COALESCE(SUM(grand_total),0) as total
     FROM `orders` WHERE DATE(create_date) >= ? AND DATE(create_date) <= ?
     GROUP BY DATE(create_date) ORDER BY day DESC", [$filterDateFrom, $filterDateTo]);
 
 // Weight stats
-$weightStats = $CMSNT->get_row_safe("SELECT
+$weightStats = $ToryHub->get_row_safe("SELECT
     COALESCE(SUM(weight_charged),0) as total_weight,
     COALESCE(AVG(weight_charged),0) as avg_weight,
     COALESCE(MAX(weight_charged),0) as max_weight

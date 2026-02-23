@@ -453,7 +453,7 @@ foreach ($translations as $name => $langs) {
         $langId = ($langCode === 'zh') ? 2 : 3;
 
         // Check if already exists
-        $existing = $CMSNT->get_row_safe(
+        $existing = $ToryHub->get_row_safe(
             "SELECT id FROM `translate` WHERE `lang_id` = ? AND `name` = ?",
             [$langId, $name]
         );
@@ -463,7 +463,7 @@ foreach ($translations as $name => $langs) {
             continue;
         }
 
-        $CMSNT->insert_safe('translate', [
+        $ToryHub->insert_safe('translate', [
             'lang_id' => $langId,
             'name' => $name,
             'value' => $value

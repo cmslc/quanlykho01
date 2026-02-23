@@ -4,7 +4,7 @@ require_once(__DIR__.'/../../../libs/csrf.php');
 require_once(__DIR__.'/../../../libs/database/shipments.php');
 
 $id = intval(input_get('id'));
-$shipment = $CMSNT->get_row_safe("SELECT s.*, u.fullname as creator_name FROM `shipments` s LEFT JOIN `users` u ON s.created_by = u.id WHERE s.id = ?", [$id]);
+$shipment = $ToryHub->get_row_safe("SELECT s.*, u.fullname as creator_name FROM `shipments` s LEFT JOIN `users` u ON s.created_by = u.id WHERE s.id = ?", [$id]);
 if (!$shipment) {
     echo '<script>alert("Chuyến xe không tồn tại");window.location.href="' . base_url('admin/shipments-list') . '";</script>';
     exit;

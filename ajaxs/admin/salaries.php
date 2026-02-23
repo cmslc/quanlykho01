@@ -31,7 +31,7 @@ if ($request === 'generate_monthly') {
     }
 
     // Lấy tất cả NV active (staff_cn, staff_vn)
-    $staffList = $CMSNT->get_list_safe(
+    $staffList = $ToryHub->get_list_safe(
         "SELECT id, role FROM `users` WHERE `role` IN ('staff_cn','staff_vn') AND `active` = 1 AND `banned` = 0",
         []
     );
@@ -42,7 +42,7 @@ if ($request === 'generate_monthly') {
     }
 
     // Lấy danh sách NV đã có record tháng này
-    $existing = $CMSNT->get_list_safe(
+    $existing = $ToryHub->get_list_safe(
         "SELECT `user_id` FROM `salaries` WHERE `month` = ? AND `year` = ?",
         [$month, $year]
     );
@@ -51,7 +51,7 @@ if ($request === 'generate_monthly') {
     // Lấy base_salary từ tháng trước cho mỗi NV
     $prevMonth = $month == 1 ? 12 : $month - 1;
     $prevYear = $month == 1 ? $year - 1 : $year;
-    $prevSalaries = $CMSNT->get_list_safe(
+    $prevSalaries = $ToryHub->get_list_safe(
         "SELECT `user_id`, `base_salary`, `allowance` FROM `salaries` WHERE `month` = ? AND `year` = ?",
         [$prevMonth, $prevYear]
     );
@@ -61,7 +61,7 @@ if ($request === 'generate_monthly') {
     }
 
     $created = 0;
-    $CMSNT->beginTransaction();
+    $ToryHub->beginTransaction();
     try {
         foreach ($staffList as $staff) {
             if (in_array($staff['id'], $existingIds)) continue;
@@ -71,7 +71,7 @@ if ($request === 'generate_monthly') {
             $allowance = isset($prevMap[$staff['id']]) ? $prevMap[$staff['id']]['allowance'] : 0;
             $netSalary = $baseSalary + $allowance;
 
-            $CMSNT->insert_safe('salaries', [
+            $ToryHub->insert_safe('salaries', [
                 'user_id' => $staff['id'],
                 'month' => $month,
                 'year' => $year,
@@ -84,9 +84,9 @@ if ($request === 'generate_monthly') {
             ]);
             $created++;
         }
-        $CMSNT->commit();
+        $ToryHub->commit();
     } catch (Exception $e) {
-        $CMSNT->rollBack();
+        $ToryHub->rollBack();
         echo json_encode(['status' => 'error', 'msg' => __('Lỗi hệ thống')]);
         exit;
     }
@@ -111,7 +111,7 @@ if ($request === 'update') {
     $workDays = input_post('work_days') !== '' ? intval(input_post('work_days')) : null;
     $note = trim(input_post('note') ?? '');
 
-    $salary = $CMSNT->get_row_safe("SELECT * FROM `salaries` WHERE `id` = ?", [$id]);
+    $salary = $ToryHub->get_row_safe("SELECT * FROM `salaries` WHERE `id` = ?", [$id]);
     if (!$salary) {
         echo json_encode(['status' => 'error', 'msg' => __('Bản ghi không tồn tại')]);
         exit;
@@ -124,7 +124,7 @@ if ($request === 'update') {
 
     $netSalary = $baseSalary + $allowance + $bonus - $deduction;
 
-    $CMSNT->update_safe('salaries', [
+    $ToryHub->update_safe('salaries', [
         'base_salary' => $baseSalary,
         'allowance' => $allowance,
         'bonus' => $bonus,
@@ -142,7 +142,7 @@ if ($request === 'update') {
 // ======== XÁC NHẬN ========
 if ($request === 'confirm') {
     $id = intval(input_post('id'));
-    $salary = $CMSNT->get_row_safe("SELECT * FROM `salaries` WHERE `id` = ?", [$id]);
+    $salary = $ToryHub->get_row_safe("SELECT * FROM `salaries` WHERE `id` = ?", [$id]);
     if (!$salary) {
         echo json_encode(['status' => 'error', 'msg' => __('Bản ghi không tồn tại')]);
         exit;
@@ -152,7 +152,7 @@ if ($request === 'confirm') {
         exit;
     }
 
-    $CMSNT->update_safe('salaries', ['status' => 'confirmed'], '`id` = ?', [$id]);
+    $ToryHub->update_safe('salaries', ['status' => 'confirmed'], '`id` = ?', [$id]);
     add_log($adminId, 'salary_confirm', "Xác nhận lương #$id");
     echo json_encode(['status' => 'success', 'msg' => __('Đã xác nhận')]);
     exit;
@@ -161,7 +161,7 @@ if ($request === 'confirm') {
 // ======== ĐÁNH DẤU ĐÃ TRẢ ========
 if ($request === 'mark_paid') {
     $id = intval(input_post('id'));
-    $salary = $CMSNT->get_row_safe("SELECT * FROM `salaries` WHERE `id` = ?", [$id]);
+    $salary = $ToryHub->get_row_safe("SELECT * FROM `salaries` WHERE `id` = ?", [$id]);
     if (!$salary) {
         echo json_encode(['status' => 'error', 'msg' => __('Bản ghi không tồn tại')]);
         exit;
@@ -171,7 +171,7 @@ if ($request === 'mark_paid') {
         exit;
     }
 
-    $CMSNT->update_safe('salaries', ['status' => 'paid', 'paid_date' => gettime()], '`id` = ?', [$id]);
+    $ToryHub->update_safe('salaries', ['status' => 'paid', 'paid_date' => gettime()], '`id` = ?', [$id]);
     add_log($adminId, 'salary_paid', "Đánh dấu đã trả lương #$id");
     echo json_encode(['status' => 'success', 'msg' => __('Đã đánh dấu thanh toán')]);
     exit;
@@ -180,7 +180,7 @@ if ($request === 'mark_paid') {
 // ======== XÓA (chỉ draft) ========
 if ($request === 'delete') {
     $id = intval(input_post('id'));
-    $salary = $CMSNT->get_row_safe("SELECT * FROM `salaries` WHERE `id` = ?", [$id]);
+    $salary = $ToryHub->get_row_safe("SELECT * FROM `salaries` WHERE `id` = ?", [$id]);
     if (!$salary) {
         echo json_encode(['status' => 'error', 'msg' => __('Bản ghi không tồn tại')]);
         exit;
@@ -190,7 +190,7 @@ if ($request === 'delete') {
         exit;
     }
 
-    $CMSNT->remove_safe('salaries', '`id` = ?', [$id]);
+    $ToryHub->remove_safe('salaries', '`id` = ?', [$id]);
     add_log($adminId, 'salary_delete', "Xóa lương #$id");
     echo json_encode(['status' => 'success', 'msg' => __('Đã xóa')]);
     exit;
@@ -205,7 +205,7 @@ if ($request === 'bulk_confirm') {
     }
 
     $ph = implode(',', array_fill(0, count($ids), '?'));
-    $CMSNT->query_safe("UPDATE `salaries` SET `status` = 'confirmed' WHERE `id` IN ($ph) AND `status` = 'draft'", $ids);
+    $ToryHub->query_safe("UPDATE `salaries` SET `status` = 'confirmed' WHERE `id` IN ($ph) AND `status` = 'draft'", $ids);
     add_log($adminId, 'salary_bulk_confirm', "Xác nhận hàng loạt: " . implode(',', $ids));
     echo json_encode(['status' => 'success', 'msg' => __('Đã xác nhận hàng loạt')]);
     exit;
@@ -222,7 +222,7 @@ if ($request === 'bulk_paid') {
     $ph = implode(',', array_fill(0, count($ids), '?'));
     $now = gettime();
     $params = array_merge([$now], $ids);
-    $CMSNT->query_safe("UPDATE `salaries` SET `status` = 'paid', `paid_date` = ? WHERE `id` IN ($ph) AND `status` IN ('draft','confirmed')", $params);
+    $ToryHub->query_safe("UPDATE `salaries` SET `status` = 'paid', `paid_date` = ? WHERE `id` IN ($ph) AND `status` IN ('draft','confirmed')", $params);
     add_log($adminId, 'salary_bulk_paid', "Thanh toán hàng loạt: " . implode(',', $ids));
     echo json_encode(['status' => 'success', 'msg' => __('Đã đánh dấu thanh toán hàng loạt')]);
     exit;

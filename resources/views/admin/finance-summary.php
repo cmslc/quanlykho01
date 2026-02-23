@@ -4,24 +4,24 @@ require_once(__DIR__.'/../../../models/is_admin.php');
 $page_title = __('Tổng quan tài chính');
 
 // Overall stats
-$totalDeposit = $CMSNT->get_row_safe("SELECT COALESCE(SUM(amount),0) as total FROM `transactions` WHERE `type` = 'deposit'", [])['total'];
-$totalPayment = $CMSNT->get_row_safe("SELECT COALESCE(SUM(ABS(amount)),0) as total FROM `transactions` WHERE `type` = 'payment'", [])['total'];
-$totalRefund = $CMSNT->get_row_safe("SELECT COALESCE(SUM(amount),0) as total FROM `transactions` WHERE `type` = 'refund'", [])['total'];
-$totalRevenue = $CMSNT->get_row_safe("SELECT COALESCE(SUM(grand_total),0) as total FROM `orders` WHERE `status` != 'cancelled'", [])['total'];
-$totalServiceFee = $CMSNT->get_row_safe("SELECT COALESCE(SUM(service_fee),0) as total FROM `orders` WHERE `status` != 'cancelled'", [])['total'];
-$totalShippingFee = $CMSNT->get_row_safe("SELECT COALESCE(SUM(shipping_fee_cn + shipping_fee_intl),0) as total FROM `orders` WHERE `status` != 'cancelled'", [])['total'];
+$totalDeposit = $ToryHub->get_row_safe("SELECT COALESCE(SUM(amount),0) as total FROM `transactions` WHERE `type` = 'deposit'", [])['total'];
+$totalPayment = $ToryHub->get_row_safe("SELECT COALESCE(SUM(ABS(amount)),0) as total FROM `transactions` WHERE `type` = 'payment'", [])['total'];
+$totalRefund = $ToryHub->get_row_safe("SELECT COALESCE(SUM(amount),0) as total FROM `transactions` WHERE `type` = 'refund'", [])['total'];
+$totalRevenue = $ToryHub->get_row_safe("SELECT COALESCE(SUM(grand_total),0) as total FROM `orders` WHERE `status` != 'cancelled'", [])['total'];
+$totalServiceFee = $ToryHub->get_row_safe("SELECT COALESCE(SUM(service_fee),0) as total FROM `orders` WHERE `status` != 'cancelled'", [])['total'];
+$totalShippingFee = $ToryHub->get_row_safe("SELECT COALESCE(SUM(shipping_fee_cn + shipping_fee_intl),0) as total FROM `orders` WHERE `status` != 'cancelled'", [])['total'];
 
 // Customers with debt (negative balance)
-$debtCustomers = $CMSNT->get_list_safe("SELECT `id`, `customer_code`, `fullname`, `balance`, `total_orders`, `total_spent`
+$debtCustomers = $ToryHub->get_list_safe("SELECT `id`, `customer_code`, `fullname`, `balance`, `total_orders`, `total_spent`
     FROM `customers` WHERE `balance` < 0 ORDER BY `balance` ASC LIMIT 20", []);
-$totalDebt = $CMSNT->get_row_safe("SELECT COALESCE(SUM(ABS(balance)),0) as total FROM `customers` WHERE `balance` < 0", [])['total'];
+$totalDebt = $ToryHub->get_row_safe("SELECT COALESCE(SUM(ABS(balance)),0) as total FROM `customers` WHERE `balance` < 0", [])['total'];
 
 // Top spending customers
-$topCustomers = $CMSNT->get_list_safe("SELECT `id`, `customer_code`, `fullname`, `balance`, `total_orders`, `total_spent`
+$topCustomers = $ToryHub->get_list_safe("SELECT `id`, `customer_code`, `fullname`, `balance`, `total_orders`, `total_spent`
     FROM `customers` ORDER BY `total_spent` DESC LIMIT 10", []);
 
 // Monthly revenue (last 6 months)
-$monthlyRevenue = $CMSNT->get_list_safe("SELECT DATE_FORMAT(create_date, '%Y-%m') as month,
+$monthlyRevenue = $ToryHub->get_list_safe("SELECT DATE_FORMAT(create_date, '%Y-%m') as month,
     COUNT(*) as order_count, COALESCE(SUM(grand_total),0) as revenue,
     COALESCE(SUM(service_fee),0) as service_fees
     FROM `orders` WHERE `status` != 'cancelled' AND create_date >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
