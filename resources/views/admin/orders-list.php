@@ -901,7 +901,7 @@ $(function(){
                 });
 
                 html += '</tbody></table>';
-                $newRow.find('.bg-light > div').html(html);
+                $newRow.find('.bg-light > div').removeClass('text-center').html(html);
                 expandedOrders[orderId] = true;
                 updateSelectedSummary();
             }
