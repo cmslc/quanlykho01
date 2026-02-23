@@ -505,6 +505,11 @@ $('#form-add-order').on('submit', function(e){
                 $('#alert-box').html('<div class="alert alert-danger">' + res.msg + '</div>');
                 $('html, body').animate({scrollTop: 0}, 300);
             }
+        },
+        error: function(xhr){
+            var msg = '<?= __('Lỗi server') ?>';
+            try { msg = xhr.responseText.substring(0, 500); } catch(e){}
+            Swal.fire({icon: 'error', title: 'Error', text: msg});
         }
     });
 });
