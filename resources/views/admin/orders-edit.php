@@ -129,11 +129,13 @@ require_once(__DIR__.'/sidebar.php');
             <!-- Kiện hàng -->
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0"><i class="ri-archive-line me-1"></i><?= __('Kiện hàng') ?> (<?= count($packages) ?>)</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <h5 class="card-title mb-0"><i class="ri-archive-line me-1"></i><?= __('Kiện hàng') ?> (<?= count($packages) ?>)</h5>
+                        <?php if ($productType !== 'retail' && !empty($order['product_code'])): ?>
+                        <span class="text-muted"><i class="ri-barcode-line me-1"></i><?= __('Mã hàng') ?>: <strong><?= htmlspecialchars($order['product_code']) ?></strong></span>
+                        <?php endif; ?>
+                    </div>
                     <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddPackage"><i class="ri-add-line"></i> <?= __('Tạo kiện') ?></button>
-                    <?php if ($productType !== 'retail' && !empty($order['product_code'])): ?>
-                    <span class="ms-2 text-muted"><i class="ri-barcode-line me-1"></i><?= __('Mã hàng') ?>: <strong><?= htmlspecialchars($order['product_code']) ?></strong></span>
-                    <?php endif; ?>
                 </div>
                 <div class="card-body">
                     <?php if (!empty($packages)): ?>
