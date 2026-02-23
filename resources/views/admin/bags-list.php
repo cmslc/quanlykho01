@@ -136,7 +136,7 @@ require_once(__DIR__.'/sidebar.php');
                                         $sl = $bagStatusLabels[$bag['status']] ?? $bagStatusLabels['open'];
                                     ?>
                                     <tr>
-                                        <td><strong><?= htmlspecialchars($bag['bag_code']) ?></strong></td>
+                                        <td><a href="<?= base_url('admin/bags-packing&id=' . $bag['id']) ?>"><strong><?= htmlspecialchars($bag['bag_code']) ?></strong></a></td>
                                         <td><span class="badge bg-<?= $sl['bg'] ?> text-<?= $sl['text'] ?> fs-12 px-2 py-1"><i class="<?= $sl['icon'] ?> me-1"></i><?= __($sl['label']) ?></span></td>
                                         <td><span class="fw-bold"><?= $bag['total_packages'] ?></span></td>
                                         <td><?= number_format($bag['total_weight'], 2) ?></td>
@@ -146,14 +146,11 @@ require_once(__DIR__.'/sidebar.php');
                                         <td>
                                             <div class="d-flex gap-1">
                                                 <?php if ($bag['status'] === 'open'): ?>
-                                                <a href="<?= base_url('admin/bags-packing&id=' . $bag['id']) ?>" class="btn btn-info"><i class="ri-barcode-line me-1"></i><?= __('Sửa bao') ?></a>
-                                                <button type="button" class="btn btn-dark btn-seal-bag" data-id="<?= $bag['id'] ?>" data-code="<?= htmlspecialchars($bag['bag_code']) ?>" data-count="<?= $bag['total_packages'] ?>"><i class="ri-lock-line me-1"></i><?= __('Đóng bao') ?></button>
-                                                <button type="button" class="btn btn-danger btn-delete-bag" data-id="<?= $bag['id'] ?>" data-code="<?= htmlspecialchars($bag['bag_code']) ?>"><i class="ri-delete-bin-line me-1"></i><?= __('Xóa') ?></button>
+                                                <button type="button" class="btn btn-sm btn-dark btn-seal-bag" data-id="<?= $bag['id'] ?>" data-code="<?= htmlspecialchars($bag['bag_code']) ?>" data-count="<?= $bag['total_packages'] ?>"><i class="ri-lock-line me-1"></i><?= __('Đóng bao') ?></button>
+                                                <button type="button" class="btn btn-sm btn-danger btn-delete-bag" data-id="<?= $bag['id'] ?>" data-code="<?= htmlspecialchars($bag['bag_code']) ?>"><i class="ri-delete-bin-line me-1"></i><?= __('Xóa') ?></button>
                                                 <?php elseif ($bag['status'] === 'sealed'): ?>
-                                                <button type="button" class="btn btn-warning btn-unseal-bag" data-id="<?= $bag['id'] ?>" data-code="<?= htmlspecialchars($bag['bag_code']) ?>"><i class="ri-lock-unlock-line me-1"></i><?= __('Mở bao') ?></button>
-                                                <button type="button" class="btn btn-danger btn-delete-bag" data-id="<?= $bag['id'] ?>" data-code="<?= htmlspecialchars($bag['bag_code']) ?>"><i class="ri-delete-bin-line me-1"></i><?= __('Xóa') ?></button>
-                                                <?php else: ?>
-                                                <span class="text-muted">-</span>
+                                                <button type="button" class="btn btn-sm btn-warning btn-unseal-bag" data-id="<?= $bag['id'] ?>" data-code="<?= htmlspecialchars($bag['bag_code']) ?>"><i class="ri-lock-unlock-line me-1"></i><?= __('Mở bao') ?></button>
+                                                <button type="button" class="btn btn-sm btn-danger btn-delete-bag" data-id="<?= $bag['id'] ?>" data-code="<?= htmlspecialchars($bag['bag_code']) ?>"><i class="ri-delete-bin-line me-1"></i><?= __('Xóa') ?></button>
                                                 <?php endif; ?>
                                             </div>
                                         </td>
