@@ -548,12 +548,13 @@ $('#form-edit-order').on('submit', function(e){
 });
 
 // Auto-calculate volume (CBM)
-$('.pkg-dim').on('input', function(){
+$('.pkg-dim, #pkg-qty').on('input', function(){
     var l = parseFloat($('#pkg-length').val()) || 0;
     var w = parseFloat($('#pkg-width').val()) || 0;
     var h = parseFloat($('#pkg-height').val()) || 0;
+    var qty = Math.max(1, parseInt($('#pkg-qty').val()) || 1);
     if (l > 0 && w > 0 && h > 0) {
-        var vol = (l * w * h) / 1000000;
+        var vol = (l * w * h) / 1000000 * qty;
         $('#pkg-volume-value').text(parseFloat(vol.toFixed(4)));
         $('#pkg-volume-display').show();
     } else {
