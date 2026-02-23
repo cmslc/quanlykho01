@@ -11,16 +11,18 @@ class Packages extends DB
     public function getLastError() { return $this->lastError; }
 
     /**
-     * Generate unique package code: PKG + date + 3-digit sequence
+     * Generate unique package code: PKG + date + sequence
      */
     public function generatePackageCode()
     {
+        $this->connect();
         $prefix = 'PKG' . date('Ymd');
+        $prefixLen = strlen($prefix);
         $last = $this->get_row_safe(
-            "SELECT `package_code` FROM `packages` WHERE `package_code` LIKE ? ORDER BY `id` DESC LIMIT 1",
+            "SELECT `package_code` FROM `packages` WHERE `package_code` LIKE ? ORDER BY `package_code` DESC LIMIT 1",
             [$prefix . '%']
         );
-        $seq = $last ? intval(substr($last['package_code'], -3)) + 1 : 1;
+        $seq = $last ? intval(substr($last['package_code'], $prefixLen)) + 1 : 1;
         return $prefix . str_pad($seq, 3, '0', STR_PAD_LEFT);
     }
 
