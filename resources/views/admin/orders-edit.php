@@ -243,7 +243,11 @@ require_once(__DIR__.'/sidebar.php');
                 <?php endif; ?>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label"><?= __('Cân nặng (kg)') ?></label>
+                        <label class="form-label"><?= __('Số kiện') ?></label>
+                        <input type="number" class="form-control" id="pkg-qty" value="1" min="1" max="999">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label"><?= __('Cân nặng/kiện (kg)') ?></label>
                         <input type="number" class="form-control" id="pkg-weight" step="0.01" min="0" placeholder="0.00">
                     </div>
                 </div>
@@ -524,32 +528,43 @@ $(document).on('click', '.btn-delete-pkg', function(){
     });
 });
 
-// Create package
+// Create package (supports qty > 1)
 $('#btn-create-package').on('click', function(){
     var btn = $(this).prop('disabled', true).html('<i class="ri-loader-4-line ri-spin me-1"></i><?= __('Đang tạo...') ?>');
-    var postData = {
-        request_name: 'add',
-        weight_actual: $('#pkg-weight').val(),
-        length_cm: $('#pkg-length').val() || 0,
-        width_cm: $('#pkg-width').val() || 0,
-        height_cm: $('#pkg-height').val() || 0,
-        note: $('#pkg-note').val(),
-        'order_ids[]': [<?= $order['id'] ?>],
-        csrf_token: '<?= $csrf->get_token_value() ?>'
-    };
-    <?php if ($productType === 'retail'): ?>
-    postData.tracking_cn = $('#pkg-tracking-cn').val();
-    <?php endif; ?>
-    $.post('<?= base_url('ajaxs/admin/packages.php') ?>', postData, function(res){
-        if(res.status == 'success'){
-            Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
-        } else {
-            Swal.fire({icon: 'error', title: 'Error', text: res.msg});
-            btn.prop('disabled', false).html('<i class="ri-save-line me-1"></i><?= __('Tạo kiện') ?>');
+    var qty = Math.max(1, parseInt($('#pkg-qty').val()) || 1);
+    var created = 0, errors = 0, total = qty;
+
+    function createOne(remaining){
+        if(remaining <= 0){
+            if(created > 0){
+                Swal.fire({icon: 'success', title: '<?= __('Đã tạo') ?> ' + created + ' <?= __('kiện') ?>', timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
+            } else {
+                btn.prop('disabled', false).html('<i class="ri-save-line me-1"></i><?= __('Tạo kiện') ?>');
+            }
+            return;
         }
-    }, 'json').fail(function(){
-        Swal.fire({icon: 'error', text: '<?= __('Lỗi kết nối') ?>'});
-        btn.prop('disabled', false).html('<i class="ri-save-line me-1"></i><?= __('Tạo kiện') ?>');
-    });
+        var postData = {
+            request_name: 'add',
+            weight_actual: $('#pkg-weight').val(),
+            length_cm: $('#pkg-length').val() || 0,
+            width_cm: $('#pkg-width').val() || 0,
+            height_cm: $('#pkg-height').val() || 0,
+            note: $('#pkg-note').val(),
+            'order_ids[]': [<?= $order['id'] ?>],
+            csrf_token: '<?= $csrf->get_token_value() ?>'
+        };
+        <?php if ($productType === 'retail'): ?>
+        postData.tracking_cn = $('#pkg-tracking-cn').val();
+        <?php endif; ?>
+        btn.html('<i class="ri-loader-4-line ri-spin me-1"></i>' + (total - remaining + 1) + '/' + total);
+        $.post('<?= base_url('ajaxs/admin/packages.php') ?>', postData, function(res){
+            if(res.status == 'success'){ created++; } else { errors++; }
+            createOne(remaining - 1);
+        }, 'json').fail(function(){
+            errors++;
+            createOne(remaining - 1);
+        });
+    }
+    createOne(qty);
 });
 </script>
