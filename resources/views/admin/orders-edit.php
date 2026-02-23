@@ -138,7 +138,7 @@ require_once(__DIR__.'/sidebar.php');
                 <div class="card-body">
                     <?php if (!empty($packages)): ?>
                     <div class="table-responsive">
-                        <table class="table table-bordered table-sm mb-0">
+                        <table id="tbl-packages-edit" class="table table-bordered table-sm mb-0">
                             <thead class="table-light">
                                 <tr>
                                     <th><?= __('Mã kiện') ?></th>
@@ -269,6 +269,18 @@ require_once(__DIR__.'/sidebar.php');
 <?php require_once(__DIR__.'/footer.php'); ?>
 
 <script>
+// DataTables pagination for packages
+$(document).ready(function(){
+    if($('#tbl-packages-edit tbody tr').length > 0){
+        $('#tbl-packages-edit').DataTable({
+            pageLength: 10,
+            ordering: false,
+            responsive: true,
+            language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json' }
+        });
+    }
+});
+
 // Toggle retail/wholesale mode
 function toggleProductType() {
     var isRetail = $('select[name="product_type"]').val() === 'retail';
