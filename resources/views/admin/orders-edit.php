@@ -149,6 +149,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <th><?= __('Kích thước') ?></th>
                                     <th><?= __('Số khối (m³)') ?></th>
                                     <th><?= __('Trạng thái') ?></th>
+                                    <th class="text-center" style="width:100px"><?= __('Thao tác') ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -169,6 +170,21 @@ require_once(__DIR__.'/sidebar.php');
                                     </td>
                                     <td><?= $pkgVolume > 0 ? floatval(number_format($pkgVolume, 4, '.', '')) : '-' ?></td>
                                     <td><?= display_package_status($pkg['status'] ?? 'cn_warehouse') ?></td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-soft-primary btn-edit-pkg"
+                                            data-id="<?= $pkg['id'] ?>"
+                                            data-tracking="<?= htmlspecialchars($pkg['tracking_cn'] ?? '') ?>"
+                                            data-weight="<?= $pkg['weight_actual'] ?>"
+                                            data-length="<?= $pkg['length_cm'] ?>"
+                                            data-width="<?= $pkg['width_cm'] ?>"
+                                            data-height="<?= $pkg['height_cm'] ?>"
+                                            data-note="<?= htmlspecialchars($pkg['note'] ?? '') ?>"
+                                            title="<?= __('Sửa') ?>"><i class="ri-pencil-line"></i></button>
+                                        <button type="button" class="btn btn-sm btn-soft-danger btn-delete-pkg"
+                                            data-id="<?= $pkg['id'] ?>"
+                                            data-code="<?= htmlspecialchars($pkg['package_code'] ?? '') ?>"
+                                            title="<?= __('Xóa') ?>"><i class="ri-delete-bin-line"></i></button>
+                                    </td>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -261,6 +277,60 @@ require_once(__DIR__.'/sidebar.php');
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?= __('Đóng') ?></button>
                 <button type="button" class="btn btn-primary" id="btn-create-package"><i class="ri-save-line me-1"></i><?= __('Tạo kiện') ?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sửa kiện -->
+<div class="modal fade" id="modalEditPackage" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="ri-pencil-line me-1"></i><?= __('Sửa kiện hàng') ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-pkg-id">
+                <?php if ($productType === 'retail'): ?>
+                <div class="mb-3">
+                    <label class="form-label"><?= __('Mã vận đơn') ?></label>
+                    <input type="text" class="form-control" id="edit-pkg-tracking" style="text-transform:uppercase">
+                </div>
+                <?php endif; ?>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label"><?= __('Cân nặng (kg)') ?></label>
+                        <input type="number" class="form-control" id="edit-pkg-weight" step="0.01" min="0">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label"><?= __('Dài (cm)') ?></label>
+                        <input type="number" class="form-control edit-pkg-dim" id="edit-pkg-length" step="0.1" min="0">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label"><?= __('Rộng (cm)') ?></label>
+                        <input type="number" class="form-control edit-pkg-dim" id="edit-pkg-width" step="0.1" min="0">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label"><?= __('Cao (cm)') ?></label>
+                        <input type="number" class="form-control edit-pkg-dim" id="edit-pkg-height" step="0.1" min="0">
+                    </div>
+                </div>
+                <div class="mb-3" id="edit-pkg-volume-display" style="display:none;">
+                    <div class="p-2 bg-light rounded text-center">
+                        <span class="text-muted"><?= __('Số khối') ?>:</span> <strong id="edit-pkg-volume-value">0</strong> m³
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><?= __('Ghi chú') ?></label>
+                    <textarea class="form-control" id="edit-pkg-note" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?= __('Đóng') ?></button>
+                <button type="button" class="btn btn-primary" id="btn-save-package"><i class="ri-save-line me-1"></i><?= __('Lưu') ?></button>
             </div>
         </div>
     </div>
@@ -365,6 +435,93 @@ $('.pkg-dim').on('input', function(){
     } else {
         $('#pkg-volume-display').hide();
     }
+});
+
+// Edit package - open modal
+$(document).on('click', '.btn-edit-pkg', function(){
+    var btn = $(this);
+    $('#edit-pkg-id').val(btn.data('id'));
+    $('#edit-pkg-tracking').val(btn.data('tracking'));
+    $('#edit-pkg-weight').val(btn.data('weight') || '');
+    $('#edit-pkg-length').val(btn.data('length') || '');
+    $('#edit-pkg-width').val(btn.data('width') || '');
+    $('#edit-pkg-height').val(btn.data('height') || '');
+    $('#edit-pkg-note').val(btn.data('note'));
+    // Trigger volume calc
+    $('.edit-pkg-dim').trigger('input');
+    new bootstrap.Modal(document.getElementById('modalEditPackage')).show();
+});
+
+// Edit package - save
+$('#btn-save-package').on('click', function(){
+    var btn = $(this).prop('disabled', true).html('<i class="ri-loader-4-line ri-spin me-1"></i><?= __('Đang lưu...') ?>');
+    var postData = {
+        request_name: 'edit',
+        id: $('#edit-pkg-id').val(),
+        tracking_cn: $('#edit-pkg-tracking').val() || '',
+        weight_actual: $('#edit-pkg-weight').val() || 0,
+        length_cm: $('#edit-pkg-length').val() || 0,
+        width_cm: $('#edit-pkg-width').val() || 0,
+        height_cm: $('#edit-pkg-height').val() || 0,
+        note: $('#edit-pkg-note').val(),
+        csrf_token: '<?= $csrf->get_token_value() ?>'
+    };
+    $.post('<?= base_url('ajaxs/admin/packages.php') ?>', postData, function(res){
+        if(res.status == 'success'){
+            Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
+        } else {
+            Swal.fire({icon: 'error', title: 'Error', text: res.msg});
+            btn.prop('disabled', false).html('<i class="ri-save-line me-1"></i><?= __('Lưu') ?>');
+        }
+    }, 'json').fail(function(){
+        Swal.fire({icon: 'error', text: '<?= __('Lỗi kết nối') ?>'});
+        btn.prop('disabled', false).html('<i class="ri-save-line me-1"></i><?= __('Lưu') ?>');
+    });
+});
+
+// Edit package - volume calc
+$('.edit-pkg-dim').on('input', function(){
+    var l = parseFloat($('#edit-pkg-length').val()) || 0;
+    var w = parseFloat($('#edit-pkg-width').val()) || 0;
+    var h = parseFloat($('#edit-pkg-height').val()) || 0;
+    if (l > 0 && w > 0 && h > 0) {
+        var vol = (l * w * h) / 1000000;
+        $('#edit-pkg-volume-value').text(parseFloat(vol.toFixed(4)));
+        $('#edit-pkg-volume-display').show();
+    } else {
+        $('#edit-pkg-volume-display').hide();
+    }
+});
+
+// Delete package
+$(document).on('click', '.btn-delete-pkg', function(){
+    var pkgId = $(this).data('id');
+    var pkgCode = $(this).data('code');
+    Swal.fire({
+        title: '<?= __('Xóa kiện hàng') ?>?',
+        text: pkgCode,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        confirmButtonText: '<?= __('Xóa') ?>',
+        cancelButtonText: '<?= __('Hủy') ?>'
+    }).then(function(result){
+        if(result.isConfirmed){
+            $.post('<?= base_url('ajaxs/admin/packages.php') ?>', {
+                request_name: 'delete',
+                id: pkgId,
+                csrf_token: '<?= $csrf->get_token_value() ?>'
+            }, function(res){
+                if(res.status == 'success'){
+                    Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
+                } else {
+                    Swal.fire({icon: 'error', title: 'Error', text: res.msg});
+                }
+            }, 'json').fail(function(){
+                Swal.fire({icon: 'error', text: '<?= __('Lỗi kết nối') ?>'});
+            });
+        }
+    });
 });
 
 // Create package
