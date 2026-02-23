@@ -146,11 +146,11 @@ require_once(__DIR__.'/sidebar.php');
                                         <td>
                                             <div class="d-flex gap-1">
                                                 <?php if ($bag['status'] === 'open'): ?>
-                                                <button type="button" class="btn btn-sm btn-dark btn-seal-bag" data-id="<?= $bag['id'] ?>" data-code="<?= htmlspecialchars($bag['bag_code']) ?>" data-count="<?= $bag['total_packages'] ?>"><i class="ri-lock-line me-1"></i><?= __('Đóng bao') ?></button>
-                                                <button type="button" class="btn btn-sm btn-danger btn-delete-bag" data-id="<?= $bag['id'] ?>" data-code="<?= htmlspecialchars($bag['bag_code']) ?>"><i class="ri-delete-bin-line me-1"></i><?= __('Xóa') ?></button>
+                                                <button type="button" class="btn btn-dark btn-seal-bag" data-id="<?= $bag['id'] ?>" data-code="<?= htmlspecialchars($bag['bag_code']) ?>" data-count="<?= $bag['total_packages'] ?>"><i class="ri-lock-line me-1"></i><?= __('Đóng bao') ?></button>
+                                                <button type="button" class="btn btn-danger btn-delete-bag" data-id="<?= $bag['id'] ?>" data-code="<?= htmlspecialchars($bag['bag_code']) ?>"><i class="ri-delete-bin-line me-1"></i><?= __('Xóa') ?></button>
                                                 <?php elseif ($bag['status'] === 'sealed'): ?>
-                                                <button type="button" class="btn btn-sm btn-warning btn-unseal-bag" data-id="<?= $bag['id'] ?>" data-code="<?= htmlspecialchars($bag['bag_code']) ?>"><i class="ri-lock-unlock-line me-1"></i><?= __('Mở bao') ?></button>
-                                                <button type="button" class="btn btn-sm btn-danger btn-delete-bag" data-id="<?= $bag['id'] ?>" data-code="<?= htmlspecialchars($bag['bag_code']) ?>"><i class="ri-delete-bin-line me-1"></i><?= __('Xóa') ?></button>
+                                                <button type="button" class="btn btn-warning btn-unseal-bag" data-id="<?= $bag['id'] ?>" data-code="<?= htmlspecialchars($bag['bag_code']) ?>"><i class="ri-lock-unlock-line me-1"></i><?= __('Mở bao') ?></button>
+                                                <button type="button" class="btn btn-danger btn-delete-bag" data-id="<?= $bag['id'] ?>" data-code="<?= htmlspecialchars($bag['bag_code']) ?>"><i class="ri-delete-bin-line me-1"></i><?= __('Xóa') ?></button>
                                                 <?php endif; ?>
                                             </div>
                                         </td>
@@ -228,32 +228,6 @@ $(function(){
         }).then(function(result){
             if(result.isConfirmed){
                 $.post(ajaxUrl, { request_name: 'seal', bag_id: id, csrf_token: csrfToken }, function(res){
-                    if(res.status == 'success'){
-                        Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
-                    } else {
-                        Swal.fire({icon: 'error', title: 'Error', text: res.msg});
-                    }
-                }, 'json');
-            }
-        });
-    });
-
-    // Ship bag
-    $(document).on('click', '.btn-ship-bag', function(){
-        var id = $(this).data('id');
-        var code = $(this).data('code');
-        var count = $(this).data('count');
-        Swal.fire({
-            title: '<?= __('Xuất vận chuyển?') ?>',
-            html: '<?= __('Xuất bao') ?> <strong>' + code + '</strong> (<?= __('gồm') ?> ' + count + ' <?= __('kiện') ?>)?<br><small class="text-muted"><?= __('Tất cả kiện trong bao sẽ chuyển sang trạng thái đang vận chuyển') ?></small>',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#3577f1',
-            confirmButtonText: '<?= __('Xuất vận chuyển') ?>',
-            cancelButtonText: '<?= __('Hủy') ?>'
-        }).then(function(result){
-            if(result.isConfirmed){
-                $.post(ajaxUrl, { request_name: 'ship', bag_id: id, csrf_token: csrfToken }, function(res){
                     if(res.status == 'success'){
                         Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
                     } else {

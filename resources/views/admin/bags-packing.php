@@ -141,9 +141,8 @@ require_once(__DIR__.'/sidebar.php');
                             <button type="button" class="btn btn-dark w-100" id="btn-seal"><i class="ri-lock-line me-1"></i><?= __('Đóng bao') ?></button>
                         </div>
                         <?php elseif ($bag['status'] === 'sealed'): ?>
-                        <div class="mt-3 d-flex gap-2">
-                            <button type="button" class="btn btn-warning flex-fill" id="btn-unseal"><i class="ri-lock-unlock-line me-1"></i><?= __('Mở bao') ?></button>
-                            <button type="button" class="btn btn-primary flex-fill" id="btn-ship"><i class="ri-ship-line me-1"></i><?= __('Xuất Vận Chuyển') ?></button>
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-warning w-100" id="btn-unseal"><i class="ri-lock-unlock-line me-1"></i><?= __('Mở bao') ?></button>
                         </div>
                         <?php endif; ?>
                     </div>
@@ -438,27 +437,6 @@ $(function(){
         });
     });
 
-    // === SHIP ===
-    $('#btn-ship').on('click', function(){
-        Swal.fire({
-            title: '<?= __('Xuất vận chuyển?') ?>',
-            html: '<?= __('Tất cả kiện trong bao sẽ chuyển sang trạng thái đang vận chuyển') ?>',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: '<?= __('Xuất vận chuyển') ?>',
-            cancelButtonText: '<?= __('Hủy') ?>'
-        }).then(function(result){
-            if (result.isConfirmed) {
-                $.post(ajaxUrl, { request_name: 'ship', bag_id: bagId, csrf_token: csrfToken }, function(res){
-                    if (res.status == 'success') {
-                        Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
-                    } else {
-                        Swal.fire({icon: 'error', text: res.msg});
-                    }
-                }, 'json');
-            }
-        });
-    });
     <?php endif; ?>
 
     <?php if ($bag): ?>
