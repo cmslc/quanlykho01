@@ -6,6 +6,10 @@ if (!defined('IN_SITE')) {
 
 class Packages extends DB
 {
+    private $lastError = '';
+
+    public function getLastError() { return $this->lastError; }
+
     /**
      * Generate unique package code: PKG + date + 3-digit sequence
      */
@@ -65,6 +69,7 @@ class Packages extends DB
             return $package_id;
         } catch (Exception $e) {
             $this->rollBack();
+            $this->lastError = $e->getMessage();
             error_log('createPackage error: ' . $e->getMessage());
             return false;
         }

@@ -246,7 +246,11 @@ if ($request === 'add') {
             ];
             for ($i = 0; $i < $pkg_qty; $i++) {
                 $result = $Packages->createPackage($pkgData, [$newId]);
-                if ($result) $createdPackages++;
+                if ($result) {
+                    $createdPackages++;
+                } else {
+                    $pkgError = $Packages->getLastError();
+                }
             }
         }
     }
@@ -284,6 +288,8 @@ if ($request === 'add') {
     $msg = __('Tạo đơn hàng thành công');
     if ($createdPackages > 0) {
         $msg .= ' (' . $createdPackages . ' ' . __('kiện') . ')';
+    } elseif (!empty($packages) && $createdPackages === 0) {
+        $msg .= ' - ' . __('Lỗi tạo kiện') . ': ' . ($pkgError ?? 'Unknown');
     }
     echo json_encode(['status' => 'success', 'msg' => $msg, 'order_id' => $newId, 'order_code' => $orderCode]);
     exit;
