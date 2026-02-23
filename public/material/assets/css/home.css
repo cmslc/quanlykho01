@@ -1,0 +1,28 @@
+/* Homepage styles */
+.category-card{transition:all .25s ease;background:#fff;border-radius:8px;padding:14px 8px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.05)}
+.category-card:hover{transform:translateY(-4px);box-shadow:0 6px 18px rgba(0,0,0,.12)}
+.category-card img{transition:transform .25s ease}
+.category-card:hover img{transform:scale(1.15)}
+.category-card .card-name{margin-top:8px;font-size:14px;color:#495057;transition:color .25s ease}
+.category-card:hover .card-name{color:#405189;font-weight:600}
+
+/* Blog cards */
+.blog-card{transition:all .25s ease;overflow:hidden}
+.blog-card:hover{transform:translateY(-4px);box-shadow:0 6px 18px rgba(0,0,0,.12)}
+.blog-card-img{width:100%;height:180px;object-fit:cover;transition:transform .3s ease}
+.blog-card:hover .blog-card-img{transform:scale(1.05)}
+
+/* Banner helpers */
+.text-white-75{color:rgba(255,255,255,.75)}
+.text-white-50{color:rgba(255,255,255,.5)}
+
+/* Marquee */
+.marquee-wrap{overflow:hidden;white-space:nowrap;flex:1}
+.marquee-text{display:inline-block;padding-left:100%;animation:marquee 20s linear infinite}
+.marquee-wrap:hover .marquee-text{animation-play-state:paused}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+
+/* Section heading */
+.section-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+.section-heading h5{margin-bottom:0;display:flex;align-items:center;gap:.5rem}
+.section-heading h5 i{font-size:18px;opacity:.7}

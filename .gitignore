@@ -1,0 +1,7 @@
+.vscode/
+.claude/
+node_modules/
+*.log
+.env
+config_db.php
+uploads/

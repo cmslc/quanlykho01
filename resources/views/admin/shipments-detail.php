@@ -1,0 +1,350 @@
+<?php
+require_once(__DIR__.'/../../../models/is_admin.php');
+require_once(__DIR__.'/../../../libs/csrf.php');
+require_once(__DIR__.'/../../../libs/database/shipments.php');
+
+$id = intval(input_get('id'));
+$shipment = $CMSNT->get_row_safe("SELECT s.*, u.fullname as creator_name FROM `shipments` s LEFT JOIN `users` u ON s.created_by = u.id WHERE s.id = ?", [$id]);
+if (!$shipment) {
+    echo '<script>alert("Chuyến xe không tồn tại");window.location.href="' . base_url('admin/shipments-list') . '";</script>';
+    exit;
+}
+
+$page_title = __('Chi tiết chuyến xe') . ' - ' . $shipment['shipment_code'];
+
+$ShipmentsDB = new Shipments();
+$packages = $ShipmentsDB->getPackages($id);
+
+$statusLabels = [
+    'preparing'  => ['label' => 'Đang chuẩn bị', 'bg' => 'info-subtle', 'text' => 'info', 'icon' => 'ri-loader-4-line'],
+    'in_transit' => ['label' => 'Đang vận chuyển', 'bg' => 'primary-subtle', 'text' => 'primary', 'icon' => 'ri-truck-line'],
+    'arrived'    => ['label' => 'Đã đến', 'bg' => 'success-subtle', 'text' => 'success', 'icon' => 'ri-map-pin-2-line'],
+    'completed'  => ['label' => 'Hoàn thành', 'bg' => 'secondary-subtle', 'text' => 'secondary', 'icon' => 'ri-check-double-line'],
+];
+$cfg = $statusLabels[$shipment['status']] ?? $statusLabels['preparing'];
+$isPreparing = $shipment['status'] === 'preparing';
+
+require_once(__DIR__.'/header.php');
+require_once(__DIR__.'/sidebar.php');
+?>
+        <div class="row">
+            <div class="col-12">
+                <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                    <h4 class="mb-sm-0"><?= __('Chi tiết chuyến xe') ?>: <?= htmlspecialchars($shipment['shipment_code']) ?></h4>
+                    <a href="<?= base_url('admin/shipments-list') ?>" class="btn btn-secondary"><i class="ri-arrow-left-line me-1"></i><?= __('Quay lại') ?></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Left: Shipment Info -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <h5 class="card-title mb-0"><?= __('Thông tin chuyến') ?></h5>
+                        <span class="badge bg-<?= $cfg['bg'] ?> text-<?= $cfg['text'] ?> fs-12 px-2 py-1"><i class="<?= $cfg['icon'] ?> me-1"></i><?= __($cfg['label']) ?></span>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-borderless mb-0">
+                                <tr><td class="text-muted" style="width:40%"><?= __('Mã chuyến') ?></td><td><strong><?= htmlspecialchars($shipment['shipment_code']) ?></strong></td></tr>
+                                <tr><td class="text-muted"><?= __('Biển số xe') ?></td><td><?= htmlspecialchars($shipment['truck_plate'] ?: '-') ?></td></tr>
+                                <tr><td class="text-muted"><?= __('Tài xế') ?></td><td><?= htmlspecialchars($shipment['driver_name'] ?: '-') ?><?= $shipment['driver_phone'] ? '<br><small>' . htmlspecialchars($shipment['driver_phone']) . '</small>' : '' ?></td></tr>
+                                <tr><td class="text-muted"><?= __('Tuyến đường') ?></td><td><?= htmlspecialchars($shipment['route'] ?: '-') ?></td></tr>
+                                <tr><td class="text-muted"><?= __('Trọng tải tối đa') ?></td><td><?= $shipment['max_weight'] > 0 ? fnum($shipment['max_weight'], 1) . ' kg' : '-' ?></td></tr>
+                                <tr><td class="text-muted"><?= __('Chi phí') ?></td><td><?= $shipment['shipping_cost'] > 0 ? fnum($shipment['shipping_cost'], 0) : '-' ?></td></tr>
+                                <tr><td class="text-muted"><?= __('Người tạo') ?></td><td><?= htmlspecialchars($shipment['creator_name'] ?? '-') ?></td></tr>
+                                <tr><td class="text-muted"><?= __('Ngày tạo') ?></td><td><?= date('d/m/Y H:i', strtotime($shipment['create_date'])) ?></td></tr>
+                                <?php if ($shipment['departed_date']): ?>
+                                <tr><td class="text-muted"><?= __('Ngày xuất phát') ?></td><td><?= date('d/m/Y H:i', strtotime($shipment['departed_date'])) ?></td></tr>
+                                <?php endif; ?>
+                                <?php if ($shipment['arrived_date']): ?>
+                                <tr><td class="text-muted"><?= __('Ngày đến') ?></td><td><?= date('d/m/Y H:i', strtotime($shipment['arrived_date'])) ?></td></tr>
+                                <?php endif; ?>
+                                <?php if ($shipment['note']): ?>
+                                <tr><td class="text-muted"><?= __('Ghi chú') ?></td><td><?= nl2br(htmlspecialchars($shipment['note'])) ?></td></tr>
+                                <?php endif; ?>
+                            </table>
+                        </div>
+
+                        <!-- Summary -->
+                        <div class="mt-3 p-3 bg-light rounded">
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <h5 class="mb-1" id="info-packages"><?= $shipment['total_packages'] ?></h5>
+                                    <small class="text-muted"><?= __('Kiện') ?></small>
+                                </div>
+                                <div class="col-4">
+                                    <h5 class="mb-1 text-primary" id="info-weight"><?= fnum($shipment['total_weight'], 1) ?></h5>
+                                    <small class="text-muted">kg</small>
+                                </div>
+                                <div class="col-4">
+                                    <h5 class="mb-1 text-info" id="info-cbm"><?= fnum($shipment['total_cbm'], 2) ?></h5>
+                                    <small class="text-muted">m³</small>
+                                </div>
+                            </div>
+                            <?php if ($shipment['max_weight'] > 0): ?>
+                            <?php $pct = min(100, round($shipment['total_weight'] / $shipment['max_weight'] * 100)); ?>
+                            <div class="mt-2">
+                                <div class="progress" style="height:6px;">
+                                    <div class="progress-bar <?= $pct > 90 ? 'bg-danger' : ($pct > 70 ? 'bg-warning' : 'bg-success') ?>" style="width:<?= $pct ?>%"></div>
+                                </div>
+                                <small class="text-muted"><?= $pct ?>% <?= __('trọng tải') ?></small>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Action buttons -->
+                        <div class="mt-3 d-flex gap-2 flex-wrap">
+                            <?php if ($isPreparing): ?>
+                            <button class="btn btn-primary btn-sm" id="btn-edit-shipment"><i class="ri-pencil-line me-1"></i><?= __('Sửa') ?></button>
+                            <button class="btn btn-warning btn-sm" id="btn-depart" <?= $shipment['total_packages'] < 1 ? 'disabled' : '' ?>><i class="ri-truck-line me-1"></i><?= __('Xuất phát') ?></button>
+                            <button class="btn btn-danger btn-sm" id="btn-delete-shipment"><i class="ri-delete-bin-line me-1"></i><?= __('Xóa') ?></button>
+                            <?php elseif ($shipment['status'] === 'in_transit'): ?>
+                            <button class="btn btn-success btn-sm" id="btn-arrived"><i class="ri-map-pin-2-line me-1"></i><?= __('Đã đến') ?></button>
+                            <?php elseif ($shipment['status'] === 'arrived'): ?>
+                            <button class="btn btn-secondary btn-sm" id="btn-complete"><i class="ri-check-double-line me-1"></i><?= __('Hoàn thành') ?></button>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Package List -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0"><?= __('Danh sách kiện hàng') ?> (<?= count($packages) ?>)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th><?= __('Mã kiện') ?></th>
+                                        <th><?= __('Đơn hàng') ?></th>
+                                        <th><?= __('Khách hàng') ?></th>
+                                        <th><?= __('Cân nặng') ?></th>
+                                        <th><?= __('Kích thước') ?></th>
+                                        <th><?= __('Số khối') ?></th>
+                                        <th><?= __('Trạng thái') ?></th>
+                                        <?php if ($isPreparing): ?>
+                                        <th></th>
+                                        <?php endif; ?>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (empty($packages)): ?>
+                                    <tr><td colspan="<?= $isPreparing ? 9 : 8 ?>" class="text-center text-muted py-4"><?= __('Chưa có kiện hàng nào') ?></td></tr>
+                                    <?php endif; ?>
+                                    <?php $idx = 0; foreach ($packages as $pkg): $idx++; ?>
+                                    <?php $cbm = ($pkg['length_cm'] * $pkg['width_cm'] * $pkg['height_cm']) / 1000000; ?>
+                                    <tr>
+                                        <td><?= $idx ?></td>
+                                        <td><strong><?= htmlspecialchars($pkg['package_code']) ?></strong></td>
+                                        <td><?= htmlspecialchars($pkg['product_code'] ?: ($pkg['order_code'] ?: '-')) ?></td>
+                                        <td><?= htmlspecialchars($pkg['customer_name'] ?: '-') ?></td>
+                                        <td><?= $pkg['weight_charged'] > 0 ? fnum($pkg['weight_charged'], 2) . ' kg' : '-' ?></td>
+                                        <td><?= ($pkg['length_cm'] > 0) ? floatval($pkg['length_cm']) . '×' . floatval($pkg['width_cm']) . '×' . floatval($pkg['height_cm']) : '-' ?></td>
+                                        <td><?= $cbm > 0 ? fnum($cbm, 2) . ' m³' : '-' ?></td>
+                                        <td><?= display_package_status($pkg['status']) ?></td>
+                                        <?php if ($isPreparing): ?>
+                                        <td><button class="btn btn-sm btn-outline-danger btn-remove-pkg" data-id="<?= $pkg['id'] ?>" data-code="<?= htmlspecialchars($pkg['package_code']) ?>"><i class="ri-close-line"></i></button></td>
+                                        <?php endif; ?>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!-- Modal Edit Shipment -->
+<div class="modal fade" id="modal-edit-shipment" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><?= __('Sửa thông tin chuyến xe') ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="form-label"><?= __('Biển số xe') ?></label>
+                        <input type="text" class="form-control" id="edit-truck-plate" value="<?= htmlspecialchars($shipment['truck_plate'] ?? '') ?>">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label"><?= __('Tài xế') ?></label>
+                        <input type="text" class="form-control" id="edit-driver-name" value="<?= htmlspecialchars($shipment['driver_name'] ?? '') ?>">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label"><?= __('SĐT tài xế') ?></label>
+                        <input type="text" class="form-control" id="edit-driver-phone" value="<?= htmlspecialchars($shipment['driver_phone'] ?? '') ?>">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label"><?= __('Tuyến đường') ?></label>
+                        <input type="text" class="form-control" id="edit-route" value="<?= htmlspecialchars($shipment['route'] ?? '') ?>">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label"><?= __('Trọng tải tối đa (kg)') ?></label>
+                        <input type="number" class="form-control" id="edit-max-weight" step="0.01" value="<?= $shipment['max_weight'] ?>">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label"><?= __('Chi phí vận chuyển') ?></label>
+                        <input type="number" class="form-control" id="edit-shipping-cost" step="0.01" value="<?= $shipment['shipping_cost'] ?>">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label"><?= __('Ghi chú') ?></label>
+                        <textarea class="form-control" id="edit-note" rows="2"><?= htmlspecialchars($shipment['note'] ?? '') ?></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= __('Hủy') ?></button>
+                <button type="button" class="btn btn-primary" id="btn-save-edit"><i class="ri-save-line me-1"></i><?= __('Lưu') ?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php require_once(__DIR__.'/footer.php'); ?>
+
+<script>
+$(function(){
+    var csrfToken = '<?= (new Csrf())->get_token_value() ?>';
+    var ajaxUrl = '<?= base_url('ajaxs/admin/shipments.php') ?>';
+    var shipmentId = <?= $id ?>;
+
+    // Edit
+    $('#btn-edit-shipment').on('click', function(){ $('#modal-edit-shipment').modal('show'); });
+    $('#btn-save-edit').on('click', function(){
+        var btn = $(this);
+        btn.prop('disabled', true);
+        $.post(ajaxUrl, {
+            request_name: 'edit', id: shipmentId,
+            truck_plate: $('#edit-truck-plate').val(),
+            driver_name: $('#edit-driver-name').val(),
+            driver_phone: $('#edit-driver-phone').val(),
+            route: $('#edit-route').val(),
+            max_weight: $('#edit-max-weight').val(),
+            shipping_method: 'road',
+            shipping_cost: $('#edit-shipping-cost').val(),
+            note: $('#edit-note').val(),
+            csrf_token: csrfToken
+        }, function(res){
+            if (res.status === 'success') {
+                Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
+            } else {
+                Swal.fire({icon: 'error', title: 'Error', text: res.msg});
+                btn.prop('disabled', false);
+            }
+        }, 'json');
+    });
+
+    // Remove package
+    $(document).on('click', '.btn-remove-pkg', function(){
+        var pkgId = $(this).data('id');
+        var code = $(this).data('code');
+        Swal.fire({
+            title: '<?= __('Gỡ kiện khỏi chuyến?') ?>',
+            html: code,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: '<?= __('Gỡ') ?>',
+            cancelButtonText: '<?= __('Hủy') ?>'
+        }).then(function(result){
+            if (result.isConfirmed) {
+                $.post(ajaxUrl, {request_name: 'remove_package', shipment_id: shipmentId, package_id: pkgId, csrf_token: csrfToken}, function(res){
+                    if (res.status === 'success') {
+                        Swal.fire({icon: 'success', title: res.msg, timer: 1200, showConfirmButton: false}).then(function(){ location.reload(); });
+                    } else {
+                        Swal.fire({icon: 'error', text: res.msg});
+                    }
+                }, 'json');
+            }
+        });
+    });
+
+    // Depart
+    $('#btn-depart').on('click', function(){
+        Swal.fire({
+            title: '<?= __('Xác nhận xuất phát?') ?>',
+            html: '<?= __('Tất cả kiện hàng trong chuyến sẽ chuyển sang trạng thái Đang vận chuyển') ?>',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: '<?= __('Xuất phát') ?>',
+            cancelButtonText: '<?= __('Hủy') ?>'
+        }).then(function(result){
+            if (result.isConfirmed) {
+                $.post(ajaxUrl, {request_name: 'update_status', shipment_id: shipmentId, new_status: 'in_transit', csrf_token: csrfToken}, function(res){
+                    if (res.status === 'success') {
+                        Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
+                    } else {
+                        Swal.fire({icon: 'error', text: res.msg});
+                    }
+                }, 'json');
+            }
+        });
+    });
+
+    // Arrived
+    $('#btn-arrived').on('click', function(){
+        Swal.fire({
+            title: '<?= __('Xác nhận đã đến?') ?>',
+            html: '<?= __('Tất cả kiện hàng sẽ chuyển sang trạng thái Kho VN') ?>',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: '<?= __('Xác nhận') ?>',
+            cancelButtonText: '<?= __('Hủy') ?>'
+        }).then(function(result){
+            if (result.isConfirmed) {
+                $.post(ajaxUrl, {request_name: 'update_status', shipment_id: shipmentId, new_status: 'arrived', csrf_token: csrfToken}, function(res){
+                    if (res.status === 'success') {
+                        Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
+                    } else {
+                        Swal.fire({icon: 'error', text: res.msg});
+                    }
+                }, 'json');
+            }
+        });
+    });
+
+    // Complete
+    $('#btn-complete').on('click', function(){
+        $.post(ajaxUrl, {request_name: 'update_status', shipment_id: shipmentId, new_status: 'completed', csrf_token: csrfToken}, function(res){
+            if (res.status === 'success') {
+                Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
+            } else {
+                Swal.fire({icon: 'error', text: res.msg});
+            }
+        }, 'json');
+    });
+
+    // Delete
+    $('#btn-delete-shipment').on('click', function(){
+        Swal.fire({
+            title: '<?= __('Xác nhận xóa chuyến xe?') ?>',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: '<?= __('Xóa') ?>',
+            cancelButtonText: '<?= __('Hủy') ?>'
+        }).then(function(result){
+            if (result.isConfirmed) {
+                $.post(ajaxUrl, {request_name: 'delete', id: shipmentId, csrf_token: csrfToken}, function(res){
+                    if (res.status === 'success') {
+                        Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){
+                            window.location.href = '<?= base_url('admin/shipments-list') ?>';
+                        });
+                    } else {
+                        Swal.fire({icon: 'error', text: res.msg});
+                    }
+                }, 'json');
+            }
+        });
+    });
+});
+</script>

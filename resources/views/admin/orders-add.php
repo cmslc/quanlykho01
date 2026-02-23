@@ -1,0 +1,511 @@
+<?php
+require_once(__DIR__.'/../../../models/is_admin.php');
+require_once(__DIR__.'/../../../libs/csrf.php');
+
+$page_title = __('Tạo đơn hàng mới');
+
+$customers = $CMSNT->get_list_safe("SELECT `id`, `customer_code`, `fullname` FROM `customers` ORDER BY `fullname` ASC", []);
+$exchange_rate = get_exchange_rate();
+$preselect_customer = input_get('customer_id') ?: '';
+
+require_once(__DIR__.'/header.php');
+require_once(__DIR__.'/sidebar.php');
+?>
+        <!-- Breadcrumb -->
+        <div class="row">
+            <div class="col-12">
+                <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                    <h4 class="mb-sm-0"><?= __('Tạo đơn hàng mới') ?></h4>
+                </div>
+            </div>
+        </div>
+
+        <form id="form-add-order">
+            <input type="hidden" name="<?= $csrf->get_token_name() ?>" value="<?= $csrf->get_token_value() ?>">
+            <input type="hidden" name="request_name" value="add">
+            <input type="hidden" name="order_type" value="shipping">
+
+            <div id="alert-box"></div>
+
+            <!-- Thông tin đơn hàng -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><?= __('Thông tin đơn hàng') ?></h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label"><?= __('Loại hàng') ?></label>
+                                <select class="form-select" name="product_type">
+                                    <option value="retail"><?= __('Hàng lẻ') ?></option>
+                                    <option value="wholesale"><?= __('Hàng lô') ?></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4 wholesale-only">
+                            <div class="mb-3">
+                                <label class="form-label"><?= __('Phân loại vận chuyển') ?></label>
+                                <select class="form-select" name="cargo_type">
+                                    <option value="easy"><?= __('Hàng dễ vận chuyển') ?></option>
+                                    <option value="difficult"><?= __('Hàng khó vận chuyển') ?></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4 wholesale-only">
+                            <div class="mb-3">
+                                <label class="form-label"><?= __('Khách hàng') ?> <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <select class="form-select" name="customer_id" id="select-customer">
+                                        <option value=""><?= __('-- Chọn khách hàng --') ?></option>
+                                        <?php foreach ($customers as $c): ?>
+                                        <option value="<?= $c['id'] ?>" <?= $preselect_customer == $c['id'] ? 'selected' : '' ?>><?= htmlspecialchars($c['customer_code'] . ' - ' . $c['fullname']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAddCustomer" title="<?= __('Tạo khách hàng mới') ?>"><i class="ri-user-add-line"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label"><?= __('Trạng thái') ?></label>
+                                <select class="form-select" name="status">
+                                    <option value="cn_warehouse" selected><?= __('Đã về kho Trung Quốc') ?></option>
+                                    <option value="shipping"><?= __('Đang vận chuyển') ?></option>
+                                    <option value="vn_warehouse"><?= __('Đã về kho Việt Nam') ?></option>
+                                    <option value="delivered"><?= __('Đã giao hàng') ?></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 wholesale-only">
+                            <div class="mb-3">
+                                <label class="form-label"><?= __('Mã hàng') ?></label>
+                                <input type="text" class="form-control" name="product_code" placeholder="<?= __('Nhập mã hàng') ?>">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label"><?= __('Tên sản phẩm') ?></label>
+                                <input type="text" class="form-control" name="product_name">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><?= __('Ảnh sản phẩm') ?></label>
+                        <input type="file" class="form-control" name="product_images[]" id="product_image_input" accept="image/*" multiple>
+                        <div id="image-preview" class="mt-2 d-flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quét mã vận đơn (hàng lẻ) -->
+            <div class="card retail-scan-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="ri-barcode-line"></i> <?= __('Quét mã vận đơn') ?></h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <div class="input-group input-group-lg">
+                                <input type="text" class="form-control" id="retail-scan-input" placeholder="<?= __('Quét hoặc nhập mã vận đơn rồi nhấn Enter') ?>" autofocus>
+                                <button type="button" class="btn btn-primary" id="btn-scan-submit"><i class="ri-send-plane-line"></i></button>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="alert alert-success mb-0 py-2 text-center h-100 d-flex align-items-center justify-content-center">
+                                <span><?= __('Đã quét') ?>: <strong id="scan-count" class="fs-4">0</strong> <?= __('đơn') ?></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="scan-log" class="mt-3" style="max-height:300px;overflow-y:auto;"></div>
+                </div>
+            </div>
+
+            <!-- Kiện hàng (hàng lô) -->
+            <div class="card wholesale-only">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="card-title mb-0"><?= __('Kiện hàng') ?></h5>
+                    <button type="button" class="btn btn-sm btn-primary" id="btn-add-package"><i class="ri-add-line"></i> <?= __('Thêm kiện') ?></button>
+                </div>
+                <div class="card-body">
+                    <div id="packages-container">
+                        <div class="package-item card card-body bg-light mb-3" data-index="0">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong class="package-label"><?= __('Kiện') ?> #1</strong>
+                                <button type="button" class="btn btn-sm btn-outline-danger btn-remove-package" style="display:none;" title="<?= __('Xóa kiện') ?>"><i class="ri-delete-bin-line"></i></button>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-2">
+                                        <label class="form-label"><?= __('Số kiện') ?></label>
+                                        <input type="number" class="form-control pkg-calc" name="packages[0][qty]" value="1" min="1">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-2">
+                                        <label class="form-label"><?= __('Cân nặng/kiện') ?> (kg)</label>
+                                        <input type="number" class="form-control pkg-calc" name="packages[0][weight]" value="0" step="0.01" min="0">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="mb-2">
+                                        <label class="form-label"><?= __('Dài') ?> (cm)</label>
+                                        <input type="number" class="form-control pkg-calc" name="packages[0][length_cm]" value="0" step="0.1" min="0">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="mb-2">
+                                        <label class="form-label"><?= __('Rộng') ?> (cm)</label>
+                                        <input type="number" class="form-control pkg-calc" name="packages[0][width_cm]" value="0" step="0.1" min="0">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="mb-2">
+                                        <label class="form-label"><?= __('Cao') ?> (cm)</label>
+                                        <input type="number" class="form-control pkg-calc" name="packages[0][height_cm]" value="0" step="0.1" min="0">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row pkg-summary-row">
+                        <div class="col-md-4">
+                            <div class="alert alert-info mb-0 py-2">
+                                <small class="text-muted"><?= __('Tổng kiện') ?>:</small> <strong id="sum-pkg-count">0</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert alert-info mb-0 py-2">
+                                <small class="text-muted"><?= __('Tổng cân nặng') ?>:</small> <strong id="sum-pkg-weight">0 kg</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert alert-info mb-0 py-2">
+                                <small class="text-muted"><?= __('Tổng số khối') ?>:</small> <strong id="sum-pkg-cbm">0 m³</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ghi chú -->
+            <div class="card wholesale-only">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><?= __('Ghi chú') ?></h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label"><?= __('Ghi chú khách hàng') ?></label>
+                                <textarea class="form-control" name="note" rows="2"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label"><?= __('Ghi chú nội bộ') ?></label>
+                                <textarea class="form-control" name="note_internal" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions (wholesale only) -->
+            <div class="d-flex gap-2 mb-4 wholesale-only">
+                <button type="submit" class="btn btn-primary"><i class="ri-save-line"></i> <?= __('Tạo đơn hàng') ?></button>
+                <a href="<?= base_url('admin/orders-list') ?>" class="btn btn-secondary"><?= __('Hủy') ?></a>
+            </div>
+        </form>
+
+<!-- Modal: Tạo khách hàng nhanh -->
+<div class="modal fade" id="modalAddCustomer" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><?= __('Tạo khách hàng mới') ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="form-quick-customer">
+                <input type="hidden" name="<?= $csrf->get_token_name() ?>" value="<?= $csrf->get_token_value() ?>">
+                <input type="hidden" name="request_name" value="add">
+                <div class="modal-body">
+                    <div id="modal-alert-box"></div>
+                    <div class="mb-3">
+                        <label class="form-label"><?= __('Họ tên') ?> <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="fullname" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><?= __('Số điện thoại') ?> <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="phone" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">WeChat</label>
+                                <input type="text" class="form-control" name="wechat">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Zalo</label>
+                                <input type="text" class="form-control" name="zalo">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><?= __('Địa chỉ Việt Nam') ?></label>
+                        <input type="text" class="form-control" name="address_vn">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?= __('Hủy') ?></button>
+                    <button type="submit" class="btn btn-success" id="btn-quick-customer">
+                        <i class="ri-user-add-line"></i> <?= __('Tạo khách hàng') ?>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<?php require_once(__DIR__.'/footer.php'); ?>
+
+<?php
+$body['footer'] = '';
+?>
+<script>
+// ===== Retail scan auto-save =====
+var scanCount = 0;
+var scanBusy = false;
+
+function submitRetailScan() {
+    var $input = $('#retail-scan-input');
+    var tracking = $.trim($input.val());
+    if(!tracking || scanBusy) return;
+
+    scanBusy = true;
+    $input.prop('disabled', true);
+
+    var formData = new FormData($('#form-add-order')[0]);
+    formData.set('product_type', 'retail');
+    formData.delete('packages[0][qty]');
+    formData.delete('packages[0][weight]');
+    formData.delete('packages[0][length_cm]');
+    formData.delete('packages[0][width_cm]');
+    formData.delete('packages[0][height_cm]');
+    formData.append('packages[0][tracking_cn]', tracking);
+    formData.append('packages[0][qty]', '1');
+
+    $.ajax({
+        url: '<?= base_url('ajaxs/admin/orders.php') ?>',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        dataType: 'json',
+        success: function(res){
+            if(res.status == 'success'){
+                scanCount++;
+                $('#scan-count').text(scanCount);
+                var time = new Date().toLocaleTimeString();
+                $('#scan-log').prepend(
+                    '<div class="d-flex align-items-center gap-2 py-1 border-bottom">'
+                    + '<span class="badge bg-success">' + scanCount + '</span>'
+                    + '<code class="flex-grow-1">' + $('<span>').text(tracking).html() + '</code>'
+                    + '<small class="text-muted">' + (res.order_code || '') + '</small>'
+                    + '<small class="text-muted">' + time + '</small>'
+                    + '<i class="ri-check-line text-success"></i>'
+                    + '</div>'
+                );
+                $input.val('').prop('disabled', false).focus();
+            } else {
+                $('#scan-log').prepend(
+                    '<div class="d-flex align-items-center gap-2 py-1 border-bottom text-danger">'
+                    + '<span class="badge bg-danger"><i class="ri-close-line"></i></span>'
+                    + '<code>' + $('<span>').text(tracking).html() + '</code>'
+                    + '<small>' + res.msg + '</small>'
+                    + '</div>'
+                );
+                $input.prop('disabled', false).select();
+            }
+        },
+        error: function(xhr){
+            var errMsg = '<?= __('Lỗi kết nối server') ?>';
+            try { var r = JSON.parse(xhr.responseText); if(r.msg) errMsg = r.msg; } catch(e){}
+            $('#scan-log').prepend(
+                '<div class="d-flex align-items-center gap-2 py-1 border-bottom text-danger">'
+                + '<span class="badge bg-danger"><i class="ri-close-line"></i></span>'
+                + '<code>' + $('<span>').text(tracking).html() + '</code>'
+                + '<small>' + errMsg + '</small>'
+                + '</div>'
+            );
+            $input.prop('disabled', false).select();
+        },
+        complete: function(){ scanBusy = false; }
+    });
+}
+
+$('#retail-scan-input').on('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); submitRetailScan(); }
+});
+$('#btn-scan-submit').on('click', submitRetailScan);
+
+// ===== Wholesale package management =====
+var packageIndex = 1;
+$('#btn-add-package').on('click', function(){
+    var i = packageIndex++;
+    var html = '<div class="package-item card card-body bg-light mb-3" data-index="' + i + '">'
+        + '<div class="d-flex justify-content-between align-items-center mb-2">'
+        + '<strong class="package-label"><?= __('Kiện') ?> #' + (i + 1) + '</strong>'
+        + '<button type="button" class="btn btn-sm btn-outline-danger btn-remove-package" title="<?= __('Xóa kiện') ?>"><i class="ri-delete-bin-line"></i></button>'
+        + '</div>'
+        + '<div class="row">'
+        + '<div class="col-md-3"><div class="mb-2"><label class="form-label"><?= __('Số kiện') ?></label><input type="number" class="form-control pkg-calc" name="packages[' + i + '][qty]" value="1" min="1"></div></div>'
+        + '<div class="col-md-3"><div class="mb-2"><label class="form-label"><?= __('Cân nặng/kiện') ?> (kg)</label><input type="number" class="form-control pkg-calc" name="packages[' + i + '][weight]" value="0" step="0.01" min="0"></div></div>'
+        + '<div class="col-md-2"><div class="mb-2"><label class="form-label"><?= __('Dài') ?> (cm)</label><input type="number" class="form-control pkg-calc" name="packages[' + i + '][length_cm]" value="0" step="0.1" min="0"></div></div>'
+        + '<div class="col-md-2"><div class="mb-2"><label class="form-label"><?= __('Rộng') ?> (cm)</label><input type="number" class="form-control pkg-calc" name="packages[' + i + '][width_cm]" value="0" step="0.1" min="0"></div></div>'
+        + '<div class="col-md-2"><div class="mb-2"><label class="form-label"><?= __('Cao') ?> (cm)</label><input type="number" class="form-control pkg-calc" name="packages[' + i + '][height_cm]" value="0" step="0.1" min="0"></div></div>'
+        + '</div></div>';
+    $('#packages-container').append(html);
+    updatePackageButtons();
+});
+
+$(document).on('click', '.btn-remove-package', function(){
+    $(this).closest('.package-item').remove();
+    updatePackageButtons();
+});
+
+function updatePackageButtons() {
+    var items = $('.package-item');
+    items.each(function(idx){
+        $(this).find('.package-label').text('<?= __('Kiện') ?> #' + (idx + 1));
+        $(this).find('.btn-remove-package').toggle(items.length > 1);
+    });
+    calcPackageSummary();
+}
+
+function calcPackageSummary() {
+    var totalCount = 0, totalWeight = 0, totalCbm = 0;
+    $('.package-item').each(function(){
+        var qty = parseInt($(this).find('[name$="[qty]"]').val()) || 1;
+        var w = parseFloat($(this).find('[name$="[weight]"]').val()) || 0;
+        var l = parseFloat($(this).find('[name$="[length_cm]"]').val()) || 0;
+        var r = parseFloat($(this).find('[name$="[width_cm]"]').val()) || 0;
+        var h = parseFloat($(this).find('[name$="[height_cm]"]').val()) || 0;
+        var cbm = (l * r * h) / 1000000;
+        totalCount += qty;
+        totalWeight += qty * w;
+        totalCbm += qty * cbm;
+    });
+    $('#sum-pkg-count').text(totalCount);
+    $('#sum-pkg-weight').text(totalWeight.toFixed(2) + ' kg');
+    $('#sum-pkg-cbm').text(totalCbm > 0 ? parseFloat(totalCbm.toFixed(4)) + ' m³' : '0 m³');
+}
+
+$(document).on('input change', '.pkg-calc', calcPackageSummary);
+calcPackageSummary();
+
+// Toggle retail/wholesale mode
+function toggleProductType() {
+    var isRetail = $('select[name="product_type"]').val() === 'retail';
+    if(isRetail){
+        $('.wholesale-only').hide();
+        $('.retail-scan-card').show();
+        $('#select-customer').prop('required', false);
+        $('#retail-scan-input').focus();
+    } else {
+        $('.wholesale-only').show();
+        $('.retail-scan-card').hide();
+        $('#select-customer').prop('required', true);
+        calcPackageSummary();
+    }
+}
+$('select[name="product_type"]').on('change', toggleProductType);
+toggleProductType();
+
+
+// Image preview (multiple)
+$('#product_image_input').on('change', function(){
+    var $preview = $('#image-preview').empty();
+    Array.from(this.files).forEach(function(file, idx){
+        var reader = new FileReader();
+        reader.onload = function(e){
+            var $wrap = $('<div class="position-relative d-inline-block">');
+            $wrap.append('<img src="' + e.target.result + '" class="img-thumbnail" style="max-height:100px;">');
+            $wrap.append('<button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 btn-remove-img" data-idx="' + idx + '" style="padding:1px 5px;font-size:10px;"><i class="ri-close-line"></i></button>');
+            $preview.append($wrap);
+        };
+        reader.readAsDataURL(file);
+    });
+});
+
+$(document).on('click', '.btn-remove-img', function(){
+    var input = $('#product_image_input')[0];
+    var dt = new DataTransfer();
+    var idx = $(this).data('idx');
+    Array.from(input.files).forEach(function(file, i){
+        if(i !== idx) dt.items.add(file);
+    });
+    input.files = dt.files;
+    $(input).trigger('change');
+});
+
+// Quick add customer
+$('#form-quick-customer').on('submit', function(e){
+    e.preventDefault();
+    var $btn = $('#btn-quick-customer');
+    $btn.prop('disabled', true);
+    $.ajax({
+        url: '<?= base_url('ajaxs/admin/customers.php') ?>',
+        type: 'POST',
+        data: $(this).serialize(),
+        dataType: 'json',
+        success: function(res){
+            if(res.status == 'success'){
+                // Add new option to dropdown and select it
+                var label = res.customer_code + ' - ' + res.fullname;
+                var $sel = $('#select-customer');
+                $sel.append('<option value="' + res.customer_id + '">' + $('<span>').text(label).html() + '</option>');
+                $sel.val(res.customer_id);
+                // Close modal and reset form
+                $('#modalAddCustomer').modal('hide');
+                $('#form-quick-customer')[0].reset();
+                $('#modal-alert-box').html('');
+                Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false});
+            } else {
+                $('#modal-alert-box').html('<div class="alert alert-danger">' + res.msg + '</div>');
+            }
+        },
+        complete: function(){ $btn.prop('disabled', false); }
+    });
+});
+
+$('#form-add-order').on('submit', function(e){
+    e.preventDefault();
+    // Retail uses scan auto-save, block normal submit
+    if($('select[name="product_type"]').val() === 'retail') return;
+
+    var formData = new FormData(this);
+    $.ajax({
+        url: '<?= base_url('ajaxs/admin/orders.php') ?>',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        dataType: 'json',
+        success: function(res){
+            if(res.status == 'success'){
+                Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){
+                    window.location.href = '<?= base_url('admin/orders-detail') ?>&id=' + res.order_id;
+                });
+            } else {
+                $('#alert-box').html('<div class="alert alert-danger">' + res.msg + '</div>');
+                $('html, body').animate({scrollTop: 0}, 300);
+            }
+        }
+    });
+});
+</script>

@@ -1,0 +1,20 @@
+RewriteEngine On
+RewriteBase /CMS01/
+
+# Block access to sensitive files
+<FilesMatch "\.(env|sql|md)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Block access to libs, models, cron, vendor directories
+RewriteRule ^(libs|models|cron|vendor)/ - [F,L]
+
+# Redirect to index.php if file/directory doesn't exist
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([^/]+)/(.+)$ index.php?module=$1&action=$2 [QSA,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([^/]+)/?$ index.php?module=$1&action=home [QSA,L]
