@@ -166,7 +166,7 @@ require_once(__DIR__.'/sidebar.php');
                             <p class="text-muted mb-0"><?= __('Chưa có kiện hàng liên kết.') ?></p>
                         <?php else: ?>
                             <div class="table-responsive">
-                                <table class="table table-bordered table-sm mb-0">
+                                <table id="tbl-packages" class="table table-bordered table-sm mb-0">
                                     <thead class="table-light">
                                         <tr>
                                             <th><?= __('Mã kiện') ?></th>
@@ -331,7 +331,18 @@ require_once(__DIR__.'/sidebar.php');
 
 <?php require_once(__DIR__.'/footer.php'); ?>
 
-
+<script>
+$(document).ready(function(){
+    if($('#tbl-packages tbody tr').length > 0){
+        $('#tbl-packages').DataTable({
+            pageLength: 10,
+            ordering: false,
+            responsive: true,
+            language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json' }
+        });
+    }
+});
+</script>
 
 <style>
 .timeline-sm { position: relative; padding-left: 20px; }
