@@ -261,22 +261,33 @@ if ($request === 'add') {
         $ToryHub->update_safe("orders", ['total_packages' => $createdPackages], "id = ?", [$newId]);
     }
 
-    // Telegram notification
-    require_once(__DIR__.'/../../libs/telegram.php');
-    $bot = new TelegramBot();
-    $bot->notifyNewOrder([
-        'order_code' => $orderCode,
-        'product_name' => $product_name,
-        'quantity' => $quantity,
-        'total_cny' => $total_cny,
-        'grand_total' => $grand_total,
-        'platform' => input_post('platform') ?: 'taobao'
-    ], $customer ? $customer['fullname'] : '');
+    $msg = __('Tạo đơn hàng thành công');
+    if ($createdPackages > 0) {
+        $msg .= ' (' . $createdPackages . ' ' . __('kiện') . ')';
+    } elseif (!empty($packages) && $createdPackages === 0) {
+        $msg .= ' - ' . __('Lỗi tạo kiện') . ': ' . ($pkgError ?? 'Unknown');
+    }
 
-    // Email notification
-    if ($customer_id && $customer) {
-        require_once(__DIR__.'/../../libs/email.php');
-        if (!empty($customer['email'])) {
+    // Send JSON response FIRST, before notifications
+    ob_end_clean(); echo json_encode(['status' => 'success', 'msg' => $msg, 'order_id' => $newId, 'order_code' => $orderCode]);
+
+    // Notifications after response (won't affect client)
+    try {
+        require_once(__DIR__.'/../../libs/telegram.php');
+        $bot = new TelegramBot();
+        $bot->notifyNewOrder([
+            'order_code' => $orderCode,
+            'product_name' => $product_name,
+            'quantity' => $quantity,
+            'total_cny' => $total_cny,
+            'grand_total' => $grand_total,
+            'platform' => input_post('platform') ?: 'taobao'
+        ], $customer ? $customer['fullname'] : '');
+    } catch (Exception $e) { error_log('Telegram notify error: ' . $e->getMessage()); }
+
+    try {
+        if ($customer_id && $customer && !empty($customer['email'])) {
+            require_once(__DIR__.'/../../libs/email.php');
             email_notify('notifyNewOrder', [
                 'order_code' => $orderCode,
                 'product_name' => $product_name,
@@ -284,15 +295,8 @@ if ($request === 'add') {
                 'grand_total' => $grand_total
             ], $customer['email']);
         }
-    }
+    } catch (Exception $e) { error_log('Email notify error: ' . $e->getMessage()); }
 
-    $msg = __('Tạo đơn hàng thành công');
-    if ($createdPackages > 0) {
-        $msg .= ' (' . $createdPackages . ' ' . __('kiện') . ')';
-    } elseif (!empty($packages) && $createdPackages === 0) {
-        $msg .= ' - ' . __('Lỗi tạo kiện') . ': ' . ($pkgError ?? 'Unknown');
-    }
-    ob_end_clean(); echo json_encode(['status' => 'success', 'msg' => $msg, 'order_id' => $newId, 'order_code' => $orderCode]);
     exit;
 }
 
