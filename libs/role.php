@@ -32,19 +32,19 @@ function is_admin()
     return false;
 }
 
-function is_staff_cn()
+function is_staffcn()
 {
     $user = is_logged();
-    if (!empty($user['role']) && $user['role'] == 'staff_cn') {
+    if (!empty($user['role']) && $user['role'] == 'staffcn') {
         return true;
     }
     return false;
 }
 
-function is_staff_vn()
+function is_staffvn()
 {
     $user = is_logged();
-    if (!empty($user['role']) && $user['role'] == 'staff_vn') {
+    if (!empty($user['role']) && $user['role'] == 'staffvn') {
         return true;
     }
     return false;

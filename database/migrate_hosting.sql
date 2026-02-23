@@ -131,5 +131,11 @@ CREATE TABLE IF NOT EXISTS `order_status_history` (
   KEY `idx_osh_order` (`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 6. Rename staff roles: staff_cn → staffcn, staff_vn → staffvn
+ALTER TABLE `users` MODIFY COLUMN `role` ENUM('admin','staffcn','staffvn','customer','staff_cn','staff_vn') NOT NULL DEFAULT 'customer';
+UPDATE `users` SET `role` = 'staffcn' WHERE `role` = 'staff_cn';
+UPDATE `users` SET `role` = 'staffvn' WHERE `role` = 'staff_vn';
+ALTER TABLE `users` MODIFY COLUMN `role` ENUM('admin','staffcn','staffvn','customer') NOT NULL DEFAULT 'customer';
+
 -- Done!
 SELECT 'Migration completed successfully!' AS result;

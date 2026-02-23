@@ -1,5 +1,5 @@
 <?php
-require_once(__DIR__.'/../../../models/is_staff_vn.php');
+require_once(__DIR__.'/../../../models/is_staffvn.php');
 require_once(__DIR__.'/../../../libs/csrf.php');
 
 $page_title = 'Dashboard';
@@ -113,7 +113,7 @@ require_once(__DIR__.'/sidebar.php');
                 <div class="card">
                     <div class="card-header d-flex align-items-center justify-content-between">
                         <h5 class="card-title mb-0"><?= __('Đơn hàng gần đây') ?></h5>
-                        <a href="<?= base_url('staff_vn/orders-list') ?>" class="btn btn-sm btn-primary"><?= __('Xem tất cả') ?></a>
+                        <a href="<?= base_url('staffvn/orders-list') ?>" class="btn btn-sm btn-primary"><?= __('Xem tất cả') ?></a>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -158,7 +158,7 @@ require_once(__DIR__.'/sidebar.php');
                 <div class="card">
                     <div class="card-header d-flex align-items-center justify-content-between">
                         <h5 class="card-title mb-0"><?= __('Chờ giao hàng') ?></h5>
-                        <a href="<?= base_url('staff_vn/orders-delivery') ?>" class="btn btn-sm btn-success"><?= __('Giao hàng') ?></a>
+                        <a href="<?= base_url('staffvn/orders-delivery') ?>" class="btn btn-sm btn-success"><?= __('Giao hàng') ?></a>
                     </div>
                     <div class="card-body">
                         <?php if (empty($waiting_delivery)): ?>

@@ -30,9 +30,9 @@ if ($request === 'generate_monthly') {
         exit;
     }
 
-    // Lấy tất cả NV active (staff_cn, staff_vn)
+    // Lấy tất cả NV active (staffcn, staffvn)
     $staffList = $ToryHub->get_list_safe(
-        "SELECT id, role FROM `users` WHERE `role` IN ('staff_cn','staff_vn') AND `active` = 1 AND `banned` = 0",
+        "SELECT id, role FROM `users` WHERE `role` IN ('staffcn','staffvn') AND `active` = 1 AND `banned` = 0",
         []
     );
 
@@ -66,7 +66,7 @@ if ($request === 'generate_monthly') {
         foreach ($staffList as $staff) {
             if (in_array($staff['id'], $existingIds)) continue;
 
-            $currency = $staff['role'] === 'staff_cn' ? 'CNY' : 'VND';
+            $currency = $staff['role'] === 'staffcn' ? 'CNY' : 'VND';
             $baseSalary = isset($prevMap[$staff['id']]) ? $prevMap[$staff['id']]['base_salary'] : 0;
             $allowance = isset($prevMap[$staff['id']]) ? $prevMap[$staff['id']]['allowance'] : 0;
             $netSalary = $baseSalary + $allowance;

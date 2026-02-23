@@ -83,10 +83,10 @@ if (isset($_SESSION['admin_login'])) {
                         <a href="<?= base_url('admin/login') ?>" class="btn btn-light btn-sm active disabled">
                             <i class="ri-admin-line"></i> Login Admin
                         </a>
-                        <a href="<?= base_url('staff_vn/login') ?>" class="btn btn-outline-light btn-sm">
+                        <a href="<?= base_url('staffvn/login') ?>" class="btn btn-outline-light btn-sm">
                             <i class="ri-store-2-line"></i> Kho Việt Nam
                         </a>
-                        <a href="<?= base_url('staff_cn/login') ?>" class="btn btn-outline-light btn-sm">
+                        <a href="<?= base_url('staffcn/login') ?>" class="btn btn-outline-light btn-sm">
                             <i class="ri-building-4-line"></i> Kho Trung Quốc
                         </a>
                         <a href="<?= base_url('customer/login') ?>" class="btn btn-outline-light btn-sm">

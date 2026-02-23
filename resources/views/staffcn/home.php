@@ -1,5 +1,5 @@
 <?php
-require_once(__DIR__.'/../../../models/is_staff_cn.php');
+require_once(__DIR__.'/../../../models/is_staffcn.php');
 require_once(__DIR__.'/../../../libs/csrf.php');
 
 $page_title = 'Dashboard';
@@ -29,7 +29,7 @@ require_once(__DIR__.'/sidebar.php');
                 <div class="page-title-box d-sm-flex align-items-center justify-content-between">
                     <h4 class="mb-sm-0">Dashboard - <?= __('Kho Trung Quốc') ?></h4>
                     <div class="page-title-right">
-                        <a href="<?= base_url('staff_cn/orders-scan') ?>" class="btn btn-primary">
+                        <a href="<?= base_url('staffcn/orders-scan') ?>" class="btn btn-primary">
                             <i class="ri-qr-scan-2-line"></i> <?= __('Quét mã nhập kho') ?>
                         </a>
                     </div>
@@ -50,7 +50,7 @@ require_once(__DIR__.'/sidebar.php');
                         <div class="d-flex align-items-end justify-content-between mt-4">
                             <div>
                                 <h4 class="fs-22 fw-semibold mb-4">
-                                    <a href="<?= base_url('staff_cn/orders-list&status=purchased') ?>" class="text-decoration-none"><?= $purchased_orders ?></a>
+                                    <a href="<?= base_url('staffcn/orders-list&status=purchased') ?>" class="text-decoration-none"><?= $purchased_orders ?></a>
                                 </h4>
                             </div>
                             <div class="avatar-sm flex-shrink-0">
@@ -71,7 +71,7 @@ require_once(__DIR__.'/sidebar.php');
                         <div class="d-flex align-items-end justify-content-between mt-4">
                             <div>
                                 <h4 class="fs-22 fw-semibold mb-4">
-                                    <a href="<?= base_url('staff_cn/orders-list&status=cn_shipped') ?>" class="text-decoration-none"><?= $cn_shipped_orders ?></a>
+                                    <a href="<?= base_url('staffcn/orders-list&status=cn_shipped') ?>" class="text-decoration-none"><?= $cn_shipped_orders ?></a>
                                 </h4>
                             </div>
                             <div class="avatar-sm flex-shrink-0">
@@ -92,7 +92,7 @@ require_once(__DIR__.'/sidebar.php');
                         <div class="d-flex align-items-end justify-content-between mt-4">
                             <div>
                                 <h4 class="fs-22 fw-semibold mb-4">
-                                    <a href="<?= base_url('staff_cn/orders-list&status=cn_warehouse') ?>" class="text-decoration-none"><?= $cn_warehouse_orders ?></a>
+                                    <a href="<?= base_url('staffcn/orders-list&status=cn_warehouse') ?>" class="text-decoration-none"><?= $cn_warehouse_orders ?></a>
                                 </h4>
                             </div>
                             <div class="avatar-sm flex-shrink-0">
@@ -127,7 +127,7 @@ require_once(__DIR__.'/sidebar.php');
                 <div class="card">
                     <div class="card-header d-flex align-items-center justify-content-between">
                         <h5 class="card-title mb-0"><?= __('Đơn hàng gần đây') ?></h5>
-                        <a href="<?= base_url('staff_cn/orders-list') ?>" class="btn btn-sm btn-primary"><?= __('Xem tất cả') ?></a>
+                        <a href="<?= base_url('staffcn/orders-list') ?>" class="btn btn-sm btn-primary"><?= __('Xem tất cả') ?></a>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">

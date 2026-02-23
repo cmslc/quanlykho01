@@ -9,20 +9,26 @@ $sidebarMenu = [
     [
         'label' => 'Dashboard',
         'icon'  => 'ri-dashboard-2-line',
-        'url'   => base_url('staff_cn/home'),
+        'url'   => base_url('staffvn/home'),
         'active' => ['home'],
     ],
     [
-        'label' => __('Đơn hàng cần xử lý'),
-        'icon'  => 'ri-shopping-cart-2-line',
-        'url'   => base_url('staff_cn/orders-list'),
+        'label' => __('Kho hàng Việt Nam'),
+        'icon'  => 'ri-inbox-archive-line',
+        'url'   => base_url('staffvn/orders-list'),
         'active' => ['orders-list'],
     ],
     [
-        'label' => __('Quét mã nhập kho'),
+        'label' => __('Quét mã hàng loạt'),
         'icon'  => 'ri-qr-scan-2-line',
-        'url'   => base_url('staff_cn/orders-scan'),
+        'url'   => base_url('staffvn/orders-scan'),
         'active' => ['orders-scan'],
+    ],
+    [
+        'label' => __('Giao hàng'),
+        'icon'  => 'ri-truck-line',
+        'url'   => base_url('staffvn/orders-delivery'),
+        'active' => ['orders-delivery'],
     ],
 ];
 
@@ -44,13 +50,13 @@ $_siteInitials = mb_strtoupper(mb_substr($_siteName, 0, 2));
 ?>
 <div class="app-menu navbar-menu">
     <div class="navbar-brand-box">
-        <a href="<?= base_url('staff_cn/home') ?>" class="logo logo-dark">
+        <a href="<?= base_url('staffvn/home') ?>" class="logo logo-dark">
             <span class="logo-sm"><?php if ($_siteLogo): ?><img src="<?= get_upload_url($_siteLogo) ?>" class="logo-img-sm"><?php else: ?><span class="logo-icon"><?= $_siteInitials ?></span><?php endif; ?></span>
-            <span class="logo-lg"><?php if ($_siteLogo): ?><img src="<?= get_upload_url($_siteLogo) ?>" class="logo-img me-2"><?php else: ?><span class="logo-icon me-2"><?= $_siteInitials ?></span><?php endif; ?><b><?= __('Kho Trung Quốc') ?></b></span>
+            <span class="logo-lg"><?php if ($_siteLogo): ?><img src="<?= get_upload_url($_siteLogo) ?>" class="logo-img me-2"><?php else: ?><span class="logo-icon me-2"><?= $_siteInitials ?></span><?php endif; ?><b><?= __('Kho Việt Nam') ?></b></span>
         </a>
-        <a href="<?= base_url('staff_cn/home') ?>" class="logo logo-light">
+        <a href="<?= base_url('staffvn/home') ?>" class="logo logo-light">
             <span class="logo-sm"><?php if ($_siteLogo): ?><img src="<?= get_upload_url($_siteLogo) ?>" class="logo-img-sm"><?php else: ?><span class="logo-icon"><?= $_siteInitials ?></span><?php endif; ?></span>
-            <span class="logo-lg"><?php if ($_siteLogo): ?><img src="<?= get_upload_url($_siteLogo) ?>" class="logo-img me-2"><?php else: ?><span class="logo-icon me-2"><?= $_siteInitials ?></span><?php endif; ?><b><?= __('Kho Trung Quốc') ?></b></span>
+            <span class="logo-lg"><?php if ($_siteLogo): ?><img src="<?= get_upload_url($_siteLogo) ?>" class="logo-img me-2"><?php else: ?><span class="logo-icon me-2"><?= $_siteInitials ?></span><?php endif; ?><b><?= __('Kho Việt Nam') ?></b></span>
         </a>
         <button type="button" class="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover" id="vertical-hover">
             <i class="ri-record-circle-line"></i>

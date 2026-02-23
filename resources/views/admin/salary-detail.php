@@ -15,7 +15,7 @@ $salary = $ToryHub->get_row_safe(
 
 if (!$salary) { header('Location: ' . base_url('admin/salary-list')); exit; }
 
-$isCN = $salary['role'] === 'staff_cn';
+$isCN = $salary['role'] === 'staffcn';
 $cur = $salary['currency'];
 $curSymbol = $cur === 'CNY' ? '¥' : 'đ';
 $formatFn = $cur === 'CNY' ? 'format_cny' : 'format_vnd';

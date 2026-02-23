@@ -31,7 +31,7 @@ if (in_array($action, $blocked_actions)) {
 }
 
 // Allowed modules
-$allowed_modules = ['admin', 'staff_cn', 'staff_vn', 'customer', 'common'];
+$allowed_modules = ['admin', 'staffcn', 'staffvn', 'customer', 'common'];
 if (!in_array($module, $allowed_modules)) {
     require_once(__DIR__.'/resources/views/common/404.php');
     exit();

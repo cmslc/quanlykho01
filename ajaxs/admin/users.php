@@ -28,7 +28,7 @@ if (is_submit('add')) {
         exit();
     }
 
-    $allowed_roles = ['admin', 'staff_cn', 'staff_vn', 'customer'];
+    $allowed_roles = ['admin', 'staffcn', 'staffvn', 'customer'];
     if (!in_array($role, $allowed_roles)) {
         echo json_encode(['status' => 'error', 'msg' => __('Invalid role')]);
         exit();
@@ -65,7 +65,7 @@ if (is_submit('edit')) {
     $banned = intval(input_post('banned'));
     $password = input_post('password');
 
-    $allowed_roles = ['admin', 'staff_cn', 'staff_vn', 'customer'];
+    $allowed_roles = ['admin', 'staffcn', 'staffvn', 'customer'];
     if (!in_array($role, $allowed_roles)) {
         echo json_encode(['status' => 'error', 'msg' => __('Invalid role')]);
         exit();

@@ -1,5 +1,5 @@
 <?php
-require_once(__DIR__.'/../../../models/is_staff_vn.php');
+require_once(__DIR__.'/../../../models/is_staffvn.php');
 require_once(__DIR__.'/../../../libs/csrf.php');
 
 $page_title = __('Đơn hàng tại kho Việt Nam');
@@ -48,7 +48,7 @@ require_once(__DIR__.'/sidebar.php');
             ];
             ?>
             <div class="col-md-3">
-                <a href="<?= base_url('staff_vn/orders-list') ?>" class="text-decoration-none">
+                <a href="<?= base_url('staffvn/orders-list') ?>" class="text-decoration-none">
                     <div class="card card-animate <?= empty($filterStatus) ? 'border border-primary' : '' ?>">
                         <div class="card-body py-2 text-center">
                             <h5 class="mb-0"><?= array_sum($statusCounts) ?></h5>
@@ -59,7 +59,7 @@ require_once(__DIR__.'/sidebar.php');
             </div>
             <?php foreach ($vnStatuses as $s): ?>
             <div class="col-md-3">
-                <a href="<?= base_url('staff_vn/orders-list&status=' . $s) ?>" class="text-decoration-none">
+                <a href="<?= base_url('staffvn/orders-list&status=' . $s) ?>" class="text-decoration-none">
                     <div class="card card-animate <?= $filterStatus == $s ? 'border border-primary' : '' ?>">
                         <div class="card-body py-2 text-center">
                             <h5 class="mb-0"><?= $statusCounts[$s] ?></h5>
@@ -76,8 +76,8 @@ require_once(__DIR__.'/sidebar.php');
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <form method="GET" action="<?= base_url('staff_vn/orders-list') ?>" class="row g-3 align-items-end">
-                            <input type="hidden" name="module" value="staff_vn">
+                        <form method="GET" action="<?= base_url('staffvn/orders-list') ?>" class="row g-3 align-items-end">
+                            <input type="hidden" name="module" value="staffvn">
                             <input type="hidden" name="action" value="orders-list">
                             <div class="col-md-3">
                                 <label class="form-label"><?= __('Trạng thái') ?></label>
@@ -90,7 +90,7 @@ require_once(__DIR__.'/sidebar.php');
                             </div>
                             <div class="col-md-2">
                                 <button type="submit" class="btn btn-primary"><?= __('Lọc') ?></button>
-                                <a href="<?= base_url('staff_vn/orders-list') ?>" class="btn btn-secondary"><?= __('Reset') ?></a>
+                                <a href="<?= base_url('staffvn/orders-list') ?>" class="btn btn-secondary"><?= __('Reset') ?></a>
                             </div>
                         </form>
                     </div>

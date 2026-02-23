@@ -1,5 +1,5 @@
 <?php
-require_once(__DIR__.'/../../../models/is_staff_cn.php');
+require_once(__DIR__.'/../../../models/is_staffvn.php');
 require_once(__DIR__.'/../../../libs/csrf.php');
 
 $page_title = __('Batch Scan - Quét mã hàng loạt');
@@ -12,9 +12,9 @@ require_once(__DIR__.'/sidebar.php');
         <div class="row">
             <div class="col-12">
                 <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                    <h4 class="mb-sm-0"><i class="ri-qr-scan-2-line me-2"></i><?= __('Batch Scan - Kho Trung Quốc') ?></h4>
+                    <h4 class="mb-sm-0"><i class="ri-qr-scan-2-line me-2"></i><?= __('Batch Scan - Kho Việt Nam') ?></h4>
                     <div class="page-title-right">
-                        <span class="badge bg-soft-primary text-primary fs-13 p-2">
+                        <span class="badge bg-soft-success text-success fs-13 p-2">
                             <i class="ri-calendar-line me-1"></i><?= date('d/m/Y H:i') ?>
                         </span>
                     </div>
@@ -67,14 +67,14 @@ require_once(__DIR__.'/sidebar.php');
         <!-- Scan Input + Mode -->
         <div class="row">
             <div class="col-lg-8 mx-auto">
-                <div class="card border-primary shadow">
+                <div class="card border-success shadow">
                     <div class="card-body p-4">
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold"><?= __('Chế độ quét') ?></label>
                                 <select id="scan-mode" class="form-select form-select-lg">
-                                    <option value="cn_warehouse"><?= __('Nhập kho Trung Quốc') ?> (→ <?= __('Đã về kho Trung Quốc') ?>)</option>
-                                    <option value="shipping"><?= __('Xuất kho Trung Quốc') ?> (→ <?= __('Đang vận chuyển') ?>)</option>
+                                    <option value="vn_warehouse"><?= __('Nhập kho Việt Nam') ?> (→ <?= __('Đã về kho Việt Nam') ?>)</option>
+                                    <option value="delivered"><?= __('Giao hàng') ?> (→ <?= __('Đã giao hàng') ?>)</option>
                                 </select>
                             </div>
                             <div class="col-md-6 d-flex align-items-end">
@@ -90,23 +90,23 @@ require_once(__DIR__.'/sidebar.php');
                         <form id="form-scan" autocomplete="off">
                             <input type="hidden" name="<?= $csrf->get_token_name() ?>" id="csrf-token" value="<?= $csrf->get_token_value() ?>">
                             <input type="hidden" name="request_name" value="scan_order">
-                            <input type="hidden" name="target_status" id="target-status" value="cn_warehouse">
+                            <input type="hidden" name="target_status" id="target-status" value="vn_warehouse">
 
                             <div class="input-group input-group-lg">
-                                <span class="input-group-text bg-primary text-white">
+                                <span class="input-group-text bg-success text-white">
                                     <i class="ri-barcode-line fs-20"></i>
                                 </span>
                                 <input type="text" class="form-control" id="scan-input" name="barcode"
-                                    placeholder="<?= __('Quét hoặc nhập mã vận đơn / mã đơn hàng...') ?>"
+                                    placeholder="<?= __('Quét mã vận chuyển QT / mã giao VN / mã đơn hàng...') ?>"
                                     autofocus required
                                     style="height: 65px; font-size: 22px; letter-spacing: 1px;">
-                                <button type="submit" class="btn btn-primary px-4" id="btn-scan">
+                                <button type="submit" class="btn btn-success px-4" id="btn-scan">
                                     <i class="ri-qr-scan-2-line fs-20"></i>
                                 </button>
                             </div>
                             <div class="text-muted mt-2 fs-12">
                                 <i class="ri-information-line me-1"></i>
-                                <?= __('Tìm theo: Mã kiện hàng (PKG), Tracking TQ, Mã đơn hàng. Auto-submit sau 500ms.') ?>
+                                <?= __('Tìm theo: Mã kiện hàng (PKG), Tracking QT, Tracking VN, Mã đơn hàng. Auto-submit sau 500ms.') ?>
                             </div>
                         </form>
 
@@ -159,7 +159,7 @@ require_once(__DIR__.'/sidebar.php');
         </div>
 
 <?php
-$_ajaxUrl = base_url('ajaxs/staff_cn/orders-scan.php');
+$_ajaxUrl = base_url('ajaxs/staffvn/orders-scan.php');
 $_csrfName = $csrf->get_token_name();
 
 $body['footer'] = <<<'SCRIPT'
@@ -203,7 +203,7 @@ $(document).ready(function(){
     // ===== Stats =====
     var stats = { total: 0, success: 0, error: 0, duplicate: 0 };
     var scanCounter = 0;
-    var scannedCodes = {}; // Track already scanned barcodes in this session
+    var scannedCodes = {};
 
     function updateStats() {
         $('#stat-total').text(stats.total);
@@ -294,12 +294,11 @@ $(document).ready(function(){
 
                 updateStats();
 
-                // Update CSRF token
                 if (res.csrf_token) {
                     $('#csrf-token').val(res.csrf_token);
                 }
             },
-            error: function(xhr){
+            error: function(){
                 stats.total++;
                 stats.error++;
                 updateStats();
@@ -318,7 +317,6 @@ $(document).ready(function(){
         scanInput.prop('readonly', false).val('').focus();
     }
 
-    // ===== Flash message =====
     function showFlash(type, html) {
         var el = $('#last-result');
         el.stop(true).hide().html(
@@ -328,13 +326,11 @@ $(document).ready(function(){
         setTimeout(function(){ el.fadeOut(500); }, 3000);
     }
 
-    // ===== Add log row =====
     function addLogRow(barcode, resultType, message, order) {
         scanCounter++;
         $('#empty-row').remove();
 
-        var rowClass = '';
-        var badge = '';
+        var rowClass = '', badge = '';
         if (resultType === 'success') {
             rowClass = 'table-success';
             badge = '<span class="badge bg-success">{$_lblSuccess}</span>';
@@ -412,7 +408,6 @@ $(document).ready(function(){
             cancelButtonText: '{$_lblCancel}'
         }).then(function(result){
             if (result.isConfirmed) {
-                // Send Telegram notification
                 $.post('{$_ajaxUrl}', {
                     '{$_csrfName}': $('#csrf-token').val(),
                     request_name: 'end_session',
@@ -431,7 +426,6 @@ $(document).ready(function(){
                     });
                 }, 'json');
 
-                // Reset
                 scanCounter = 0;
                 stats = { total: 0, success: 0, error: 0, duplicate: 0 };
                 scannedCodes = {};
@@ -445,14 +439,12 @@ $(document).ready(function(){
         });
     });
 
-    // ===== Keep focus on scan input =====
+    // ===== Keep focus =====
     $(document).on('click', function(e){
         if (!$(e.target).closest('select, button, .swal2-container, .btn-close').length) {
             scanInput.focus();
         }
     });
-
-    // Refocus after SweetAlert closes
     $(document).on('click', '.swal2-confirm, .swal2-cancel', function(){
         setTimeout(function(){ scanInput.focus(); }, 300);
     });
@@ -460,7 +452,6 @@ $(document).ready(function(){
 </script>
 SCRIPT;
 
-// Replace template variables
 $_dupMsg = __('Mã này đã được quét trong phiên này');
 $_connectionError = __('Lỗi kết nối. Vui lòng thử lại.');
 $_lblSuccess = __('Thành công');

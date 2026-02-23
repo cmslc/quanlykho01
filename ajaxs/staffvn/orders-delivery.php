@@ -8,7 +8,7 @@ require_once(__DIR__.'/../../libs/session.php');
 require_once(__DIR__.'/../../libs/role.php');
 require_once(__DIR__.'/../../libs/csrf.php');
 require_once(__DIR__.'/../../libs/database/orders.php');
-require_once(__DIR__.'/../../models/is_staff_vn.php');
+require_once(__DIR__.'/../../models/is_staffvn.php');
 
 header('Content-Type: application/json; charset=utf-8');
 

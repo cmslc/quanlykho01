@@ -28,23 +28,23 @@ if (empty($username) || empty($password)) {
 }
 
 // Check block IP
-$blockResult = checkBlockIP('STAFF_VN', 15);
+$blockResult = checkBlockIP('STAFFCN', 15);
 if ($blockResult) {
     echo $blockResult;
     exit();
 }
 
-// Find user - specifically check for staff_vn role
-$getUser = $ToryHub->get_row_safe("SELECT * FROM `users` WHERE `username` = ? AND `role` = 'staff_vn'", [$username]);
+// Find user with role staffcn specifically
+$getUser = $ToryHub->get_row_safe("SELECT * FROM `users` WHERE `username` = ? AND `role` = 'staffcn'", [$username]);
 
 if (!$getUser) {
-    echo json_encode(['status' => 'error', 'msg' => __('Tên đăng nhập hoặc mật khẩu không đúng')]);
+    echo json_encode(['status' => 'error', 'msg' => __('Sai tên đăng nhập hoặc mật khẩu')]);
     exit();
 }
 
 // Verify password
 if (!VerifyPassword($password, $getUser['password'])) {
-    echo json_encode(['status' => 'error', 'msg' => __('Tên đăng nhập hoặc mật khẩu không đúng')]);
+    echo json_encode(['status' => 'error', 'msg' => __('Sai tên đăng nhập hoặc mật khẩu')]);
     exit();
 }
 
@@ -66,17 +66,19 @@ $ToryHub->update_safe('users', [
 ], "`id` = ?", [$getUser['id']]);
 
 // Set session and cookie
-$_SESSION['staff_vn_login'] = $token;
+$_SESSION['staffcn_login'] = $token;
 setSecureCookie('token', $token);
+setSecureCookie('staffcn_token', $token);
+set_logged($getUser['username'], 'staffcn');
 
 // Log
-add_log($getUser['id'], 'LOGIN', 'Staff VN login successful');
+add_log($getUser['id'], 'LOGIN', 'Staff CN login successful');
 
 // Clear failed attempts for this IP
-$ToryHub->remove_safe('failed_attempts', "`ip_address` = ? AND `type` = 'STAFF_VN'", [myip()]);
+$ToryHub->remove_safe('failed_attempts', "`ip_address` = ? AND `type` = 'STAFFCN'", [myip()]);
 
 echo json_encode([
     'status'   => 'success',
     'msg'      => __('Đăng nhập thành công'),
-    'redirect' => base_url('staff_vn/home')
+    'redirect' => base_url('staffcn/home')
 ]);

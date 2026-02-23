@@ -3,10 +3,10 @@ $ToryHub = new DB();
 $csrf = new Csrf();
 
 // If already logged in, redirect to dashboard
-if (isset($_SESSION['staff_vn_login'])) {
-    $getUser = $ToryHub->get_row_safe("SELECT * FROM `users` WHERE `role` = 'staff_vn' AND `token` = ?", [$_SESSION['staff_vn_login']]);
+if (isset($_SESSION['staffvn_login'])) {
+    $getUser = $ToryHub->get_row_safe("SELECT * FROM `users` WHERE `role` = 'staffvn' AND `token` = ?", [$_SESSION['staffvn_login']]);
     if ($getUser) {
-        redirect(base_url('staff_vn/home'));
+        redirect(base_url('staffvn/home'));
     }
 }
 ?>
@@ -83,10 +83,10 @@ if (isset($_SESSION['staff_vn_login'])) {
                         <a href="<?= base_url('admin/login') ?>" class="btn btn-outline-light btn-sm">
                             <i class="ri-admin-line"></i> Login Admin
                         </a>
-                        <a href="<?= base_url('staff_vn/login') ?>" class="btn btn-light btn-sm active disabled">
+                        <a href="<?= base_url('staffvn/login') ?>" class="btn btn-light btn-sm active disabled">
                             <i class="ri-store-2-line"></i> Kho Việt Nam
                         </a>
-                        <a href="<?= base_url('staff_cn/login') ?>" class="btn btn-outline-light btn-sm">
+                        <a href="<?= base_url('staffcn/login') ?>" class="btn btn-outline-light btn-sm">
                             <i class="ri-building-4-line"></i> Kho Trung Quốc
                         </a>
                         <a href="<?= base_url('customer/login') ?>" class="btn btn-outline-light btn-sm">
@@ -115,7 +115,7 @@ if (isset($_SESSION['staff_vn_login'])) {
         $('#btn-login').prop('disabled', true);
 
         $.ajax({
-            url: '<?= base_url('ajaxs/staff_vn/login.php') ?>',
+            url: '<?= base_url('ajaxs/staffvn/login.php') ?>',
             type: 'POST',
             data: $(this).serialize(),
             dataType: 'json',
@@ -127,7 +127,7 @@ if (isset($_SESSION['staff_vn_login'])) {
                         showConfirmButton: false,
                         timer: 1500
                     }).then(function(){
-                        window.location.href = res.redirect || '<?= base_url('staff_vn/home') ?>';
+                        window.location.href = res.redirect || '<?= base_url('staffvn/home') ?>';
                     });
                 } else {
                     Swal.fire({

@@ -43,7 +43,7 @@ CREATE TABLE `users` (
     `fullname` VARCHAR(255) DEFAULT NULL,
     `phone` VARCHAR(20) DEFAULT NULL,
     `token` VARCHAR(255) DEFAULT NULL,
-    `role` ENUM('admin','staff_cn','staff_vn','customer') NOT NULL DEFAULT 'customer',
+    `role` ENUM('admin','staffcn','staffvn','customer') NOT NULL DEFAULT 'customer',
     `banned` TINYINT(1) NOT NULL DEFAULT 0,
     `active` TINYINT(1) NOT NULL DEFAULT 1,
     `language` VARCHAR(5) DEFAULT 'vi',

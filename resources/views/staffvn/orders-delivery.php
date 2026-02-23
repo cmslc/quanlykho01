@@ -1,5 +1,5 @@
 <?php
-require_once(__DIR__.'/../../../models/is_staff_vn.php');
+require_once(__DIR__.'/../../../models/is_staffvn.php');
 require_once(__DIR__.'/../../../libs/csrf.php');
 
 $page_title = __('Giao hàng');
@@ -160,7 +160,7 @@ $(document).ready(function(){
             preConfirm: () => {
                 var note = $('#delivery-note').val();
                 return $.ajax({
-                    url: '<?= base_url('ajaxs/staff_vn/orders-delivery.php') ?>',
+                    url: '<?= base_url('ajaxs/staffvn/orders-delivery.php') ?>',
                     type: 'POST',
                     data: {
                         order_id: orderId,

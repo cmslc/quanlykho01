@@ -4,10 +4,10 @@
         <div class="navbar-header">
             <div class="d-flex">
                 <div class="navbar-brand-box horizontal-logo">
-                    <a href="<?= base_url('staff_cn/home') ?>" class="logo logo-dark">
+                    <a href="<?= base_url('staffcn/home') ?>" class="logo logo-dark">
                         <span class="logo-lg"><b>Kho Trung Quốc</b></span>
                     </a>
-                    <a href="<?= base_url('staff_cn/home') ?>" class="logo logo-light">
+                    <a href="<?= base_url('staffcn/home') ?>" class="logo logo-light">
                         <span class="logo-lg"><b>Kho Trung Quốc</b></span>
                     </a>
                 </div>
@@ -49,7 +49,7 @@
                     <div class="dropdown-menu dropdown-menu-end">
                         <h6 class="dropdown-header"><?= __('Xin chào') ?>, <?= htmlspecialchars($getUser['fullname'] ?? $getUser['username']) ?>!</h6>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="<?= base_url('staff_cn/logout') ?>">
+                        <a class="dropdown-item" href="<?= base_url('staffcn/logout') ?>">
                             <i class="ri-logout-box-r-line text-muted fs-16 align-middle me-1"></i>
                             <span><?= __('Đăng xuất') ?></span>
                         </a>

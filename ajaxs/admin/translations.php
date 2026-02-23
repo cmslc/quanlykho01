@@ -128,8 +128,8 @@ if ($request === 'scan_keys') {
     $scanDirs = [
         $baseDir . '/resources/views/admin/*.php',
         $baseDir . '/resources/views/customer/*.php',
-        $baseDir . '/resources/views/staff_cn/*.php',
-        $baseDir . '/resources/views/staff_vn/*.php',
+        $baseDir . '/resources/views/staffcn/*.php',
+        $baseDir . '/resources/views/staffvn/*.php',
         $baseDir . '/resources/views/common/*.php',
     ];
 

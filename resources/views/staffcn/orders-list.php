@@ -1,5 +1,5 @@
 <?php
-require_once(__DIR__.'/../../../models/is_staff_cn.php');
+require_once(__DIR__.'/../../../models/is_staffcn.php');
 require_once(__DIR__.'/../../../libs/csrf.php');
 
 $page_title = __('Đơn hàng kho Trung Quốc');
@@ -36,7 +36,7 @@ require_once(__DIR__.'/sidebar.php');
                 <div class="page-title-box d-sm-flex align-items-center justify-content-between">
                     <h4 class="mb-sm-0"><?= __('Đơn hàng kho Trung Quốc') ?></h4>
                     <div class="page-title-right">
-                        <a href="<?= base_url('staff_cn/orders-scan') ?>" class="btn btn-primary">
+                        <a href="<?= base_url('staffcn/orders-scan') ?>" class="btn btn-primary">
                             <i class="ri-qr-scan-2-line"></i> <?= __('Quét mã nhập kho') ?>
                         </a>
                     </div>
@@ -49,8 +49,8 @@ require_once(__DIR__.'/sidebar.php');
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <form method="GET" action="<?= base_url('staff_cn/orders-list') ?>" class="row g-3 align-items-end">
-                            <input type="hidden" name="module" value="staff_cn">
+                        <form method="GET" action="<?= base_url('staffcn/orders-list') ?>" class="row g-3 align-items-end">
+                            <input type="hidden" name="module" value="staffcn">
                             <input type="hidden" name="action" value="orders-list">
                             <div class="col-md-3">
                                 <label class="form-label"><?= __('Trạng thái') ?></label>
@@ -63,7 +63,7 @@ require_once(__DIR__.'/sidebar.php');
                             </div>
                             <div class="col-md-2">
                                 <button type="submit" class="btn btn-primary"><?= __('Lọc') ?></button>
-                                <a href="<?= base_url('staff_cn/orders-list') ?>" class="btn btn-secondary"><?= __('Reset') ?></a>
+                                <a href="<?= base_url('staffcn/orders-list') ?>" class="btn btn-secondary"><?= __('Reset') ?></a>
                             </div>
                         </form>
                     </div>
@@ -82,7 +82,7 @@ require_once(__DIR__.'/sidebar.php');
             ?>
             <?php foreach ($cnStatuses as $s): ?>
             <div class="col-md-4">
-                <a href="<?= base_url('staff_cn/orders-list&status=' . $s) ?>" class="text-decoration-none">
+                <a href="<?= base_url('staffcn/orders-list&status=' . $s) ?>" class="text-decoration-none">
                     <div class="card card-animate <?= $filterStatus == $s ? 'border border-primary' : '' ?>">
                         <div class="card-body py-3 text-center">
                             <h4 class="mb-1"><?= $statusCounts[$s] ?></h4>

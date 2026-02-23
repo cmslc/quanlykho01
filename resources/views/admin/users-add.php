@@ -71,8 +71,8 @@ require_once(__DIR__.'/sidebar.php');
                                         <label><?= __('Vai trò') ?> <span class="text-danger">*</span></label>
                                         <select class="form-select" name="role" required>
                                             <option value="admin">Admin</option>
-                                            <option value="staff_cn"><?= __('Nhân viên Kho Trung Quốc') ?></option>
-                                            <option value="staff_vn"><?= __('Nhân viên Kho Việt Nam') ?></option>
+                                            <option value="staffcn"><?= __('Nhân viên Kho Trung Quốc') ?></option>
+                                            <option value="staffvn"><?= __('Nhân viên Kho Việt Nam') ?></option>
                                             <option value="customer"><?= __('Khách hàng') ?></option>
                                         </select>
                                     </div>

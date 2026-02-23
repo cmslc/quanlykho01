@@ -15,9 +15,9 @@ $where = "s.month = ? AND s.year = ?";
 $params = [intval($filterMonth), intval($filterYear)];
 
 if ($filterWarehouse === 'cn') {
-    $where .= " AND u.role = 'staff_cn'";
+    $where .= " AND u.role = 'staffcn'";
 } elseif ($filterWarehouse === 'vn') {
-    $where .= " AND u.role = 'staff_vn'";
+    $where .= " AND u.role = 'staffvn'";
 }
 if ($filterStatus) {
     $where .= " AND s.status = ?";
@@ -47,7 +47,7 @@ foreach ($salaries as $s) {
 
 // Staff list for filter
 $staffList = $ToryHub->get_list_safe(
-    "SELECT id, fullname, username, role FROM `users` WHERE `role` IN ('staff_cn','staff_vn') AND `active` = 1 ORDER BY `fullname` ASC",
+    "SELECT id, fullname, username, role FROM `users` WHERE `role` IN ('staffcn','staffvn') AND `active` = 1 ORDER BY `fullname` ASC",
     []
 );
 
@@ -177,7 +177,7 @@ require_once(__DIR__.'/sidebar.php');
                                 <select class="form-select" name="user_id">
                                     <option value=""><?= __('Tất cả') ?></option>
                                     <?php foreach ($staffList as $st): ?>
-                                    <option value="<?= $st['id'] ?>" <?= $filterStaff == $st['id'] ? 'selected' : '' ?>><?= htmlspecialchars($st['fullname'] ?: $st['username']) ?> (<?= $st['role'] === 'staff_cn' ? 'TQ' : 'VN' ?>)</option>
+                                    <option value="<?= $st['id'] ?>" <?= $filterStaff == $st['id'] ? 'selected' : '' ?>><?= htmlspecialchars($st['fullname'] ?: $st['username']) ?> (<?= $st['role'] === 'staffcn' ? 'TQ' : 'VN' ?>)</option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -228,7 +228,7 @@ require_once(__DIR__.'/sidebar.php');
                                     $statusBadge = ['draft' => 'warning', 'confirmed' => 'info', 'paid' => 'success'];
                                     $statusLabel = ['draft' => __('Nháp'), 'confirmed' => __('Đã xác nhận'), 'paid' => __('Đã trả')];
                                     foreach ($salaries as $s):
-                                        $isCN = $s['role'] === 'staff_cn';
+                                        $isCN = $s['role'] === 'staffcn';
                                         $cur = $s['currency'];
                                         $formatFn = $cur === 'CNY' ? 'format_cny' : 'format_vnd';
                                     ?>
