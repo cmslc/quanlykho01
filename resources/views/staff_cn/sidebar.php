@@ -37,15 +37,20 @@ function _sanitize_menu_id($label) {
 <?php require_once(__DIR__.'/nav.php'); ?>
 
 <!-- ========== App Menu ========== -->
+<?php
+$_siteLogo = $ToryHub->site('site_logo');
+$_siteName = $ToryHub->site('site_brand_name') ?: 'ToryHub';
+$_siteInitials = mb_strtoupper(mb_substr($_siteName, 0, 2));
+?>
 <div class="app-menu navbar-menu">
     <div class="navbar-brand-box">
         <a href="<?= base_url('staff_cn/home') ?>" class="logo logo-dark">
-            <span class="logo-sm"><b>KTQ</b></span>
-            <span class="logo-lg"><b>Kho Trung Quốc</b> - ToryHub</span>
+            <span class="logo-sm"><?php if ($_siteLogo): ?><img src="<?= get_upload_url($_siteLogo) ?>" class="logo-img-sm"><?php else: ?><span class="logo-icon"><?= $_siteInitials ?></span><?php endif; ?></span>
+            <span class="logo-lg"><?php if ($_siteLogo): ?><img src="<?= get_upload_url($_siteLogo) ?>" class="logo-img me-2"><?php else: ?><span class="logo-icon me-2"><?= $_siteInitials ?></span><?php endif; ?><b><?= __('Kho Trung Quốc') ?></b></span>
         </a>
         <a href="<?= base_url('staff_cn/home') ?>" class="logo logo-light">
-            <span class="logo-sm"><b>KTQ</b></span>
-            <span class="logo-lg"><b>Kho Trung Quốc</b> - ToryHub</span>
+            <span class="logo-sm"><?php if ($_siteLogo): ?><img src="<?= get_upload_url($_siteLogo) ?>" class="logo-img-sm"><?php else: ?><span class="logo-icon"><?= $_siteInitials ?></span><?php endif; ?></span>
+            <span class="logo-lg"><?php if ($_siteLogo): ?><img src="<?= get_upload_url($_siteLogo) ?>" class="logo-img me-2"><?php else: ?><span class="logo-icon me-2"><?= $_siteInitials ?></span><?php endif; ?><b><?= __('Kho Trung Quốc') ?></b></span>
         </a>
         <button type="button" class="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover" id="vertical-hover">
             <i class="ri-record-circle-line"></i>

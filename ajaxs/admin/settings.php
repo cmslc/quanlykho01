@@ -117,4 +117,56 @@ if ($request === 'test_email') {
     exit;
 }
 
+// ======== UPLOAD LOGO ========
+if ($request === 'upload_logo') {
+    $brandName = trim(input_post('site_brand_name') ?? 'ToryHub');
+
+    // Save brand name
+    $existing = $ToryHub->get_row_safe("SELECT `id` FROM `settings` WHERE `name` = 'site_brand_name'", []);
+    if ($existing) {
+        $ToryHub->update_safe("settings", ['value' => $brandName], "id = ?", [$existing['id']]);
+    } else {
+        $ToryHub->insert_safe("settings", ['name' => 'site_brand_name', 'value' => $brandName]);
+    }
+
+    // Handle logo upload if file provided
+    if (!empty($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+        // Delete old logo
+        $oldLogo = $ToryHub->site('site_logo');
+        if ($oldLogo) {
+            delete_uploaded_file($oldLogo);
+        }
+
+        $result = upload_image($_FILES['logo'], 'logo');
+        if ($result['status'] === 'success') {
+            $existing = $ToryHub->get_row_safe("SELECT `id` FROM `settings` WHERE `name` = 'site_logo'", []);
+            if ($existing) {
+                $ToryHub->update_safe("settings", ['value' => $result['path']], "id = ?", [$existing['id']]);
+            } else {
+                $ToryHub->insert_safe("settings", ['name' => 'site_logo', 'value' => $result['path']]);
+            }
+        } else {
+            echo json_encode(['status' => 'error', 'msg' => $result['msg']]);
+            exit;
+        }
+    }
+
+    add_log('update_brand', 'Cập nhật thương hiệu');
+    echo json_encode(['status' => 'success', 'msg' => __('Cập nhật thành công')]);
+    exit;
+}
+
+// ======== DELETE LOGO ========
+if ($request === 'delete_logo') {
+    $oldLogo = $ToryHub->site('site_logo');
+    if ($oldLogo) {
+        delete_uploaded_file($oldLogo);
+        $ToryHub->update_safe("settings", ['value' => ''], "name = ?", ['site_logo']);
+    }
+
+    add_log('delete_logo', 'Xóa logo');
+    echo json_encode(['status' => 'success', 'msg' => __('Đã xóa logo')]);
+    exit;
+}
+
 echo json_encode(['status' => 'error', 'msg' => 'Invalid request']);

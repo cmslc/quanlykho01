@@ -38,6 +38,10 @@ $csrf = new Csrf();
         .bg-orange { background-color: #fd7e14 !important; }
         .stat-card { transition: transform 0.2s; }
         .stat-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .logo-icon { display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:linear-gradient(135deg,#405189,#0ab39c);color:#fff;font-weight:700;font-size:14px;border-radius:8px;letter-spacing:1px; }
+        .logo-sm .logo-icon { width:28px;height:28px;font-size:11px; }
+        .logo-img { width:36px;height:36px;object-fit:contain;border-radius:8px; }
+        .logo-img-sm { width:28px;height:28px;object-fit:contain;border-radius:6px; }
     </style>
     <?= $body['header'] ?? '' ?>
 </head>
