@@ -88,25 +88,6 @@ require_once(__DIR__.'/sidebar.php');
             </div>
         </div>
 
-        <!-- Status Summary -->
-        <div class="row">
-            <?php foreach ($statuses as $s):
-                $cnt = $ToryHub->num_rows_safe("SELECT id FROM `shipments` WHERE `status` = ?", [$s]);
-                $cfg = $statusLabels[$s];
-            ?>
-            <div class="col">
-                <a href="<?= base_url('admin/shipments-list&status=' . $s) ?>" class="text-decoration-none">
-                    <div class="card card-animate <?= $filterStatus == $s ? 'border border-primary' : '' ?>">
-                        <div class="card-body py-2 text-center">
-                            <h5 class="mb-0"><?= $cnt ?></h5>
-                            <small class="text-muted"><?= __($cfg['label']) ?></small>
-                        </div>
-                    </div>
-                </a>
-            </div>
-            <?php endforeach; ?>
-        </div>
-
         <!-- Shipments Table -->
         <div class="row">
             <div class="col-lg-12">

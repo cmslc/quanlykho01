@@ -139,40 +139,6 @@ require_once(__DIR__.'/sidebar.php');
             </div>
         </div>
 
-        <!-- Status Summary -->
-        <div class="row">
-            <div class="col-md-3">
-                <a href="<?= base_url('admin/shipments-pending') ?>" class="text-decoration-none">
-                    <div class="card card-animate <?= !$filterType ? 'border border-primary' : '' ?>">
-                        <div class="card-body py-2 text-center">
-                            <h5 class="mb-0"><?= $totalPendingPkgs ?></h5>
-                            <small class="text-muted"><?= __('Tổng kiện chờ') ?></small>
-                        </div>
-                    </div>
-                </a>
-            </div>
-            <div class="col-md-3">
-                <a href="<?= base_url('admin/shipments-pending&type=wholesale') ?>" class="text-decoration-none">
-                    <div class="card card-animate <?= $filterType == 'wholesale' ? 'border border-primary' : '' ?>">
-                        <div class="card-body py-2 text-center">
-                            <h5 class="mb-0"><?= $cntCnWarehouse ?></h5>
-                            <small class="text-muted"><?= __('Hàng lô (kho TQ)') ?></small>
-                        </div>
-                    </div>
-                </a>
-            </div>
-            <div class="col-md-3">
-                <a href="<?= base_url('admin/shipments-pending&type=retail') ?>" class="text-decoration-none">
-                    <div class="card card-animate <?= $filterType == 'retail' ? 'border border-primary' : '' ?>">
-                        <div class="card-body py-2 text-center">
-                            <h5 class="mb-0"><?= $cntPacked ?></h5>
-                            <small class="text-muted"><?= __('Hàng lẻ (đã đóng bao)') ?></small>
-                        </div>
-                    </div>
-                </a>
-            </div>
-        </div>
-
         <!-- Filters -->
         <div class="row">
             <div class="col-12">
@@ -273,7 +239,10 @@ require_once(__DIR__.'/sidebar.php');
                                     <tr>
                                         <td class="align-middle"><input type="checkbox" class="form-check-input row-check" data-type="bag" data-bag-id="<?= $bag['bag_id'] ?>" data-pkg-ids="<?= implode(',', $pkgIds) ?>" data-weight="<?= $weight ?>" data-cbm="<?= $cbm ?>" data-cargo="easy" data-pkg-count="<?= $pkgCount ?>"></td>
                                         <td class="align-middle">
-                                            <strong><?= htmlspecialchars($bag['bag_code']) ?></strong>
+                                            <a href="<?= base_url('admin/bags-packing&id=' . $bag['bag_id']) ?>"><strong><?= htmlspecialchars($bag['bag_code']) ?></strong></a>
+                                            <?php if ($pkgCount > 0): ?>
+                                            <div class="mt-1"><span class="text-muted"><i class="ri-archive-line"></i> <?= $pkgCount ?> <?= __('kiện') ?></span></div>
+                                            <?php endif; ?>
                                         </td>
                                         <td class="align-middle text-center">
                                             <?php if (!empty($bag['bag_images'])):

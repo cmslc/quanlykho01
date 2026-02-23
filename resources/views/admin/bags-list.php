@@ -87,25 +87,6 @@ require_once(__DIR__.'/sidebar.php');
             </div>
         </div>
 
-        <!-- Status Summary -->
-        <div class="row">
-            <?php foreach ($bagStatuses as $s):
-                $cnt = $ToryHub->num_rows_safe("SELECT id FROM `bags` WHERE `status` = ?", [$s]) ?: 0;
-                $sl = $bagStatusLabels[$s];
-            ?>
-            <div class="col">
-                <a href="<?= base_url('admin/bags-list&status=' . $s) ?>" class="text-decoration-none">
-                    <div class="card card-animate <?= $filterStatus == $s ? 'border border-primary' : '' ?>">
-                        <div class="card-body py-2 text-center">
-                            <h5 class="mb-0"><?= $cnt ?></h5>
-                            <small class="text-muted"><span class="badge bg-<?= $sl['bg'] ?> text-<?= $sl['text'] ?>"><i class="<?= $sl['icon'] ?> me-1"></i><?= __($sl['label']) ?></span></small>
-                        </div>
-                    </div>
-                </a>
-            </div>
-            <?php endforeach; ?>
-        </div>
-
         <!-- Bags Table -->
         <div class="row">
             <div class="col-lg-12">
