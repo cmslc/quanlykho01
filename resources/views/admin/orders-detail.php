@@ -270,12 +270,12 @@ require_once(__DIR__.'/sidebar.php');
 
                         <?php if (!empty($order['product_image'])): ?>
                         <div class="mt-3 d-flex flex-wrap gap-2">
-                            <?php foreach (explode(',', $order['product_image']) as $img): ?>
+                            <?php $imgIndex = 0; foreach (explode(',', $order['product_image']) as $img): ?>
                             <?php if (trim($img)): ?>
-                            <a href="<?= get_upload_url(trim($img)) ?>" target="_blank">
-                                <img src="<?= get_upload_url(trim($img)) ?>" alt="Product" class="img-thumbnail" style="max-height: 150px;">
+                            <a href="javascript:void(0)" onclick="openImagePopup(<?= $imgIndex ?>)" class="img-lightbox">
+                                <img src="<?= get_upload_url(trim($img)) ?>" alt="Product" class="img-thumbnail" style="max-height: 150px; cursor:pointer;">
                             </a>
-                            <?php endif; ?>
+                            <?php $imgIndex++; endif; ?>
                             <?php endforeach; ?>
                         </div>
                         <?php endif; ?>
@@ -331,6 +331,21 @@ require_once(__DIR__.'/sidebar.php');
 
 <?php require_once(__DIR__.'/footer.php'); ?>
 
+<!-- Image Lightbox Modal -->
+<div class="modal fade" id="modalImagePopup" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-transparent border-0 shadow-none">
+            <div class="modal-body p-0 text-center position-relative">
+                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" style="z-index:10;filter:invert(1);"></button>
+                <button type="button" class="btn btn-light rounded-circle position-absolute start-0 top-50 translate-middle-y ms-2" id="imgPrev" style="z-index:10;width:40px;height:40px;"><i class="ri-arrow-left-s-line"></i></button>
+                <button type="button" class="btn btn-light rounded-circle position-absolute end-0 top-50 translate-middle-y me-2" id="imgNext" style="z-index:10;width:40px;height:40px;"><i class="ri-arrow-right-s-line"></i></button>
+                <img id="imgPopupSrc" src="" class="img-fluid rounded" style="max-height:80vh;">
+                <div class="text-white mt-2"><span id="imgPopupCounter"></span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 $(document).ready(function(){
     if($('#tbl-packages tbody tr').length > 0){
@@ -341,6 +356,30 @@ $(document).ready(function(){
             language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json' }
         });
     }
+});
+
+var popupImages = [];
+var popupIndex = 0;
+$('.img-lightbox img').each(function(){ popupImages.push($(this).attr('src')); });
+
+function openImagePopup(idx){
+    popupIndex = idx;
+    showPopupImage();
+    new bootstrap.Modal(document.getElementById('modalImagePopup')).show();
+}
+function showPopupImage(){
+    $('#imgPopupSrc').attr('src', popupImages[popupIndex]);
+    $('#imgPopupCounter').text((popupIndex+1) + ' / ' + popupImages.length);
+    $('#imgPrev').toggle(popupIndex > 0);
+    $('#imgNext').toggle(popupIndex < popupImages.length - 1);
+}
+$('#imgPrev').on('click', function(){ if(popupIndex > 0){ popupIndex--; showPopupImage(); } });
+$('#imgNext').on('click', function(){ if(popupIndex < popupImages.length-1){ popupIndex++; showPopupImage(); } });
+$(document).on('keydown', function(e){
+    if(!$('#modalImagePopup').hasClass('show')) return;
+    if(e.key==='ArrowLeft' && popupIndex>0){ popupIndex--; showPopupImage(); }
+    if(e.key==='ArrowRight' && popupIndex<popupImages.length-1){ popupIndex++; showPopupImage(); }
+    if(e.key==='Escape') bootstrap.Modal.getInstance(document.getElementById('modalImagePopup'))?.hide();
 });
 </script>
 
