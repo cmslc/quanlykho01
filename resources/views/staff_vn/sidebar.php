@@ -13,7 +13,7 @@ $sidebarMenu = [
         'active' => ['home'],
     ],
     [
-        'label' => __('Đơn hàng tại kho Việt Nam'),
+        'label' => __('Kho hàng Việt Nam'),
         'icon'  => 'ri-inbox-archive-line',
         'url'   => base_url('staff_vn/orders-list'),
         'active' => ['orders-list'],
