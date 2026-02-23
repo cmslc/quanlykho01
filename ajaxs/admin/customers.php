@@ -40,6 +40,13 @@ if ($request === 'add') {
         exit;
     }
 
+    // Check duplicate fullname
+    $existsName = $ToryHub->get_row_safe("SELECT `id` FROM `customers` WHERE `fullname` = ?", [$fullname]);
+    if ($existsName) {
+        echo json_encode(['status' => 'error', 'msg' => __('Tên khách hàng đã tồn tại')]);
+        exit;
+    }
+
     // Check duplicate phone
     $exists = $ToryHub->get_row_safe("SELECT `id` FROM `customers` WHERE `phone` = ?", [$phone]);
     if ($exists) {
@@ -107,6 +114,13 @@ if ($request === 'edit') {
 
     if (empty($fullname)) {
         echo json_encode(['status' => 'error', 'msg' => __('Vui lòng nhập họ tên')]);
+        exit;
+    }
+
+    // Check duplicate fullname (exclude current)
+    $existsName = $ToryHub->get_row_safe("SELECT `id` FROM `customers` WHERE `fullname` = ? AND `id` != ?", [$fullname, $id]);
+    if ($existsName) {
+        echo json_encode(['status' => 'error', 'msg' => __('Tên khách hàng đã tồn tại')]);
         exit;
     }
 
