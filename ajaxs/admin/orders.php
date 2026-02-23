@@ -216,6 +216,7 @@ if ($request === 'add') {
 
     // Create packages from form
     $packages = isset($_POST['packages']) ? $_POST['packages'] : [];
+    $createdPackages = 0;
     if (!empty($packages)) {
         $Packages = new Packages();
         $volume_divisor = floatval($ToryHub->site('volume_divisor') ?: 6000);
@@ -244,9 +245,15 @@ if ($request === 'add') {
                 'created_by'      => $getUser['id'],
             ];
             for ($i = 0; $i < $pkg_qty; $i++) {
-                $Packages->createPackage($pkgData, [$newId]);
+                $result = $Packages->createPackage($pkgData, [$newId]);
+                if ($result) $createdPackages++;
             }
         }
+    }
+
+    // Update order total_packages
+    if ($createdPackages > 0) {
+        $ToryHub->update_safe("orders", ['total_packages' => $createdPackages], "id = ?", [$newId]);
     }
 
     // Telegram notification
@@ -274,7 +281,11 @@ if ($request === 'add') {
         }
     }
 
-    echo json_encode(['status' => 'success', 'msg' => __('Tạo đơn hàng thành công'), 'order_id' => $newId, 'order_code' => $orderCode]);
+    $msg = __('Tạo đơn hàng thành công');
+    if ($createdPackages > 0) {
+        $msg .= ' (' . $createdPackages . ' ' . __('kiện') . ')';
+    }
+    echo json_encode(['status' => 'success', 'msg' => $msg, 'order_id' => $newId, 'order_code' => $orderCode]);
     exit;
 }
 

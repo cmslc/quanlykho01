@@ -32,15 +32,24 @@ class Packages extends DB
             $data['create_date'] = gettime();
             $data['update_date'] = gettime();
 
-            $this->insert_safe('packages', $data);
+            $insertResult = $this->insert_safe('packages', $data);
+            if (!$insertResult) {
+                throw new Exception('Failed to insert package: ' . mysqli_error($this->ketnoi));
+            }
             $package_id = $this->insert_id();
+            if (!$package_id) {
+                throw new Exception('Failed to get package insert_id');
+            }
 
             foreach ($order_ids as $order_id) {
-                $this->insert_safe('package_orders', [
+                $linkResult = $this->insert_safe('package_orders', [
                     'package_id'  => $package_id,
                     'order_id'    => intval($order_id),
                     'create_date' => gettime()
                 ]);
+                if (!$linkResult) {
+                    throw new Exception('Failed to link package to order: ' . mysqli_error($this->ketnoi));
+                }
             }
 
             $this->insert_safe('package_status_history', [
@@ -56,6 +65,7 @@ class Packages extends DB
             return $package_id;
         } catch (Exception $e) {
             $this->rollBack();
+            error_log('createPackage error: ' . $e->getMessage());
             return false;
         }
     }
