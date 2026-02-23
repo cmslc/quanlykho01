@@ -17,12 +17,12 @@ class Packages extends DB
     {
         $this->connect();
         $prefix = 'PKG' . date('Ymd');
-        $prefixLen = strlen($prefix);
-        $last = $this->get_row_safe(
-            "SELECT `package_code` FROM `packages` WHERE `package_code` LIKE ? ORDER BY `package_code` DESC LIMIT 1",
+        $prefixLen = strlen($prefix) + 1; // +1 for 1-based SUBSTRING
+        $row = $this->get_row_safe(
+            "SELECT MAX(CAST(SUBSTRING(`package_code`, $prefixLen) AS UNSIGNED)) as max_seq FROM `packages` WHERE `package_code` LIKE ?",
             [$prefix . '%']
         );
-        $seq = $last ? intval(substr($last['package_code'], $prefixLen)) + 1 : 1;
+        $seq = ($row && $row['max_seq']) ? intval($row['max_seq']) + 1 : 1;
         return $prefix . str_pad($seq, 3, '0', STR_PAD_LEFT);
     }
 
