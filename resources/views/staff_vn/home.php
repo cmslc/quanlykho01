@@ -8,7 +8,7 @@ $page_title = 'Dashboard';
 $vn_warehouse_orders = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'vn_warehouse'", []) ?: 0;
 $shipping_orders = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'shipping'", []) ?: 0;
 $delivered_orders = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'delivered'", []) ?: 0;
-$delivered_today = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'delivered' AND DATE(`delivery_date`) = CURDATE()", []) ?: 0;
+$delivered_today = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'delivered' AND DATE(`delivered_date`) = CURDATE()", []) ?: 0;
 
 // Recent orders at VN warehouse / shipping / delivered
 $recent_orders = $ToryHub->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code

@@ -51,7 +51,7 @@ $result = $Orders->updateStatus($order_id, 'delivered', $getUser['id'], $note);
 if ($result) {
     // Update delivery date
     $ToryHub->update_safe('orders', [
-        'delivery_date' => gettime()
+        'delivered_date' => gettime()
     ], "`id` = ?", [$order_id]);
 
     add_log($getUser['id'], 'DELIVERY', 'Giao hàng đơn ' . $order['order_code'] . ' - ' . ($note ?: 'Không có ghi chú'));
