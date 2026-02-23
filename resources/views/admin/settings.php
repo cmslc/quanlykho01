@@ -77,7 +77,7 @@ require_once(__DIR__.'/sidebar.php');
                                                 <?php if (!empty($settingsMap['site_logo'])): ?>
                                                     <img src="<?= get_upload_url($settingsMap['site_logo']) ?>" id="logo-preview" style="width:80px;height:80px;object-fit:contain;border-radius:8px;">
                                                 <?php else: ?>
-                                                    <span class="logo-icon" style="width:60px;height:60px;font-size:22px;" id="logo-preview-text">TH</span>
+                                                    <span class="logo-icon" style="width:60px;height:60px;font-size:22px;" id="logo-preview-text"><?= mb_strtoupper(mb_substr($settingsMap['site_brand_name'] ?? 'ToryHub', 0, 2)) ?></span>
                                                     <img src="" id="logo-preview" style="width:80px;height:80px;object-fit:contain;border-radius:8px;display:none;">
                                                 <?php endif; ?>
                                             </div>
@@ -311,6 +311,12 @@ require_once(__DIR__.'/sidebar.php');
 <?php require_once(__DIR__.'/footer.php'); ?>
 
 <script>
+// Update logo initials when brand name changes
+$('input[name="site_brand_name"]').on('input', function(){
+    var name = $(this).val() || 'ToryHub';
+    $('#logo-preview-text').text(name.substring(0, 2).toUpperCase());
+});
+
 // Logo preview
 $('#input-logo').on('change', function(){
     var file = this.files[0];
