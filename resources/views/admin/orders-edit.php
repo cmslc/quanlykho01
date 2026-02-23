@@ -140,7 +140,7 @@ require_once(__DIR__.'/sidebar.php');
                 <div class="card-body">
                     <?php if (!empty($packages)): ?>
                     <?php if (count($packages) > 3): ?>
-                    <div class="mb-2 text-end">
+                    <div class="mb-2">
                         <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-toggle-group">
                             <i class="ri-stack-line me-1"></i><?= __('Nhóm kiện giống nhau') ?>
                         </button>
