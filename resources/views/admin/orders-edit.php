@@ -160,7 +160,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <th><?= __('Kích thước') ?></th>
                                     <th><?= __('Số khối (m³)') ?></th>
                                     <th><?= __('Trạng thái') ?></th>
-                                    <th style="width:100px"><?= __('Thao tác') ?></th>
+                                    <th class="text-center"><?= __('Thao tác') ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -181,7 +181,7 @@ require_once(__DIR__.'/sidebar.php');
                                     </td>
                                     <td><?= $pkgVolume > 0 ? floatval(number_format($pkgVolume, 4, '.', '')) : '-' ?></td>
                                     <td><?= display_package_status($pkg['status'] ?? 'cn_warehouse') ?></td>
-                                    <td>
+                                    <td class="text-center">
                                         <button type="button" class="btn btn-sm btn-soft-primary btn-edit-pkg"
                                             data-id="<?= $pkg['id'] ?>"
                                             data-tracking="<?= htmlspecialchars($pkg['tracking_cn'] ?? '') ?>"
@@ -226,7 +226,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <th><?= __('Số khối (m³)') ?></th>
                                     <th><?= __('Trạng thái') ?></th>
                                     <th><?= __('Mã kiện') ?></th>
-                                    <th style="width:120px"><?= __('Thao tác') ?></th>
+                                    <th class="text-center"><?= __('Thao tác') ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -245,7 +245,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <td><?= $gVol > 0 ? floatval(number_format($gVol, 4, '.', '')) : '-' ?></td>
                                     <td><?= display_package_status($s['status'] ?? 'cn_warehouse') ?></td>
                                     <td><small class="text-muted"><?= implode(', ', array_slice($g['codes'], 0, 3)) ?><?= $g['count'] > 3 ? '...' : '' ?></small></td>
-                                    <td>
+                                    <td class="text-center">
                                         <button type="button" class="btn btn-sm btn-soft-primary btn-edit-pkg"
                                             data-id="<?= $s['id'] ?>"
                                             data-tracking="<?= htmlspecialchars($s['tracking_cn'] ?? '') ?>"
