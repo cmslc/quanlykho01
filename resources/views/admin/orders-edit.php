@@ -182,7 +182,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <td><?= $pkgVolume > 0 ? floatval(number_format($pkgVolume, 4, '.', '')) : '-' ?></td>
                                     <td><?= display_package_status($pkg['status'] ?? 'cn_warehouse') ?></td>
                                     <td>
-                                        <button type="button" class="btn btn-soft-primary btn-edit-pkg"
+                                        <button type="button" class="btn btn-sm btn-soft-primary btn-edit-pkg"
                                             data-id="<?= $pkg['id'] ?>"
                                             data-tracking="<?= htmlspecialchars($pkg['tracking_cn'] ?? '') ?>"
                                             data-weight="<?= $pkg['weight_actual'] ?>"
@@ -190,11 +190,11 @@ require_once(__DIR__.'/sidebar.php');
                                             data-width="<?= $pkg['width_cm'] ?>"
                                             data-height="<?= $pkg['height_cm'] ?>"
                                             data-note="<?= htmlspecialchars($pkg['note'] ?? '') ?>"
-                                            title="<?= __('Sửa') ?>"><i class="ri-pencil-line"></i></button>
-                                        <button type="button" class="btn btn-soft-danger btn-delete-pkg"
+                                            title="<?= __('Sửa') ?>"><i class="ri-pencil-line"></i> <?= __('Sửa') ?></button>
+                                        <button type="button" class="btn btn-sm btn-soft-danger btn-delete-pkg"
                                             data-id="<?= $pkg['id'] ?>"
                                             data-code="<?= htmlspecialchars($pkg['package_code'] ?? '') ?>"
-                                            title="<?= __('Xóa') ?>"><i class="ri-delete-bin-line"></i></button>
+                                            title="<?= __('Xóa') ?>"><i class="ri-delete-bin-line"></i> <?= __('Xóa') ?></button>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
@@ -246,7 +246,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <td><?= display_package_status($s['status'] ?? 'cn_warehouse') ?></td>
                                     <td><small class="text-muted"><?= implode(', ', array_slice($g['codes'], 0, 3)) ?><?= $g['count'] > 3 ? '...' : '' ?></small></td>
                                     <td>
-                                        <button type="button" class="btn btn-soft-primary btn-edit-pkg"
+                                        <button type="button" class="btn btn-sm btn-soft-primary btn-edit-pkg"
                                             data-id="<?= $s['id'] ?>"
                                             data-tracking="<?= htmlspecialchars($s['tracking_cn'] ?? '') ?>"
                                             data-weight="<?= $s['weight_actual'] ?>"
@@ -254,11 +254,11 @@ require_once(__DIR__.'/sidebar.php');
                                             data-width="<?= $s['width_cm'] ?>"
                                             data-height="<?= $s['height_cm'] ?>"
                                             data-note="<?= htmlspecialchars($s['note'] ?? '') ?>"
-                                            title="<?= __('Sửa 1 kiện') ?>"><i class="ri-pencil-line"></i></button>
-                                        <button type="button" class="btn btn-soft-danger btn-delete-group"
+                                            title="<?= __('Sửa') ?>"><i class="ri-pencil-line"></i> <?= __('Sửa') ?></button>
+                                        <button type="button" class="btn btn-sm btn-soft-danger btn-delete-group"
                                             data-ids="<?= implode(',', $g['ids']) ?>"
                                             data-count="<?= $g['count'] ?>"
-                                            title="<?= __('Xóa nhóm') ?>"><i class="ri-delete-bin-line"></i> <?= $g['count'] > 1 ? $g['count'] : '' ?></button>
+                                            title="<?= __('Xóa nhóm') ?>"><i class="ri-delete-bin-line"></i> <?= __('Xóa') ?> <?= $g['count'] > 1 ? '(' . $g['count'] . ')' : '' ?></button>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
