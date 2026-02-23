@@ -135,7 +135,7 @@ require_once(__DIR__.'/sidebar.php');
                         <span class="text-muted"><i class="ri-barcode-line me-1"></i><?= __('Mã hàng') ?>: <strong><?= htmlspecialchars($order['product_code']) ?></strong></span>
                         <?php endif; ?>
                     </div>
-                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddPackage"><i class="ri-add-line"></i> <?= __('Tạo kiện') ?></button>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddPackage"><i class="ri-add-line"></i> <?= __('Tạo kiện') ?></button>
                 </div>
                 <div class="card-body">
                     <?php if (!empty($packages)): ?>
@@ -173,7 +173,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <td><?= $pkgVolume > 0 ? floatval(number_format($pkgVolume, 4, '.', '')) : '-' ?></td>
                                     <td><?= display_package_status($pkg['status'] ?? 'cn_warehouse') ?></td>
                                     <td class="text-center">
-                                        <button type="button" class="btn btn-sm btn-soft-primary btn-edit-pkg"
+                                        <button type="button" class="btn btn-soft-primary btn-edit-pkg"
                                             data-id="<?= $pkg['id'] ?>"
                                             data-tracking="<?= htmlspecialchars($pkg['tracking_cn'] ?? '') ?>"
                                             data-weight="<?= $pkg['weight_actual'] ?>"
@@ -182,7 +182,7 @@ require_once(__DIR__.'/sidebar.php');
                                             data-height="<?= $pkg['height_cm'] ?>"
                                             data-note="<?= htmlspecialchars($pkg['note'] ?? '') ?>"
                                             title="<?= __('Sửa') ?>"><i class="ri-pencil-line"></i></button>
-                                        <button type="button" class="btn btn-sm btn-soft-danger btn-delete-pkg"
+                                        <button type="button" class="btn btn-soft-danger btn-delete-pkg"
                                             data-id="<?= $pkg['id'] ?>"
                                             data-code="<?= htmlspecialchars($pkg['package_code'] ?? '') ?>"
                                             title="<?= __('Xóa') ?>"><i class="ri-delete-bin-line"></i></button>
