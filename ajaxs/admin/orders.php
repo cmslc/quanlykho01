@@ -1,4 +1,5 @@
 <?php
+ob_start();
 define('IN_SITE', true);
 require_once(__DIR__.'/../../libs/db.php');
 require_once(__DIR__.'/../../config.php');
@@ -15,7 +16,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 $csrf = new Csrf();
 if (!$csrf->validate()) {
-    echo json_encode(['status' => 'error', 'msg' => 'Token không hợp lệ']);
+    ob_end_clean(); echo json_encode(['status' => 'error', 'msg' => 'Token không hợp lệ']);
     exit;
 }
 
@@ -38,11 +39,11 @@ if ($request === 'add') {
     // Hàng lô requires customer and product name
     if ($product_type === 'wholesale') {
         if (!$customer_id) {
-            echo json_encode(['status' => 'error', 'msg' => __('Vui lòng chọn khách hàng')]);
+            ob_end_clean(); echo json_encode(['status' => 'error', 'msg' => __('Vui lòng chọn khách hàng')]);
             exit;
         }
         if (empty($product_name)) {
-            echo json_encode(['status' => 'error', 'msg' => __('Vui lòng nhập tên sản phẩm')]);
+            ob_end_clean(); echo json_encode(['status' => 'error', 'msg' => __('Vui lòng nhập tên sản phẩm')]);
             exit;
         }
     }
@@ -55,7 +56,7 @@ if ($request === 'add') {
     if ($customer_id) {
         $customer = $ToryHub->get_row_safe("SELECT * FROM `customers` WHERE `id` = ?", [$customer_id]);
         if (!$customer) {
-            echo json_encode(['status' => 'error', 'msg' => __('Khách hàng không tồn tại')]);
+            ob_end_clean(); echo json_encode(['status' => 'error', 'msg' => __('Khách hàng không tồn tại')]);
             exit;
         }
     }
@@ -65,7 +66,7 @@ if ($request === 'add') {
     if ($product_code !== '') {
         $existOrder = $ToryHub->get_row_safe("SELECT `id` FROM `orders` WHERE `product_code` = ?", [$product_code]);
         if ($existOrder) {
-            echo json_encode(['status' => 'error', 'msg' => __('Mã hàng đã tồn tại') . ': ' . $product_code]);
+            ob_end_clean(); echo json_encode(['status' => 'error', 'msg' => __('Mã hàng đã tồn tại') . ': ' . $product_code]);
             exit;
         }
     }
@@ -78,7 +79,7 @@ if ($request === 'add') {
             if ($tracking !== '') {
                 $existPkg = $ToryHub->get_row_safe("SELECT `id` FROM `packages` WHERE `tracking_cn` = ?", [$tracking]);
                 if ($existPkg) {
-                    echo json_encode(['status' => 'error', 'msg' => __('Mã vận đơn đã tồn tại') . ': ' . $tracking]);
+                    ob_end_clean(); echo json_encode(['status' => 'error', 'msg' => __('Mã vận đơn đã tồn tại') . ': ' . $tracking]);
                     exit;
                 }
             }
@@ -138,7 +139,7 @@ if ($request === 'add') {
             ];
             $upload = upload_image($file, 'products');
             if ($upload['status'] === 'error') {
-                echo json_encode(['status' => 'error', 'msg' => $upload['msg']]);
+                ob_end_clean(); echo json_encode(['status' => 'error', 'msg' => $upload['msg']]);
                 exit;
             }
             $paths[] = $upload['path'];
@@ -189,7 +190,7 @@ if ($request === 'add') {
     ]);
 
     if (!$insertResult) {
-        echo json_encode(['status' => 'error', 'msg' => __('Lỗi tạo đơn hàng. Vui lòng kiểm tra cấu trúc database.')]);
+        ob_end_clean(); echo json_encode(['status' => 'error', 'msg' => __('Lỗi tạo đơn hàng. Vui lòng kiểm tra cấu trúc database.')]);
         exit;
     }
 
@@ -291,7 +292,7 @@ if ($request === 'add') {
     } elseif (!empty($packages) && $createdPackages === 0) {
         $msg .= ' - ' . __('Lỗi tạo kiện') . ': ' . ($pkgError ?? 'Unknown');
     }
-    echo json_encode(['status' => 'success', 'msg' => $msg, 'order_id' => $newId, 'order_code' => $orderCode]);
+    ob_end_clean(); echo json_encode(['status' => 'success', 'msg' => $msg, 'order_id' => $newId, 'order_code' => $orderCode]);
     exit;
 }
 
@@ -300,7 +301,7 @@ if ($request === 'edit') {
     $id = intval(input_post('id'));
     $order = $ToryHub->get_row_safe("SELECT * FROM `orders` WHERE `id` = ?", [$id]);
     if (!$order) {
-        echo json_encode(['status' => 'error', 'msg' => __('Đơn hàng không tồn tại')]);
+        ob_end_clean(); echo json_encode(['status' => 'error', 'msg' => __('Đơn hàng không tồn tại')]);
         exit;
     }
 
@@ -309,7 +310,7 @@ if ($request === 'edit') {
 
     // Wholesale requires customer
     if ($product_type === 'wholesale' && !$customer_id) {
-        echo json_encode(['status' => 'error', 'msg' => __('Vui lòng chọn khách hàng')]);
+        ob_end_clean(); echo json_encode(['status' => 'error', 'msg' => __('Vui lòng chọn khách hàng')]);
         exit;
     }
 
@@ -325,7 +326,7 @@ if ($request === 'edit') {
     if ($product_code !== '') {
         $existOrder = $ToryHub->get_row_safe("SELECT `id` FROM `orders` WHERE `product_code` = ? AND `id` != ?", [$product_code, $id]);
         if ($existOrder) {
-            echo json_encode(['status' => 'error', 'msg' => __('Mã hàng đã tồn tại') . ': ' . $product_code]);
+            ob_end_clean(); echo json_encode(['status' => 'error', 'msg' => __('Mã hàng đã tồn tại') . ': ' . $product_code]);
             exit;
         }
     }
@@ -347,7 +348,7 @@ if ($request === 'edit') {
             ];
             $upload = upload_image($file, 'products');
             if ($upload['status'] === 'error') {
-                echo json_encode(['status' => 'error', 'msg' => $upload['msg']]);
+                ob_end_clean(); echo json_encode(['status' => 'error', 'msg' => $upload['msg']]);
                 exit;
             }
             $newPaths[] = $upload['path'];
@@ -407,7 +408,7 @@ if ($request === 'edit') {
     ], "id = ?", [$id]);
 
     add_log('edit_order', 'Sửa đơn hàng #' . $id);
-    echo json_encode(['status' => 'success', 'msg' => __('Cập nhật thành công')]);
+    ob_end_clean(); echo json_encode(['status' => 'success', 'msg' => __('Cập nhật thành công')]);
     exit;
 }
 
@@ -416,7 +417,7 @@ if ($request === 'delete') {
     $id = intval(input_post('id'));
     $order = $ToryHub->get_row_safe("SELECT * FROM `orders` WHERE `id` = ?", [$id]);
     if (!$order) {
-        echo json_encode(['status' => 'error', 'msg' => __('Đơn hàng không tồn tại')]);
+        ob_end_clean(); echo json_encode(['status' => 'error', 'msg' => __('Đơn hàng không tồn tại')]);
         exit;
     }
 
@@ -454,8 +455,8 @@ if ($request === 'delete') {
     }
 
     add_log('delete_order', 'Xóa đơn hàng: ' . $order['order_code']);
-    echo json_encode(['status' => 'success', 'msg' => __('Xóa thành công')]);
+    ob_end_clean(); echo json_encode(['status' => 'success', 'msg' => __('Xóa thành công')]);
     exit;
 }
 
-echo json_encode(['status' => 'error', 'msg' => 'Invalid request']);
+ob_end_clean(); echo json_encode(['status' => 'error', 'msg' => 'Invalid request']);
