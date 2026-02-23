@@ -42,7 +42,7 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1 overflow-hidden">
-                                <p class="text-uppercase fw-medium text-muted text-truncate mb-0"><?= __('Tại kho Việt Nam') ?></p>
+                                <p class="text-uppercase fw-medium text-muted text-truncate mb-0"><?= __('Kho hàng Việt Nam') ?></p>
                             </div>
                         </div>
                         <div class="d-flex align-items-end justify-content-between mt-4">
@@ -193,7 +193,7 @@ require_once(__DIR__.'/sidebar.php');
                             <span class="badge bg-warning"><?= $shipping_orders ?></span>
                         </div>
                         <div class="d-flex justify-content-between mb-3">
-                            <span><?= __('Tại kho Việt Nam') ?></span>
+                            <span><?= __('Kho hàng Việt Nam') ?></span>
                             <span class="badge bg-success"><?= $vn_warehouse_orders ?></span>
                         </div>
                         <div class="d-flex justify-content-between mb-3">
