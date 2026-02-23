@@ -139,7 +139,16 @@ require_once(__DIR__.'/sidebar.php');
                 </div>
                 <div class="card-body">
                     <?php if (!empty($packages)): ?>
-                    <div class="table-responsive">
+                    <?php if (count($packages) > 3): ?>
+                    <div class="mb-2 text-end">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-toggle-group">
+                            <i class="ri-stack-line me-1"></i><?= __('Nhóm kiện giống nhau') ?>
+                        </button>
+                    </div>
+                    <?php endif; ?>
+
+                    <!-- Full view (default) -->
+                    <div class="table-responsive" id="pkg-view-full">
                         <table id="tbl-packages-edit" class="table table-bordered table-sm mb-0">
                             <thead class="table-light">
                                 <tr>
@@ -192,6 +201,71 @@ require_once(__DIR__.'/sidebar.php');
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Grouped view (hidden by default) -->
+                    <?php
+                    // Group packages by weight+dimensions+status
+                    $grouped = [];
+                    foreach ($packages as $pkg) {
+                        $key = floatval($pkg['weight_actual']) . '|' . floatval($pkg['length_cm']) . '|' . floatval($pkg['width_cm']) . '|' . floatval($pkg['height_cm']) . '|' . $pkg['status'];
+                        if (!isset($grouped[$key])) {
+                            $grouped[$key] = ['sample' => $pkg, 'count' => 0, 'ids' => [], 'codes' => []];
+                        }
+                        $grouped[$key]['count']++;
+                        $grouped[$key]['ids'][] = $pkg['id'];
+                        $grouped[$key]['codes'][] = $pkg['package_code'];
+                    }
+                    ?>
+                    <div class="table-responsive" id="pkg-view-grouped" style="display:none;">
+                        <table class="table table-bordered table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th><?= __('Số lượng') ?></th>
+                                    <th><?= __('Cân nặng') ?></th>
+                                    <th><?= __('Kích thước') ?></th>
+                                    <th><?= __('Số khối (m³)') ?></th>
+                                    <th><?= __('Trạng thái') ?></th>
+                                    <th><?= __('Mã kiện') ?></th>
+                                    <th class="text-center" style="width:120px"><?= __('Thao tác') ?></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($grouped as $g):
+                                    $s = $g['sample'];
+                                    $gVol = ($s['length_cm'] * $s['width_cm'] * $s['height_cm']) / 1000000;
+                                ?>
+                                <tr>
+                                    <td><strong class="fs-5"><?= $g['count'] ?></strong> <?= __('kiện') ?></td>
+                                    <td><?= $s['weight_actual'] ? $s['weight_actual'] . ' kg' : '-' ?></td>
+                                    <td>
+                                        <?php if ($s['length_cm'] > 0 || $s['width_cm'] > 0 || $s['height_cm'] > 0): ?>
+                                        <?= $s['length_cm'] ?>x<?= $s['width_cm'] ?>x<?= $s['height_cm'] ?> cm
+                                        <?php else: ?>-<?php endif; ?>
+                                    </td>
+                                    <td><?= $gVol > 0 ? floatval(number_format($gVol, 4, '.', '')) : '-' ?></td>
+                                    <td><?= display_package_status($s['status'] ?? 'cn_warehouse') ?></td>
+                                    <td><small class="text-muted"><?= implode(', ', array_slice($g['codes'], 0, 3)) ?><?= $g['count'] > 3 ? '...' : '' ?></small></td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-soft-primary btn-edit-pkg"
+                                            data-id="<?= $s['id'] ?>"
+                                            data-tracking="<?= htmlspecialchars($s['tracking_cn'] ?? '') ?>"
+                                            data-weight="<?= $s['weight_actual'] ?>"
+                                            data-length="<?= $s['length_cm'] ?>"
+                                            data-width="<?= $s['width_cm'] ?>"
+                                            data-height="<?= $s['height_cm'] ?>"
+                                            data-note="<?= htmlspecialchars($s['note'] ?? '') ?>"
+                                            title="<?= __('Sửa 1 kiện') ?>"><i class="ri-pencil-line"></i></button>
+                                        <button type="button" class="btn btn-soft-danger btn-delete-group"
+                                            data-ids="<?= implode(',', $g['ids']) ?>"
+                                            data-count="<?= $g['count'] ?>"
+                                            title="<?= __('Xóa nhóm') ?>"><i class="ri-delete-bin-line"></i> <?= $g['count'] > 1 ? $g['count'] : '' ?></button>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+
                     <?php else: ?>
                     <p class="text-muted mb-0"><?= __('Chưa có kiện hàng liên kết.') ?></p>
                     <?php endif; ?>
@@ -345,6 +419,50 @@ require_once(__DIR__.'/sidebar.php');
 <?php require_once(__DIR__.'/footer.php'); ?>
 
 <script>
+// Toggle grouped/full view
+var isGrouped = false;
+$('#btn-toggle-group').on('click', function(){
+    isGrouped = !isGrouped;
+    if(isGrouped){
+        $('#pkg-view-full').hide();
+        $('#pkg-view-grouped').show();
+        $(this).html('<i class="ri-list-unordered me-1"></i><?= __('Hiện chi tiết từng kiện') ?>').removeClass('btn-outline-secondary').addClass('btn-outline-primary');
+    } else {
+        $('#pkg-view-grouped').hide();
+        $('#pkg-view-full').show();
+        $(this).html('<i class="ri-stack-line me-1"></i><?= __('Nhóm kiện giống nhau') ?>').removeClass('btn-outline-primary').addClass('btn-outline-secondary');
+    }
+});
+
+// Delete group of packages
+$(document).on('click', '.btn-delete-group', function(){
+    var ids = $(this).data('ids').toString().split(',');
+    var count = $(this).data('count');
+    Swal.fire({
+        title: '<?= __('Xóa') ?> ' + count + ' <?= __('kiện hàng') ?>?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        confirmButtonText: '<?= __('Xóa tất cả') ?> ' + count + ' <?= __('kiện') ?>',
+        cancelButtonText: '<?= __('Hủy') ?>'
+    }).then(function(result){
+        if(result.isConfirmed){
+            var deleted = 0, total = ids.length;
+            Swal.fire({title: '<?= __('Đang xóa...') ?>', text: '0/' + total, allowOutsideClick: false, didOpen: function(){ Swal.showLoading(); }});
+            function deleteNext(i){
+                if(i >= total){
+                    Swal.fire({icon: 'success', title: '<?= __('Đã xóa') ?> ' + deleted + ' <?= __('kiện') ?>', timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
+                    return;
+                }
+                $.post('<?= base_url('ajaxs/admin/packages.php') ?>', {
+                    request_name: 'delete', id: ids[i], csrf_token: '<?= $csrf->get_token_value() ?>'
+                }, function(){ deleted++; Swal.update({text: deleted + '/' + total}); deleteNext(i+1); }, 'json').fail(function(){ deleteNext(i+1); });
+            }
+            deleteNext(0);
+        }
+    });
+});
+
 // DataTables pagination for packages
 $(document).ready(function(){
     if($('#tbl-packages-edit tbody tr').length > 0){
