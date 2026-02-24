@@ -21,7 +21,7 @@ if ($filterStatus) {
 
 $orders = $ToryHub->get_list_safe("SELECT * FROM `orders` WHERE $where ORDER BY `create_date` DESC", $params);
 
-$statuses = ['cn_warehouse', 'packed', 'shipping', 'vn_warehouse', 'delivered', 'cancelled'];
+$statuses = ['cn_warehouse', 'packed', 'loading', 'shipping', 'vn_warehouse', 'delivered', 'cancelled'];
 
 // Status counts for this customer
 $statusCounts = [];

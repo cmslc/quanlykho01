@@ -54,7 +54,6 @@ if ($filterType !== 'wholesale' && $filterCargo !== 'difficult') {
             SUM(COALESCE(p.weight_charged, 0)) as pkg_weight_charged,
             SUM(COALESCE(p.weight_actual, 0)) as pkg_weight_actual,
             SUM(COALESCE(p.length_cm,0) * COALESCE(p.width_cm,0) * COALESCE(p.height_cm,0) / 1000000) as pkg_cbm,
-            b.shipping_method,
             COALESCE(b.domestic_cost, 0) as domestic_cost,
             b.custom_rate_kg, b.custom_rate_cbm,
             b.create_date
@@ -117,7 +116,7 @@ if ($filterType !== 'retail') {
     }
 
     $wholesaleOrders = $ToryHub->get_list_safe(
-        "SELECT o.id, o.product_code, o.cargo_type, o.shipping_method, o.product_image, o.customer_id,
+        "SELECT o.id, o.product_code, o.cargo_type, o.product_image, o.customer_id,
             c.fullname as customer_name, c.customer_code,
             COUNT(p.id) as pkg_count,
             SUM(COALESCE(p.weight_charged, 0)) as total_weight_charged,
@@ -179,19 +178,10 @@ $shippingRates = [
         'easy'      => ['per_kg' => floatval($ToryHub->site('shipping_road_easy_per_kg') ?: 25000), 'per_cbm' => floatval($ToryHub->site('shipping_road_easy_per_cbm') ?: 6000000)],
         'difficult' => ['per_kg' => floatval($ToryHub->site('shipping_road_difficult_per_kg') ?: 35000), 'per_cbm' => floatval($ToryHub->site('shipping_road_difficult_per_cbm') ?: 8000000)],
     ],
-    'sea' => [
-        'easy'      => ['per_kg' => floatval($ToryHub->site('shipping_rate_sea') ?: 15000), 'per_cbm' => 3500000],
-        'difficult' => ['per_kg' => 20000, 'per_cbm' => 5000000],
-    ],
-    'air' => [
-        'easy'      => ['per_kg' => floatval($ToryHub->site('shipping_rate_air') ?: 120000), 'per_cbm' => 25000000],
-        'difficult' => ['per_kg' => 150000, 'per_cbm' => 30000000],
-    ],
 ];
 function calcShippingCost($weight, $cbm, $method, $cargoType, $rates) {
-    $method = $method ?: 'road';
     $cargoType = $cargoType ?: 'easy';
-    $r = $rates[$method][$cargoType] ?? $rates['road']['easy'];
+    $r = $rates['road'][$cargoType] ?? $rates['road']['easy'];
     $byKg = $weight * $r['per_kg'];
     $byCbm = $cbm * $r['per_cbm'];
     return ['by_kg' => $byKg, 'by_cbm' => $byCbm, 'max' => max($byKg, $byCbm)];
@@ -203,22 +193,20 @@ foreach ($sealedBags as $bag) {
     $bagW = floatval($bag['bag_weight'] ?? 0); $pkgWC = floatval($bag['pkg_weight_charged'] ?? 0); $pkgWA = floatval($bag['pkg_weight_actual'] ?? 0);
     $w = $bagW > 0 ? $bagW : ($pkgWC > 0 ? $pkgWC : $pkgWA);
     $bc = floatval($bag['bag_cbm'] ?? 0); $pc = floatval($bag['pkg_cbm'] ?? 0); $c = $bc > 0 ? $bc : $pc;
-    $method = $bag['shipping_method'] ?? 'road';
-    $rate = $shippingRates[$method]['easy'] ?? $shippingRates['road']['easy'];
+    $rate = $shippingRates['road']['easy'] ?? $shippingRates['road']['easy'];
     $rkg = $bag['custom_rate_kg'] !== null ? floatval($bag['custom_rate_kg']) : $rate['per_kg'];
     $rcbm = $bag['custom_rate_cbm'] !== null ? floatval($bag['custom_rate_cbm']) : $rate['per_cbm'];
     $cost = ['by_kg' => $w * $rkg, 'by_cbm' => $c * $rcbm, 'max' => max($w * $rkg, $c * $rcbm)];
-    $allRows[] = ['type' => 'bag', 'data' => $bag, 'weight' => $w, 'cbm' => $c, 'cost' => $cost, 'pkg_count' => intval($bag['pkg_count'] ?? 0), 'cargo' => 'easy', 'rate_kg' => $rkg, 'rate_cbm' => $rcbm, 'method' => $method, 'domestic_cost' => floatval($bag['domestic_cost'] ?? 0)];
+    $allRows[] = ['type' => 'bag', 'data' => $bag, 'weight' => $w, 'cbm' => $c, 'cost' => $cost, 'pkg_count' => intval($bag['pkg_count'] ?? 0), 'cargo' => 'easy', 'rate_kg' => $rkg, 'rate_cbm' => $rcbm, 'domestic_cost' => floatval($bag['domestic_cost'] ?? 0)];
 }
 foreach ($wholesaleOrders as $order) {
     $wC = $order['total_weight_charged'] ?? 0; $wA = $order['total_weight_actual'] ?? 0; $w = $wC > 0 ? $wC : $wA;
     $c = $order['total_cbm'] ?? 0; $cargo = $order['cargo_type'] ?? 'easy';
-    $method = $order['shipping_method'] ?? 'road';
-    $rate = $shippingRates[$method][$cargo] ?? $shippingRates['road']['easy'];
+    $rate = $shippingRates['road'][$cargo] ?? $shippingRates['road']['easy'];
     $rkg = $order['custom_rate_kg'] !== null ? floatval($order['custom_rate_kg']) : $rate['per_kg'];
     $rcbm = $order['custom_rate_cbm'] !== null ? floatval($order['custom_rate_cbm']) : $rate['per_cbm'];
     $cost = ['by_kg' => floatval($w) * $rkg, 'by_cbm' => floatval($c) * $rcbm, 'max' => max(floatval($w) * $rkg, floatval($c) * $rcbm)];
-    $allRows[] = ['type' => 'order', 'data' => $order, 'weight' => floatval($w), 'cbm' => floatval($c), 'cost' => $cost, 'pkg_count' => intval($order['pkg_count'] ?? 0), 'cargo' => $cargo, 'rate_kg' => $rkg, 'rate_cbm' => $rcbm, 'method' => $method, 'domestic_cost' => floatval($order['domestic_cost'] ?? 0)];
+    $allRows[] = ['type' => 'order', 'data' => $order, 'weight' => floatval($w), 'cbm' => floatval($c), 'cost' => $cost, 'pkg_count' => intval($order['pkg_count'] ?? 0), 'cargo' => $cargo, 'rate_kg' => $rkg, 'rate_cbm' => $rcbm, 'domestic_cost' => floatval($order['domestic_cost'] ?? 0)];
 }
 
 // Sort
@@ -487,11 +475,10 @@ require_once(__DIR__.'/sidebar.php');
                                     </tr>
                                     <?php else:
                                         $order = $row['data'];
-                                        $orderShipMethod = $order['shipping_method'] ?? 'road';
                                         $orderCargoType = $order['cargo_type'] ?? 'easy';
                                     ?>
                                     <tr class="<?= $warnClass ?>">
-                                        <td class="align-middle"><input type="checkbox" class="form-check-input row-check" data-type="order" data-order-id="<?= $order['id'] ?>" data-weight="<?= $weight ?>" data-cbm="<?= $cbm ?>" data-cargo="<?= htmlspecialchars($orderCargoType) ?>" data-ship-method="<?= htmlspecialchars($orderShipMethod) ?>" data-pkg-count="<?= $pkgCount ?>" data-shipping-cost="<?= $shipCost['max'] ?>"></td>
+                                        <td class="align-middle"><input type="checkbox" class="form-check-input row-check" data-type="order" data-order-id="<?= $order['id'] ?>" data-weight="<?= $weight ?>" data-cbm="<?= $cbm ?>" data-cargo="<?= htmlspecialchars($orderCargoType) ?>" data-pkg-count="<?= $pkgCount ?>" data-shipping-cost="<?= $shipCost['max'] ?>"></td>
                                         <td class="align-middle">
                                             <?php if ($order['product_code'] ?? ''): ?>
                                             <a href="<?= base_url('admin/orders-detail&id=' . $order['id']) ?>"><strong><?= htmlspecialchars($order['product_code']) ?></strong></a>
@@ -945,7 +932,7 @@ $(function(){
 
         $.post(pkgAjaxUrl, { request_name: 'get_order_packages', order_id: orderId, csrf_token: csrfToken }, function(res){
             if (res.status === 'success') {
-                var statusLabels = { 'cn_warehouse': '<?= __('Đã về kho Trung Quốc') ?>', 'packed': '<?= __('Đã đóng bao') ?>', 'shipping': '<?= __('Đang vận chuyển') ?>' };
+                var statusLabels = { 'cn_warehouse': '<?= __('Đã về kho Trung Quốc') ?>', 'packed': '<?= __('Đã đóng bao') ?>', 'loading': '<?= __('Đang xếp xe') ?>', 'shipping': '<?= __('Đang vận chuyển') ?>' };
                 var pendingPkgs = res.packages.filter(function(p){ return p.status === 'cn_warehouse'; });
 
                 var html = '<table class="table table-sm table-borderless mb-0 text-start"><thead><tr>';
@@ -1057,7 +1044,7 @@ $(function(){
                 html += '<th><?= __('Kiện') ?></th><th><?= __('Cân nặng / Số khối') ?></th><th><?= __('Kích thước') ?></th><th><?= __('Trạng thái') ?></th>';
                 html += '</tr></thead><tbody>';
 
-                var statusLabels = { 'cn_warehouse': '<?= __('Đã về kho Trung Quốc') ?>', 'packed': '<?= __('Đã đóng bao') ?>', 'shipping': '<?= __('Đang vận chuyển') ?>' };
+                var statusLabels = { 'cn_warehouse': '<?= __('Đã về kho Trung Quốc') ?>', 'packed': '<?= __('Đã đóng bao') ?>', 'loading': '<?= __('Đang xếp xe') ?>', 'shipping': '<?= __('Đang vận chuyển') ?>' };
 
                 res.packages.forEach(function(pkg, i){
                     var dim = (pkg.length_cm > 0 || pkg.width_cm > 0 || pkg.height_cm > 0)

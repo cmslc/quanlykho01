@@ -38,12 +38,12 @@ $revenueChartData = $ToryHub->get_list_safe(
 
 $orderStatusData = $ToryHub->get_list_safe(
     "SELECT `status`, COUNT(*) as count FROM `orders` WHERE `status` != 'cancelled'
-     GROUP BY `status` ORDER BY FIELD(status,'cn_warehouse','packed','shipping','vn_warehouse','delivered')", []
+     GROUP BY `status` ORDER BY FIELD(status,'cn_warehouse','packed','loading','shipping','vn_warehouse','delivered')", []
 );
 
 $packagePipelineData = $ToryHub->get_list_safe(
     "SELECT `status`, COUNT(*) as count FROM `packages` GROUP BY `status`
-     ORDER BY FIELD(status,'cn_warehouse','packed','shipping','vn_warehouse','delivered')", []
+     ORDER BY FIELD(status,'cn_warehouse','packed','loading','shipping','vn_warehouse','delivered')", []
 );
 
 $topCustomersData = $ToryHub->get_list_safe(
@@ -440,12 +440,13 @@ $(document).ready(function(){
     var statusLabels = {
         'cn_warehouse': '<?= __("Đã về kho Trung Quốc") ?>',
         'packed': '<?= __("Đã đóng bao") ?>',
+        'loading': '<?= __("Đang xếp xe") ?>',
         'shipping': '<?= __("Đang vận chuyển") ?>',
         'vn_warehouse': '<?= __("Đã về kho Việt Nam") ?>',
         'delivered': '<?= __("Đã giao hàng") ?>'
     };
     var statusColors = {
-        'cn_warehouse': '#f7b84b', 'packed': '#405189', 'shipping': '#6f42c1', 'vn_warehouse': '#0ab39c', 'delivered': '#2a9d50'
+        'cn_warehouse': '#f7b84b', 'packed': '#405189', 'loading': '#e9a032', 'shipping': '#6f42c1', 'vn_warehouse': '#0ab39c', 'delivered': '#2a9d50'
     };
 
     (function(){

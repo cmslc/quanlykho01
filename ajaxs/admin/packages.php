@@ -35,7 +35,6 @@ if ($request === 'add') {
         'length_cm'       => floatval(input_post('length_cm')),
         'width_cm'        => floatval(input_post('width_cm')),
         'height_cm'       => floatval(input_post('height_cm')),
-        'shipping_method' => input_post('shipping_method') ?: 'road',
         'status'          => 'cn_warehouse',
         'note'            => trim(input_post('note')),
         'created_by'      => $getUser['id'],
@@ -70,7 +69,6 @@ if ($request === 'edit') {
         'length_cm'       => floatval(input_post('length_cm')),
         'width_cm'        => floatval(input_post('width_cm')),
         'height_cm'       => floatval(input_post('height_cm')),
-        'shipping_method' => input_post('shipping_method') ?: $pkg['shipping_method'],
         'note'            => trim(input_post('note')),
         'update_date'     => gettime()
     ];
@@ -140,7 +138,7 @@ if ($request === 'update_status') {
     $new_status = input_post('new_status');
     $note = trim(input_post('note'));
 
-    $valid = ['cn_warehouse', 'packed', 'shipping', 'vn_warehouse', 'delivered'];
+    $valid = ['cn_warehouse', 'packed', 'loading', 'shipping', 'vn_warehouse', 'delivered'];
     if (!in_array($new_status, $valid)) {
         echo json_encode(['status' => 'error', 'msg' => __('Trạng thái không hợp lệ')]);
         exit;
@@ -163,7 +161,7 @@ if ($request === 'bulk_update_status') {
     $new_status = input_post('new_status');
     $note = trim(input_post('note')) ?: __('Cập nhật hàng loạt');
 
-    $valid = ['cn_warehouse', 'packed', 'shipping', 'vn_warehouse', 'delivered'];
+    $valid = ['cn_warehouse', 'packed', 'loading', 'shipping', 'vn_warehouse', 'delivered'];
     if (!in_array($new_status, $valid)) {
         echo json_encode(['status' => 'error', 'msg' => __('Trạng thái không hợp lệ')]);
         exit;
@@ -204,7 +202,6 @@ if ($request === 'merge') {
     }
     $data = [
         'tracking_intl'   => trim(input_post('tracking_intl')),
-        'shipping_method' => input_post('shipping_method') ?: 'road',
         'status'          => input_post('status') ?: 'cn_warehouse',
         'note'            => trim(input_post('note')),
     ];

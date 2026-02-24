@@ -32,7 +32,7 @@ if ($request === 'bulk_update_status') {
         exit;
     }
 
-    $validStatuses = ['cn_warehouse', 'packed', 'shipping', 'vn_warehouse', 'delivered', 'cancelled'];
+    $validStatuses = ['cn_warehouse', 'packed', 'loading', 'shipping', 'vn_warehouse', 'delivered', 'cancelled'];
     if (!in_array($new_status, $validStatuses)) {
         echo json_encode(['status' => 'error', 'msg' => __('Trạng thái không hợp lệ')]);
         exit;
@@ -76,7 +76,7 @@ if (!$order) {
     exit;
 }
 
-$validStatuses = ['cn_warehouse', 'packed', 'shipping', 'vn_warehouse', 'delivered', 'cancelled'];
+$validStatuses = ['cn_warehouse', 'packed', 'loading', 'shipping', 'vn_warehouse', 'delivered', 'cancelled'];
 if (!in_array($new_status, $validStatuses)) {
     echo json_encode(['status' => 'error', 'msg' => __('Trạng thái không hợp lệ')]);
     exit;

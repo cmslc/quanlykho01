@@ -112,6 +112,62 @@ require_once(__DIR__.'/sidebar.php');
 
                         <!-- Last scan result flash -->
                         <div id="last-result" class="mt-3" style="display:none;"></div>
+
+                        <!-- Photo Capture Section (shown after successful vn_warehouse scan) -->
+                        <div id="photo-capture-section" class="mt-3" style="display:none;">
+                            <div class="card border-info mb-0">
+                                <div class="card-body py-3">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <h6 class="mb-0"><i class="ri-camera-line me-1"></i><?= __('Chụp ảnh nhận hàng') ?> - <span id="photo-entity-label"></span></h6>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-skip-photo">
+                                            <i class="ri-skip-forward-line me-1"></i><?= __('Bỏ qua') ?>
+                                        </button>
+                                    </div>
+
+                                    <!-- Camera preview (desktop) -->
+                                    <div id="camera-container" style="display:none;">
+                                        <div class="position-relative mb-2">
+                                            <video id="camera-preview" autoplay playsinline class="w-100 rounded" style="max-height:300px;background:#000;"></video>
+                                            <canvas id="camera-canvas" style="display:none;"></canvas>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-info flex-fill" id="btn-capture">
+                                                <i class="ri-camera-line me-1"></i><?= __('Chụp') ?>
+                                            </button>
+                                            <button type="button" class="btn btn-secondary" id="btn-switch-camera" title="<?= __('Đổi camera') ?>">
+                                                <i class="ri-camera-switch-line"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- File upload fallback (mobile / no camera) -->
+                                    <div id="file-upload-container" style="display:none;">
+                                        <label class="btn btn-outline-info w-100 mb-0" for="photo-file-input">
+                                            <i class="ri-camera-line me-1"></i><?= __('Chụp ảnh / Chọn ảnh') ?>
+                                        </label>
+                                        <input type="file" id="photo-file-input" accept="image/*" capture="environment" class="d-none">
+                                    </div>
+
+                                    <!-- Photo preview after capture -->
+                                    <div id="photo-preview-container" class="mt-2" style="display:none;">
+                                        <img id="photo-preview-img" class="w-100 rounded" style="max-height:300px;object-fit:contain;">
+                                        <div class="d-flex gap-2 mt-2">
+                                            <button type="button" class="btn btn-success flex-fill" id="btn-save-photo">
+                                                <i class="ri-save-line me-1"></i><?= __('Lưu ảnh') ?>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-warning flex-fill" id="btn-retake-photo">
+                                                <i class="ri-refresh-line me-1"></i><?= __('Chụp lại') ?>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Upload progress -->
+                                    <div id="photo-uploading" class="text-center py-2" style="display:none;">
+                                        <i class="ri-loader-4-line ri-spin fs-20 me-1"></i><?= __('Đang lưu ảnh...') ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -279,6 +335,15 @@ $(document).ready(function(){
                     scannedCodes[dupKey] = true;
                     addLogRow(barcode, 'success', res.msg, res.order);
                     showFlash('success', '<i class="ri-checkbox-circle-line me-1"></i> <strong>' + barcode + '</strong> - ' + res.msg);
+
+                    // Show photo capture if vn_warehouse mode
+                    if (targetStatus === 'vn_warehouse' && res.entity_type && res.entity_id) {
+                        var label = (res.order_code || barcode);
+                        showPhotoCapture(res.entity_type, res.entity_id, label);
+                        // Don't reset input yet - photo capture will handle it
+                        isSubmitting = true;
+                        scanInput.prop('readonly', true);
+                    }
                 } else if (res.error_type == 'duplicate') {
                     stats.duplicate++;
                     soundDuplicate();
@@ -307,7 +372,10 @@ $(document).ready(function(){
                 showFlash('danger', '<i class="ri-wifi-off-line me-1"></i> <strong>' + barcode + '</strong> - {$_connectionError}');
             },
             complete: function(){
-                resetInput();
+                // Don't reset if photo capture is showing
+                if (!$('#photo-capture-section').is(':visible')) {
+                    resetInput();
+                }
             }
         });
     });
@@ -439,9 +507,200 @@ $(document).ready(function(){
         });
     });
 
+    // ===== PHOTO CAPTURE =====
+    var currentStream = null;
+    var capturedPhotoData = null;
+    var photoEntityType = null;
+    var photoEntityId = null;
+    var useFrontCamera = false;
+
+    function showPhotoCapture(entityType, entityId, entityLabel) {
+        photoEntityType = entityType;
+        photoEntityId = entityId;
+        capturedPhotoData = null;
+        $('#photo-entity-label').text(entityLabel);
+        $('#photo-preview-container').hide();
+        $('#photo-uploading').hide();
+        $('#photo-capture-section').slideDown(200);
+
+        // Try camera API first
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            startCamera();
+        } else {
+            // Fallback to file input
+            $('#camera-container').hide();
+            $('#file-upload-container').show();
+        }
+    }
+
+    function hidePhotoCapture() {
+        stopCamera();
+        capturedPhotoData = null;
+        photoEntityType = null;
+        photoEntityId = null;
+        $('#photo-capture-section').slideUp(200);
+        isSubmitting = false;
+        scanInput.prop('readonly', false).val('').focus();
+    }
+
+    function startCamera() {
+        stopCamera();
+        var constraints = {
+            video: {
+                facingMode: useFrontCamera ? 'user' : 'environment',
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            }
+        };
+        navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
+            currentStream = stream;
+            var video = document.getElementById('camera-preview');
+            video.srcObject = stream;
+            $('#camera-container').show();
+            $('#file-upload-container').hide();
+        }).catch(function(err) {
+            console.log('Camera error:', err);
+            $('#camera-container').hide();
+            $('#file-upload-container').show();
+        });
+    }
+
+    function stopCamera() {
+        if (currentStream) {
+            currentStream.getTracks().forEach(function(track) { track.stop(); });
+            currentStream = null;
+        }
+        var video = document.getElementById('camera-preview');
+        if (video) video.srcObject = null;
+    }
+
+    // Capture from camera
+    $('#btn-capture').on('click', function() {
+        var video = document.getElementById('camera-preview');
+        var canvas = document.getElementById('camera-canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+
+        // Resize if too large
+        var maxDim = 1280;
+        if (canvas.width > maxDim || canvas.height > maxDim) {
+            var ratio = Math.min(maxDim / canvas.width, maxDim / canvas.height);
+            var tempCanvas = document.createElement('canvas');
+            tempCanvas.width = Math.round(canvas.width * ratio);
+            tempCanvas.height = Math.round(canvas.height * ratio);
+            tempCanvas.getContext('2d').drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+            capturedPhotoData = tempCanvas.toDataURL('image/jpeg', 0.7);
+        } else {
+            capturedPhotoData = canvas.toDataURL('image/jpeg', 0.7);
+        }
+
+        stopCamera();
+        $('#camera-container').hide();
+        $('#photo-preview-img').attr('src', capturedPhotoData);
+        $('#photo-preview-container').show();
+    });
+
+    // Switch camera
+    $('#btn-switch-camera').on('click', function() {
+        useFrontCamera = !useFrontCamera;
+        startCamera();
+    });
+
+    // File input capture (mobile)
+    $('#photo-file-input').on('change', function() {
+        var file = this.files[0];
+        if (!file) return;
+
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            // Resize image
+            var img = new Image();
+            img.onload = function() {
+                var canvas = document.createElement('canvas');
+                var maxDim = 1280;
+                var w = img.width, h = img.height;
+                if (w > maxDim || h > maxDim) {
+                    var ratio = Math.min(maxDim / w, maxDim / h);
+                    w = Math.round(w * ratio);
+                    h = Math.round(h * ratio);
+                }
+                canvas.width = w;
+                canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                capturedPhotoData = canvas.toDataURL('image/jpeg', 0.7);
+
+                $('#file-upload-container').hide();
+                $('#photo-preview-img').attr('src', capturedPhotoData);
+                $('#photo-preview-container').show();
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // Retake
+    $('#btn-retake-photo').on('click', function() {
+        capturedPhotoData = null;
+        $('#photo-preview-container').hide();
+        $('#photo-file-input').val('');
+
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            startCamera();
+        } else {
+            $('#file-upload-container').show();
+        }
+    });
+
+    // Save photo
+    $('#btn-save-photo').on('click', function() {
+        if (!capturedPhotoData || !photoEntityType || !photoEntityId) return;
+
+        $('#photo-preview-container').hide();
+        $('#photo-uploading').show();
+
+        $.ajax({
+            url: '{$_ajaxUrl}',
+            type: 'POST',
+            data: {
+                '{$_csrfName}': $('#csrf-token').val(),
+                request_name: 'upload_photo',
+                entity_type: photoEntityType,
+                entity_id: photoEntityId,
+                photo_type: 'receive',
+                photo_base64: capturedPhotoData
+            },
+            dataType: 'json',
+            timeout: 30000,
+            success: function(res) {
+                if (res.csrf_token) $('#csrf-token').val(res.csrf_token);
+                if (res.status === 'success') {
+                    soundSuccess();
+                    showFlash('success', '<i class="ri-camera-line me-1"></i> ' + res.msg);
+                } else {
+                    soundError();
+                    showFlash('danger', '<i class="ri-error-warning-line me-1"></i> ' + res.msg);
+                }
+                hidePhotoCapture();
+            },
+            error: function() {
+                soundError();
+                showFlash('danger', '<i class="ri-wifi-off-line me-1"></i> {$_connectionError}');
+                $('#photo-uploading').hide();
+                $('#photo-preview-container').show();
+            }
+        });
+    });
+
+    // Skip photo
+    $('#btn-skip-photo').on('click', function() {
+        hidePhotoCapture();
+    });
+
     // ===== Keep focus =====
     $(document).on('click', function(e){
-        if (!$(e.target).closest('select, button, .swal2-container, .btn-close').length) {
+        if (!$(e.target).closest('select, button, .swal2-container, .btn-close, #photo-capture-section, video, canvas').length) {
+            if ($('#photo-capture-section').is(':visible')) return;
             scanInput.focus();
         }
     });

@@ -111,7 +111,7 @@ class Orders extends DB
             floatval($order['weight_actual'] ?: 0),
             floatval($order['weight_volume'] ?: 0)
         );
-        $shipping_fee_intl = calculate_shipping_fee($weight, $order['shipping_method'] ?: 'road');
+        $shipping_fee_intl = calculate_shipping_fee($weight);
 
         // Total
         $total_fee = $service_fee + floatval($order['shipping_fee_cn']) + $shipping_fee_intl
@@ -150,7 +150,7 @@ class Orders extends DB
 
         if ($w && floatval($w['total_charged']) > 0) {
             $weight = floatval($w['total_charged']);
-            $shipping_fee_intl = calculate_shipping_fee($weight, $order['shipping_method'] ?: 'road');
+            $shipping_fee_intl = calculate_shipping_fee($weight);
             $total_fee = floatval($order['service_fee']) + floatval($order['shipping_fee_cn'])
                        + $shipping_fee_intl + floatval($order['packing_fee'])
                        + floatval($order['insurance_fee']) + floatval($order['other_fee']);

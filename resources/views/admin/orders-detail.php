@@ -68,7 +68,7 @@ require_once(__DIR__.'/sidebar.php');
         // Count packages per status + how many reached each timeline step
         $totalPkgs = count($order_packages);
         $pkgStatusCount = [];
-        $statusRank = ['cn_warehouse' => 1, 'packed' => 2, 'shipping' => 3, 'vn_warehouse' => 4, 'delivered' => 5];
+        $statusRank = ['cn_warehouse' => 1, 'packed' => 2, 'loading' => 3, 'shipping' => 4, 'vn_warehouse' => 5, 'delivered' => 6];
         foreach ($order_packages as $p) {
             $st = $p['status'] ?? '';
             $pkgStatusCount[$st] = ($pkgStatusCount[$st] ?? 0) + 1;

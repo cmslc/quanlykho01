@@ -134,6 +134,36 @@ class TelegramBot
     }
 
     /**
+     * Notify customer: goods arrived at VN warehouse
+     */
+    public function notifyCustomerArrived(string $chatId, array $order): bool
+    {
+        $text = "📦 Hàng đã về kho Việt Nam\n\n";
+        $text .= "Mã đơn: " . ($order['order_code'] ?? '') . "\n";
+        if (!empty($order['product_name'])) {
+            $text .= "Sản phẩm: " . $order['product_name'] . "\n";
+        }
+        $text .= "\nVui lòng liên hệ để nhận hàng.";
+
+        return $this->sendTo($chatId, $text);
+    }
+
+    /**
+     * Notify customer: ready for delivery
+     */
+    public function notifyCustomerDelivery(string $chatId, array $order): bool
+    {
+        $text = "🚛 Đơn hàng sẵn sàng giao\n\n";
+        $text .= "Mã đơn: " . ($order['order_code'] ?? '') . "\n";
+        if (!empty($order['product_name'])) {
+            $text .= "Sản phẩm: " . $order['product_name'] . "\n";
+        }
+        $text .= "\nVui lòng xác nhận địa chỉ nhận hàng.";
+
+        return $this->sendTo($chatId, $text);
+    }
+
+    /**
      * Daily summary
      */
     public function notifyDailySummary(int $newOrders, float $revenue, int $delivered, int $pending): bool

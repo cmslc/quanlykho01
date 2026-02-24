@@ -128,15 +128,8 @@ require_once(__DIR__.'/sidebar.php');
                                 <p class="fw-bold mb-0"><?= $package['length_cm'] ?>×<?= $package['width_cm'] ?>×<?= $package['height_cm'] ?> cm</p>
                             </div>
                         </div>
-                        <?php
-                        $methods = ['road' => 'Đường bộ', 'sea' => 'Đường biển', 'air' => 'Đường bay'];
-                        ?>
                         <div class="row">
-                            <div class="col-md-4">
-                                <label class="text-muted"><?= __('Phương thức') ?></label>
-                                <p class="fw-bold mb-0"><?= __($methods[$package['shipping_method']] ?? '') ?></p>
-                            </div>
-                            <div class="col-md-8">
+                            <div class="col-md-12">
                                 <label class="text-muted"><?= __('Ghi chú') ?></label>
                                 <p class="mb-0"><?= htmlspecialchars($package['note'] ?: '-') ?></p>
                             </div>
@@ -258,12 +251,7 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="mb-3"><label class="form-label"><?= __('Tracking VN') ?></label><input type="text" class="form-control" name="tracking_vn" value="<?= htmlspecialchars($package['tracking_vn'] ?? '') ?>"></div>
                     <div class="row">
                         <div class="col-md-6 mb-3"><label class="form-label"><?= __('Cân nặng') ?> (kg)</label><input type="number" step="0.01" class="form-control" name="weight_actual" value="<?= $package['weight_actual'] ?>"></div>
-                        <div class="col-md-6 mb-3"><label class="form-label"><?= __('Phương thức') ?></label>
-                            <select class="form-select" name="shipping_method">
-                                <option value="road" <?= $package['shipping_method'] == 'road' ? 'selected' : '' ?>><?= __('Đường bộ') ?></option>
-                                <option value="sea" <?= $package['shipping_method'] == 'sea' ? 'selected' : '' ?>><?= __('Đường biển') ?></option>
-                                <option value="air" <?= $package['shipping_method'] == 'air' ? 'selected' : '' ?>><?= __('Đường bay') ?></option>
-                            </select>
+                        <div class="col-md-6 mb-3">
                         </div>
                     </div>
                     <div class="row">
@@ -312,14 +300,6 @@ require_once(__DIR__.'/sidebar.php');
                     </div>
                     <hr>
                     <div class="mb-3"><label class="form-label"><?= __('Tracking QT cho kiện mới') ?></label><input type="text" class="form-control" name="tracking_intl"></div>
-                    <div class="mb-3">
-                        <label class="form-label"><?= __('Phương thức') ?></label>
-                        <select class="form-select" name="shipping_method">
-                            <option value="road"><?= __('Đường bộ') ?></option>
-                            <option value="sea"><?= __('Đường biển') ?></option>
-                            <option value="air"><?= __('Đường bay') ?></option>
-                        </select>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= __('Hủy') ?></button>
@@ -443,7 +423,6 @@ $('#form-merge').on('submit', function(e){
         request_name: 'merge',
         source_package_ids: JSON.stringify(mergeIds),
         tracking_intl: $(this).find('[name=tracking_intl]').val(),
-        shipping_method: $(this).find('[name=shipping_method]').val(),
         [csrfName]: csrfValue
     }, function(res){
         if (res.status === 'success') {

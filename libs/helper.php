@@ -344,12 +344,7 @@ function generate_customer_code()
 function calculate_shipping_fee($weight, $method = 'road')
 {
     $ToryHub = new DB();
-    $rates = [
-        'road' => floatval($ToryHub->site('shipping_rate_road') ?: 25000),
-        'sea'  => floatval($ToryHub->site('shipping_rate_sea') ?: 15000),
-        'air'  => floatval($ToryHub->site('shipping_rate_air') ?: 120000),
-    ];
-    $rate = $rates[$method] ?? $rates['road'];
+    $rate = floatval($ToryHub->site('shipping_rate_road') ?: 25000);
     return $weight * $rate;
 }
 
@@ -379,6 +374,7 @@ function display_order_status($status)
     $statuses = [
         'cn_warehouse'  => ['label' => 'Đã về kho Trung Quốc',    'bg' => 'info-subtle',      'text' => 'info',      'icon' => 'ri-building-line'],
         'packed'        => ['label' => 'Đã đóng bao',     'bg' => 'dark-subtle',      'text' => 'dark',      'icon' => 'ri-archive-drawer-line'],
+        'loading'       => ['label' => 'Đang xếp xe',     'bg' => 'warning-subtle',   'text' => 'warning',   'icon' => 'ri-truck-line'],
         'shipping'      => ['label' => 'Đang vận chuyển',  'bg' => 'primary-subtle',   'text' => 'primary',   'icon' => 'ri-ship-line'],
         'vn_warehouse'  => ['label' => 'Đã về kho Việt Nam',    'bg' => 'success-subtle',   'text' => 'success',   'icon' => 'ri-home-4-line'],
         'delivered'     => ['label' => 'Đã giao hàng',    'bg' => 'success-subtle',   'text' => 'success',   'icon' => 'ri-check-double-line'],
@@ -393,6 +389,7 @@ function display_package_status($status)
     $statuses = [
         'cn_warehouse' => ['label' => 'Đã về kho Trung Quốc',     'bg' => 'info-subtle',      'text' => 'info',      'icon' => 'ri-building-line'],
         'packed'       => ['label' => 'Đã đóng bao',      'bg' => 'dark-subtle',      'text' => 'dark',      'icon' => 'ri-archive-drawer-line'],
+        'loading'      => ['label' => 'Đang xếp xe',       'bg' => 'warning-subtle',   'text' => 'warning',   'icon' => 'ri-truck-line'],
         'shipping'     => ['label' => 'Đang vận chuyển',   'bg' => 'primary-subtle',   'text' => 'primary',   'icon' => 'ri-ship-line'],
         'vn_warehouse' => ['label' => 'Đã về kho Việt Nam',     'bg' => 'success-subtle',   'text' => 'success',   'icon' => 'ri-home-4-line'],
         'delivered'    => ['label' => 'Đã giao hàng',     'bg' => 'success-subtle',   'text' => 'success',   'icon' => 'ri-check-double-line'],
@@ -435,16 +432,6 @@ function display_platform($platform)
     return '<span class="badge ' . $p['class'] . '">' . $p['label'] . '</span>';
 }
 
-function display_shipping_method($method)
-{
-    $methods = [
-        'road' => ['label' => 'Đường bộ',   'icon' => 'ri-truck-line'],
-        'sea'  => ['label' => 'Đường biển', 'icon' => 'ri-ship-line'],
-        'air'  => ['label' => 'Đường bay',  'icon' => 'ri-flight-takeoff-line'],
-    ];
-    $m = $methods[$method] ?? ['label' => $method, 'icon' => 'ri-question-line'];
-    return '<i class="' . $m['icon'] . '"></i> ' . __($m['label']);
-}
 
 function display_banned($banned)
 {

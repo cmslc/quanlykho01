@@ -10,6 +10,13 @@ $shipping_orders = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status
 $delivered_orders = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'delivered'", []) ?: 0;
 $delivered_today = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` = 'delivered' AND DATE(`delivered_date`) = CURDATE()", []) ?: 0;
 
+// New stats
+$pkgs_received_today = $ToryHub->num_rows_safe("SELECT * FROM `packages` WHERE DATE(`vn_warehouse_date`) = CURDATE()", []) ?: 0;
+$cod_today_row = $ToryHub->get_row_safe("SELECT COALESCE(SUM(amount), 0) as total FROM `cod_collections` WHERE DATE(`create_date`) = CURDATE()", []);
+$cod_today = $cod_today_row ? floatval($cod_today_row['total']) : 0;
+$unpaid_orders = $ToryHub->num_rows_safe("SELECT * FROM `orders` WHERE `status` IN ('vn_warehouse','delivered') AND `is_paid` = 0", []) ?: 0;
+$active_batches = $ToryHub->num_rows_safe("SELECT * FROM `delivery_batches` WHERE `status` = 'delivering'", []) ?: 0;
+
 // Recent orders at VN warehouse / shipping / delivered
 $recent_orders = $ToryHub->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code
     FROM `orders` o LEFT JOIN `customers` c ON o.customer_id = c.id
@@ -101,6 +108,62 @@ require_once(__DIR__.'/sidebar.php');
                             <div class="avatar-sm flex-shrink-0">
                                 <span class="avatar-title bg-info-subtle rounded fs-3"><i class="ri-calendar-check-line text-info"></i></span>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Extra Stats Row -->
+        <div class="row">
+            <div class="col-xl-3 col-md-6">
+                <div class="card card-animate">
+                    <div class="card-body py-3">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <p class="text-muted mb-1 small"><?= __('Kiện nhận hôm nay') ?></p>
+                                <h5 class="mb-0"><?= $pkgs_received_today ?></h5>
+                            </div>
+                            <span class="avatar-title bg-soft-info text-info rounded-circle" style="width:36px;height:36px;"><i class="ri-inbox-archive-line"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card card-animate">
+                    <div class="card-body py-3">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <p class="text-muted mb-1 small"><?= __('COD thu hôm nay') ?></p>
+                                <h5 class="mb-0"><?= format_vnd($cod_today) ?></h5>
+                            </div>
+                            <span class="avatar-title bg-soft-warning text-warning rounded-circle" style="width:36px;height:36px;"><i class="ri-money-dollar-circle-line"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card card-animate">
+                    <div class="card-body py-3">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <p class="text-muted mb-1 small"><?= __('Đơn chưa thanh toán') ?></p>
+                                <h5 class="mb-0"><?= $unpaid_orders ?></h5>
+                            </div>
+                            <span class="avatar-title bg-soft-danger text-danger rounded-circle" style="width:36px;height:36px;"><i class="ri-error-warning-line"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card card-animate">
+                    <div class="card-body py-3">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <p class="text-muted mb-1 small"><?= __('Chuyến đang giao') ?></p>
+                                <h5 class="mb-0"><?= $active_batches ?></h5>
+                            </div>
+                            <span class="avatar-title bg-soft-primary text-primary rounded-circle" style="width:36px;height:36px;"><i class="ri-truck-line"></i></span>
                         </div>
                     </div>
                 </div>

@@ -26,7 +26,6 @@ $request = input_post('request_name');
 
 // ======== CREATE BAG ========
 if ($request === 'create') {
-    $shipping_method = in_array(input_post('shipping_method'), ['road', 'air']) ? input_post('shipping_method') : 'road';
     $note = trim(input_post('note'));
     $bag_code_input = strtoupper(trim(input_post('bag_code')));
 
@@ -54,7 +53,6 @@ if ($request === 'create') {
         'status' => 'open',
         'total_packages' => 0,
         'total_weight' => 0,
-        'shipping_method' => $shipping_method,
         'note' => $note,
         'created_by' => $getUser['id'],
         'create_date' => gettime(),
@@ -290,7 +288,10 @@ if ($request === 'unseal') {
         exit;
     }
     if ($bag['status'] !== 'sealed') {
-        echo json_encode(['status' => 'error', 'msg' => __('Chỉ có thể mở lại bao đang ở trạng thái đã đóng')]);
+        $blockMsg = in_array($bag['status'], ['loading', 'shipping', 'arrived'])
+            ? __('Bao đang xếp xe hoặc vận chuyển, không thể mở lại')
+            : __('Chỉ có thể mở lại bao đang ở trạng thái chờ vận chuyển');
+        echo json_encode(['status' => 'error', 'msg' => $blockMsg]);
         exit;
     }
 
@@ -352,7 +353,7 @@ if ($request === 'delete') {
         exit;
     }
     if ($bag['status'] !== 'open') {
-        echo json_encode(['status' => 'error', 'msg' => __('Chỉ có thể xóa bao đang mở')]);
+        echo json_encode(['status' => 'error', 'msg' => __('Chỉ có thể xóa bao đang mở, không thể xóa bao đã đóng hoặc đang vận chuyển')]);
         exit;
     }
 
@@ -457,6 +458,57 @@ if ($request === 'delete_image') {
     echo json_encode([
         'status' => 'success',
         'msg' => __('Đã xóa ảnh')
+    ]);
+    exit;
+}
+
+// ======== LOAD BAG DETAIL (packages inside) ========
+if ($request === 'load_bag_detail') {
+    $bag_id = intval(input_post('bag_id'));
+
+    $bag = $ToryHub->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bag_id]);
+    if (!$bag) {
+        echo json_encode(['status' => 'error', 'msg' => __('Bao hàng không tồn tại'), 'csrf_token' => $csrf->get_token_value()]);
+        exit;
+    }
+
+    $packages = $ToryHub->get_list_safe(
+        "SELECT p.id, p.package_code, p.tracking_cn, p.weight_charged, p.weight_actual,
+            p.length_cm, p.width_cm, p.height_cm,
+            COALESCE(p.length_cm * p.width_cm * p.height_cm / 1000000, 0) as cbm,
+            p.status,
+            o.product_name, o.product_code,
+            c.fullname as customer_name
+        FROM `bag_packages` bp
+        JOIN `packages` p ON bp.package_id = p.id
+        LEFT JOIN `package_orders` po ON p.id = po.package_id
+        LEFT JOIN `orders` o ON po.order_id = o.id
+        LEFT JOIN `customers` c ON o.customer_id = c.id
+        WHERE bp.bag_id = ?
+        ORDER BY bp.id ASC",
+        [$bag_id]
+    );
+
+    $pkgList = [];
+    foreach ($packages as $p) {
+        $pkgList[] = [
+            'id' => $p['id'],
+            'package_code' => $p['package_code'],
+            'tracking_cn' => $p['tracking_cn'],
+            'weight_charged' => floatval($p['weight_charged']),
+            'weight_actual' => floatval($p['weight_actual']),
+            'cbm' => round(floatval($p['cbm']), 4),
+            'product_name' => $p['product_name'] ?? '',
+            'customer_name' => $p['customer_name'] ?? '',
+            'status' => $p['status'],
+            'status_html' => display_package_status($p['status'])
+        ];
+    }
+
+    echo json_encode([
+        'status' => 'success',
+        'packages' => $pkgList,
+        'csrf_token' => $csrf->get_token_value()
     ]);
     exit;
 }

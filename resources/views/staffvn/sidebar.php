@@ -13,22 +13,45 @@ $sidebarMenu = [
         'active' => ['home'],
     ],
     [
-        'label' => __('Kho hàng Việt Nam'),
-        'icon'  => 'ri-inbox-archive-line',
-        'url'   => base_url('staffvn/orders-list'),
-        'active' => ['orders-list'],
+        'label' => __('Hàng đến'),
+        'icon'  => 'ri-ship-line',
+        'active' => ['orders-list', 'orders-detail'],
+        'children' => [
+            ['label' => __('Hàng đang vận chuyển'), 'url' => base_url('staffvn/orders-list'), 'active' => ['orders-list', 'orders-detail']],
+        ]
     ],
     [
-        'label' => __('Quét mã hàng loạt'),
-        'icon'  => 'ri-qr-scan-2-line',
-        'url'   => base_url('staffvn/orders-scan'),
-        'active' => ['orders-scan'],
+        'label' => __('Quản lý mã hàng'),
+        'icon'  => 'ri-file-list-3-line',
+        'url'   => base_url('staffvn/orders-manage'),
+        'active' => ['orders-manage'],
+    ],
+    [
+        'label' => __('Nhập kho VN'),
+        'icon'  => 'ri-inbox-archive-line',
+        'active' => ['packages-list', 'orders-scan', 'bag-unpack', 'warehouse-zones', 'inventory-check'],
+        'children' => [
+            ['label' => __('Kiện hàng'), 'url' => base_url('staffvn/packages-list'), 'active' => ['packages-list']],
+            ['label' => __('Quét mã hàng loạt'), 'url' => base_url('staffvn/orders-scan'), 'active' => ['orders-scan']],
+            ['label' => __('Tách bao'), 'url' => base_url('staffvn/bag-unpack'), 'active' => ['bag-unpack']],
+            ['label' => __('Vị trí kho'), 'url' => base_url('staffvn/warehouse-zones'), 'active' => ['warehouse-zones']],
+            ['label' => __('Kiểm kê kho'), 'url' => base_url('staffvn/inventory-check'), 'active' => ['inventory-check']],
+        ]
     ],
     [
         'label' => __('Giao hàng'),
         'icon'  => 'ri-truck-line',
-        'url'   => base_url('staffvn/orders-delivery'),
-        'active' => ['orders-delivery'],
+        'active' => ['orders-delivery', 'delivery-batches', 'delivery-detail'],
+        'children' => [
+            ['label' => __('Giao đơn lẻ'), 'url' => base_url('staffvn/orders-delivery'), 'active' => ['orders-delivery']],
+            ['label' => __('Chuyến giao hàng'), 'url' => base_url('staffvn/delivery-batches'), 'active' => ['delivery-batches', 'delivery-detail']],
+        ]
+    ],
+    [
+        'label' => __('Báo cáo'),
+        'icon'  => 'ri-bar-chart-box-line',
+        'url'   => base_url('staffvn/reports'),
+        'active' => ['reports'],
     ],
 ];
 

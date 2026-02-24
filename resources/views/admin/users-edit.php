@@ -108,12 +108,22 @@ require_once(__DIR__.'/sidebar.php');
 <script>
 $('#form-edit-user').on('submit', function(e){
     e.preventDefault();
+    var $btn = $(this).find('button[type=submit]');
+    $btn.prop('disabled', true);
     $.post('<?= base_url('ajaxs/admin/users.php') ?>', $(this).serialize(), function(res){
         if(res.status == 'success'){
             window.location.href = '<?= base_url('admin/users-list') ?>';
         } else {
             $('#alert-box').html('<div class="alert alert-danger">' + res.msg + '</div>');
+            $btn.prop('disabled', false);
         }
-    }, 'json');
+    }, 'json').fail(function(xhr){
+        var msg = 'Lỗi kết nối server';
+        try { var r = JSON.parse(xhr.responseText); if(r.msg) msg = r.msg; } catch(e) {
+            if(xhr.responseText && xhr.responseText.indexOf('Invalid token') !== -1) msg = 'Phiên hết hạn, vui lòng tải lại trang';
+        }
+        $('#alert-box').html('<div class="alert alert-danger">' + msg + '</div>');
+        $btn.prop('disabled', false);
+    });
 });
 </script>

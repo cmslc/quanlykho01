@@ -140,6 +140,44 @@ class EmailService
         return $this->send($customer_email, $subject, $body);
     }
 
+    public function notifyArrivedVN($order, $customer_email)
+    {
+        if (empty($customer_email)) return false;
+
+        $subject = __('Hàng đã về kho Việt Nam') . ': ' . $order['order_code'];
+        $body = '<h2 style="color:#27ae60;margin:0 0 15px;">' . __('Hàng đã về kho Việt Nam') . '</h2>
+        <p style="font-size:15px;">' . __('Đơn hàng của bạn đã về đến kho Việt Nam. Vui lòng liên hệ để nhận hàng.') . '</p>
+        <table style="width:100%;border-collapse:collapse;">
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666;">' . __('Mã đơn hàng') . '</td>
+                <td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">' . htmlspecialchars($order['order_code']) . '</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666;">' . __('Sản phẩm') . '</td>
+                <td style="padding:8px;border-bottom:1px solid #eee;">' . htmlspecialchars($order['product_name'] ?? '') . '</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666;">' . __('Trạng thái') . '</td>
+                <td style="padding:8px;border-bottom:1px solid #eee;"><span style="background:#27ae60;color:#fff;padding:4px 12px;border-radius:4px;font-size:13px;">' . __('Đã về kho Việt Nam') . '</span></td></tr>
+        </table>
+        <p style="margin-top:20px;color:#666;">' . __('Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.') . '</p>';
+
+        return $this->send($customer_email, $subject, $body);
+    }
+
+    public function notifyReadyDelivery($order, $customer_email)
+    {
+        if (empty($customer_email)) return false;
+
+        $subject = __('Đơn hàng sẵn sàng giao') . ': ' . $order['order_code'];
+        $body = '<h2 style="color:#405189;margin:0 0 15px;">' . __('Đơn hàng sẵn sàng giao') . '</h2>
+        <p style="font-size:15px;">' . __('Đơn hàng của bạn đã sẵn sàng để giao. Vui lòng xác nhận địa chỉ nhận hàng.') . '</p>
+        <table style="width:100%;border-collapse:collapse;">
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666;">' . __('Mã đơn hàng') . '</td>
+                <td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">' . htmlspecialchars($order['order_code']) . '</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666;">' . __('Sản phẩm') . '</td>
+                <td style="padding:8px;border-bottom:1px solid #eee;">' . htmlspecialchars($order['product_name'] ?? '') . '</td></tr>
+        </table>
+        <p style="margin-top:20px;color:#666;">' . __('Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.') . '</p>';
+
+        return $this->send($customer_email, $subject, $body);
+    }
+
     public function notifyDeposit($customer_email, $amount, $balance_after, $description = '')
     {
         if (empty($customer_email)) return false;

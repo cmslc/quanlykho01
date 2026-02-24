@@ -10,7 +10,7 @@ $filterSearch = trim(input_get('search') ?? '');
 $where = "1=1";
 $params = [];
 
-if ($filterStatus && in_array($filterStatus, ['open', 'sealed', 'shipping', 'arrived'])) {
+if ($filterStatus && in_array($filterStatus, ['open', 'sealed', 'loading', 'shipping', 'arrived'])) {
     $where .= " AND b.status = ?";
     $params[] = $filterStatus;
 }
@@ -31,12 +31,13 @@ $bags = $ToryHub->get_list_safe("SELECT b.*, u.fullname as creator_name
     FROM `bags` b LEFT JOIN `users` u ON b.created_by = u.id
     WHERE $where ORDER BY b.create_date DESC LIMIT $perPage OFFSET $offset", $params);
 
-$bagStatuses = ['open', 'sealed', 'shipping', 'arrived'];
+$bagStatuses = ['open', 'sealed', 'loading', 'shipping', 'arrived'];
 $bagStatusLabels = [
     'open' => ['label' => 'Đang mở', 'bg' => 'info-subtle', 'text' => 'info', 'icon' => 'ri-lock-unlock-line'],
-    'sealed' => ['label' => 'Đã đóng', 'bg' => 'dark-subtle', 'text' => 'dark', 'icon' => 'ri-lock-line'],
+    'sealed' => ['label' => 'Chờ vận chuyển', 'bg' => 'warning-subtle', 'text' => 'warning', 'icon' => 'ri-time-line'],
+    'loading' => ['label' => 'Đang xếp xe', 'bg' => 'secondary-subtle', 'text' => 'secondary', 'icon' => 'ri-truck-line'],
     'shipping' => ['label' => 'Đang vận chuyển', 'bg' => 'primary-subtle', 'text' => 'primary', 'icon' => 'ri-ship-line'],
-    'arrived' => ['label' => 'Đã đến kho Việt Nam', 'bg' => 'success-subtle', 'text' => 'success', 'icon' => 'ri-check-double-line'],
+    'arrived' => ['label' => 'Đã đến kho VN', 'bg' => 'success-subtle', 'text' => 'success', 'icon' => 'ri-check-double-line'],
 ];
 
 require_once(__DIR__.'/header.php');
@@ -99,7 +100,7 @@ require_once(__DIR__.'/sidebar.php');
                             <table class="table table-hover mb-0">
                                 <thead>
                                     <tr>
-                                        <th><?= __('Mã bao') ?></th>
+                                        <th><?= __('Mã hàng (Mã bao)') ?></th>
                                         <th><?= __('Trạng thái') ?></th>
                                         <th><?= __('Số kiện') ?></th>
                                         <th><?= __('Tổng cân (kg)') ?></th>
@@ -113,18 +114,25 @@ require_once(__DIR__.'/sidebar.php');
                                     <?php if (empty($bags)): ?>
                                     <tr><td colspan="8" class="text-center text-muted py-4"><?= __('Chưa có bao hàng nào') ?></td></tr>
                                     <?php endif; ?>
-                                    <?php foreach ($bags as $bag):
+                                    <?php $rowNum = $offset; foreach ($bags as $bag):
                                         $sl = $bagStatusLabels[$bag['status']] ?? $bagStatusLabels['open'];
+                                        $rowNum++;
                                     ?>
-                                    <tr>
-                                        <td><a href="<?= base_url('admin/bags-packing&id=' . $bag['id']) ?>"><strong><?= htmlspecialchars($bag['bag_code']) ?></strong></a></td>
-                                        <td><span class="badge bg-<?= $sl['bg'] ?> text-<?= $sl['text'] ?> fs-12 px-2 py-1"><i class="<?= $sl['icon'] ?> me-1"></i><?= __($sl['label']) ?></span></td>
-                                        <td><span class="fw-bold"><?= $bag['total_packages'] ?></span></td>
-                                        <td><?= number_format($bag['total_weight'], 2) ?></td>
-                                        <td><?= floatval($bag['weight_volume']) ?></td>
-                                        <td><?= htmlspecialchars($bag['creator_name'] ?? '') ?></td>
-                                        <td><?= date('d/m/Y H:i', strtotime($bag['create_date'])) ?></td>
-                                        <td>
+                                    <tr class="bag-row" data-bag-id="<?= $bag['id'] ?>" style="cursor:pointer;">
+                                        <td class="align-middle">
+                                            <a href="<?= base_url('admin/bags-packing&id=' . $bag['id']) ?>" onclick="event.stopPropagation();"><strong><?= htmlspecialchars($bag['bag_code']) ?></strong></a>
+                                            <i class="ri-arrow-right-s-line fs-14 toggle-icon text-muted ms-1"></i>
+                                            <?php if ($bag['total_packages'] > 0): ?>
+                                            <div class="mt-1"><span class="text-muted"><i class="ri-archive-line"></i> <?= $bag['total_packages'] ?> <?= __('kiện') ?></span></div>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="align-middle"><span class="badge bg-<?= $sl['bg'] ?> text-<?= $sl['text'] ?> fs-12 px-2 py-1"><i class="<?= $sl['icon'] ?> me-1"></i><?= __($sl['label']) ?></span></td>
+                                        <td class="align-middle"><span class="fw-bold"><?= $bag['total_packages'] ?></span></td>
+                                        <td class="align-middle"><?= number_format($bag['total_weight'], 2) ?></td>
+                                        <td class="align-middle"><?= floatval($bag['weight_volume']) ?></td>
+                                        <td class="align-middle"><?= htmlspecialchars($bag['creator_name'] ?? '') ?></td>
+                                        <td class="align-middle"><?= date('d/m/Y H:i', strtotime($bag['create_date'])) ?></td>
+                                        <td class="align-middle" onclick="event.stopPropagation();">
                                             <div class="d-flex gap-1">
                                                 <?php if ($bag['status'] === 'open'): ?>
                                                 <button type="button" class="btn btn-dark btn-seal-bag" data-id="<?= $bag['id'] ?>" data-code="<?= htmlspecialchars($bag['bag_code']) ?>" data-count="<?= $bag['total_packages'] ?>"><i class="ri-lock-line me-1"></i><?= __('Đóng bao') ?></button>
@@ -133,6 +141,15 @@ require_once(__DIR__.'/sidebar.php');
                                                 <button type="button" class="btn btn-warning btn-unseal-bag" data-id="<?= $bag['id'] ?>" data-code="<?= htmlspecialchars($bag['bag_code']) ?>"><i class="ri-lock-unlock-line me-1"></i><?= __('Mở bao') ?></button>
                                                 <button type="button" class="btn btn-danger btn-delete-bag" data-id="<?= $bag['id'] ?>" data-code="<?= htmlspecialchars($bag['bag_code']) ?>"><i class="ri-delete-bin-line me-1"></i><?= __('Xóa') ?></button>
                                                 <?php endif; ?>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="bag-detail-row d-none" id="bag-detail-<?= $bag['id'] ?>">
+                                        <td colspan="8" class="p-0">
+                                            <div class="px-4 py-2 bg-light">
+                                                <div class="bag-packages-content">
+                                                    <div class="text-center py-2 text-muted"><i class="ri-loader-4-line ri-spin fs-20"></i> <?= __('Đang tải...') ?></div>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
@@ -242,6 +259,61 @@ $(function(){
             }
         });
     });
+
+    // ===== Expand bag rows =====
+    var loadedBags = {};
+    $(document).on('click', '.bag-row', function(e){
+        if ($(e.target).closest('a, button, .btn').length) return;
+        var bagId = $(this).data('bag-id');
+        var $detail = $('#bag-detail-' + bagId);
+        var $icon = $(this).find('.toggle-icon');
+        if ($detail.hasClass('d-none')) {
+            $detail.removeClass('d-none');
+            $icon.removeClass('ri-arrow-right-s-line').addClass('ri-arrow-down-s-line');
+            if (!loadedBags[bagId]) loadBagPackages(bagId);
+        } else {
+            $detail.addClass('d-none');
+            $icon.removeClass('ri-arrow-down-s-line').addClass('ri-arrow-right-s-line');
+        }
+    });
+
+    function loadBagPackages(bagId) {
+        var $c = $('#bag-detail-' + bagId).find('.bag-packages-content');
+        $.post(ajaxUrl, {
+            request_name: 'load_bag_detail', bag_id: bagId, csrf_token: csrfToken
+        }, function(res){
+            if (res.csrf_token) csrfToken = res.csrf_token;
+            if (res.status === 'success' && res.packages && res.packages.length > 0) {
+                var h = '<table class="table table-sm table-borderless mb-0"><thead><tr>';
+                h += '<th>#</th><th><?= __("Mã kiện") ?></th><th><?= __("Mã vận đơn") ?></th>';
+                h += '<th><?= __("Sản phẩm") ?></th><th><?= __("Khách hàng") ?></th>';
+                h += '<th><?= __("Cân nặng") ?></th><th><?= __("Số khối") ?></th><th><?= __("Trạng thái") ?></th>';
+                h += '</tr></thead><tbody>';
+                res.packages.forEach(function(p, i){
+                    h += '<tr>';
+                    h += '<td>' + (i + 1) + '</td>';
+                    h += '<td><strong>' + esc(p.package_code) + '</strong></td>';
+                    h += '<td><code class="fs-11">' + esc(p.tracking_cn || '-') + '</code></td>';
+                    h += '<td><small>' + esc(p.product_name || '-') + '</small></td>';
+                    h += '<td><small>' + esc(p.customer_name || '-') + '</small></td>';
+                    h += '<td>' + (p.weight_charged > 0 ? p.weight_charged + ' kg' : '-') + '</td>';
+                    h += '<td>' + (p.cbm > 0 ? p.cbm + ' m³' : '-') + '</td>';
+                    h += '<td>' + (p.status_html || p.status || '-') + '</td>';
+                    h += '</tr>';
+                });
+                h += '</tbody></table>';
+                $c.html(h);
+                loadedBags[bagId] = true;
+            } else {
+                $c.html('<div class="text-center py-2 text-muted"><?= __("Bao trống") ?></div>');
+                loadedBags[bagId] = true;
+            }
+        }, 'json').fail(function(){
+            $c.html('<div class="text-center py-2 text-danger"><?= __("Lỗi tải dữ liệu") ?></div>');
+        });
+    }
+
+    function esc(s){ if(!s) return ''; var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
     // Delete bag
     $(document).on('click', '.btn-delete-bag', function(){

@@ -59,7 +59,7 @@ $packages = $ToryHub->get_list_safe("SELECT p.*,
     (SELECT GROUP_CONCAT(DISTINCT c.fullname SEPARATOR ', ') FROM customers c INNER JOIN orders o ON c.id = o.customer_id INNER JOIN package_orders po ON o.id = po.order_id WHERE po.package_id = p.id) as customer_names
     FROM `packages` p WHERE $where ORDER BY p.create_date DESC LIMIT $perPage OFFSET $offset", $params);
 
-$pkgStatuses = ['cn_warehouse', 'packed', 'shipping', 'vn_warehouse', 'delivered'];
+$pkgStatuses = ['cn_warehouse', 'packed', 'loading', 'shipping', 'vn_warehouse', 'delivered'];
 $customers = $ToryHub->get_list_safe("SELECT `id`, `customer_code`, `fullname` FROM `customers` ORDER BY `fullname` ASC", []);
 
 // If filtering by order_id, get order info for display
@@ -154,7 +154,7 @@ require_once(__DIR__.'/sidebar.php');
         <!-- Status Summary -->
         <div class="row">
             <?php
-            $statusColors = ['cn_warehouse' => 'info', 'packed' => 'secondary', 'shipping' => 'dark', 'vn_warehouse' => 'primary', 'delivered' => 'success'];
+            $statusColors = ['cn_warehouse' => 'info', 'packed' => 'secondary', 'loading' => 'warning', 'shipping' => 'dark', 'vn_warehouse' => 'primary', 'delivered' => 'success'];
             foreach ($pkgStatuses as $s):
                 $cnt = $ToryHub->num_rows_safe("SELECT * FROM `packages` WHERE `status` = ?", [$s]) ?: 0;
             ?>
@@ -354,12 +354,6 @@ require_once(__DIR__.'/sidebar.php');
                             <input type="number" step="0.01" class="form-control" name="weight_actual" value="0">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label"><?= __('Phương thức') ?></label>
-                            <select class="form-select" name="shipping_method">
-                                <option value="road"><?= __('Đường bộ') ?></option>
-                                <option value="sea"><?= __('Đường biển') ?></option>
-                                <option value="air"><?= __('Đường bay') ?></option>
-                            </select>
                         </div>
                     </div>
                     <div class="row">

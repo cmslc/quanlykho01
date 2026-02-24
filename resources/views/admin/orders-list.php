@@ -134,7 +134,7 @@ if ($isRetailPage && !empty($orderIds)) {
 
 $customers = $ToryHub->get_list_safe("SELECT `id`, `customer_code`, `fullname` FROM `customers` ORDER BY `fullname` ASC", []);
 
-$statuses = ['cn_warehouse', 'packed', 'shipping', 'vn_warehouse', 'delivered', 'cancelled'];
+$statuses = ['cn_warehouse', 'packed', 'loading', 'shipping', 'vn_warehouse', 'delivered', 'cancelled'];
 
 require_once(__DIR__.'/header.php');
 require_once(__DIR__.'/sidebar.php');
@@ -819,7 +819,7 @@ $(function(){
                 var html = '<table class="table table-sm table-borderless mb-0">';
                 html += '<thead><tr>';
                 html += '<th style="width:30px;"><input type="checkbox" class="form-check-input sub-pkg-check-all" data-order-id="' + orderId + '"' + (orderChecked ? ' checked' : '') + '></th>';
-                html += '<th><?= __('Kiện') ?></th>';
+                html += '<th><?= __('Mã kiện') ?></th>';
                 html += '<th><?= __('Cân nặng') ?></th>';
                 html += '<th><?= __('Kích thước') ?></th>';
                 html += '<th><?= __('Số khối') ?></th>';
@@ -856,7 +856,7 @@ $(function(){
                         var idx = pkgIndexMap[first.id];
                         html += '<tr>';
                         html += '<td><input type="checkbox" class="form-check-input sub-pkg-check" value="' + first.id + '" data-weight="' + first.weight_actual + '" data-cbm="' + first.cbm + '"' + (orderChecked ? ' checked' : '') + '></td>';
-                        html += '<td><strong><?= __('Kiện') ?> ' + idx + '</strong></td>';
+                        html += '<td><strong>' + first.package_code + '</strong></td>';
                         html += '<td>' + (first.weight_actual > 0 ? fnum(first.weight_actual, 2) + ' kg' : '-') + '</td>';
                         html += '<td>' + dim + '</td>';
                         html += '<td>' + (first.cbm > 0 ? fnum(first.cbm, 2) + ' m³' : '-') + '</td>';
@@ -875,7 +875,7 @@ $(function(){
 
                         html += '<tr class="pkg-group-row" data-group-id="' + groupId + '">';
                         html += '<td><input type="checkbox" class="form-check-input sub-pkg-group-check" data-group-id="' + groupId + '" data-ids=\'' + JSON.stringify(ids) + '\' data-total="' + pkgs.length + '"' + (orderChecked ? ' checked' : '') + '></td>';
-                        html += '<td><a href="#" class="btn-expand-group text-decoration-none" data-group-id="' + groupId + '"><strong><?= __('Kiện') ?> ' + firstIdx + ' ~ ' + lastIdx + '</strong> <span class="badge bg-primary-subtle text-primary">' + pkgs.length + ' <?= __('kiện') ?></span> <i class="ri-arrow-down-s-line grp-icon"></i></a>';
+                        html += '<td><a href="#" class="btn-expand-group text-decoration-none" data-group-id="' + groupId + '"><strong>' + pkgs[0].package_code + ' ~ ' + pkgs[pkgs.length-1].package_code + '</strong> <span class="badge bg-primary-subtle text-primary">' + pkgs.length + ' <?= __('kiện') ?></span> <i class="ri-arrow-down-s-line grp-icon"></i></a>';
                         html += ' <input type="number" class="form-control form-control-sm d-inline-block grp-qty-input" data-group-id="' + groupId + '" min="0" max="' + pkgs.length + '" value="' + initQty + '" style="width:70px;" title="<?= __('Nhập số kiện muốn chọn') ?>">';
                         html += ' <span class="text-muted">/ ' + pkgs.length + '</span>';
                         html += '</td>';
@@ -890,7 +890,7 @@ $(function(){
                             var idx = pkgIndexMap[pkg.id];
                             html += '<tr class="pkg-group-detail d-none" data-group-id="' + groupId + '">';
                             html += '<td class="ps-4"><input type="checkbox" class="form-check-input sub-pkg-check" value="' + pkg.id + '" data-weight="' + pkg.weight_actual + '" data-cbm="' + pkg.cbm + '" data-group-id="' + groupId + '"' + (orderChecked ? ' checked' : '') + '></td>';
-                            html += '<td class="ps-4"><?= __('Kiện') ?> ' + idx + '</td>';
+                            html += '<td class="ps-4">' + pkg.package_code + '</td>';
                             html += '<td>' + (pkg.weight_actual > 0 ? fnum(pkg.weight_actual, 2) + ' kg' : '-') + '</td>';
                             html += '<td>' + dim + '</td>';
                             html += '<td>' + (pkg.cbm > 0 ? fnum(pkg.cbm, 2) + ' m³' : '-') + '</td>';
@@ -1233,8 +1233,7 @@ $(function(){
                 driver_phone: $('#new-driver-phone').val(),
                 route: $('#new-route').val(),
                 max_weight: $('#new-max-weight').val(),
-                shipping_method: 'road',
-                shipping_cost: $('#new-shipping-cost').val(),
+                                shipping_cost: $('#new-shipping-cost').val(),
                 note: $('#new-note').val(),
                 csrf_token: csrfToken
             }, function(res){

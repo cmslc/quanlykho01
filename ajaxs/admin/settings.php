@@ -30,7 +30,7 @@ if ($request === 'update_settings') {
 
     $fields = [
         'site_name', 'exchange_rate_cny_vnd', 'service_fee_percent',
-        'shipping_rate_road', 'shipping_rate_sea', 'shipping_rate_air', 'site_status',
+        'shipping_rate_road', 'site_status',
         'shipping_road_easy_per_kg', 'shipping_road_easy_per_cbm',
         'shipping_road_difficult_per_kg', 'shipping_road_difficult_per_cbm',
         'telegram_bot_token', 'telegram_chat_id', 'telegram_enabled',

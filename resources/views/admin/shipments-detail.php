@@ -43,6 +43,7 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="card-header d-flex align-items-center justify-content-between">
                         <h5 class="card-title mb-0"><?= __('Thông tin chuyến') ?></h5>
                         <span class="badge bg-<?= $cfg['bg'] ?> text-<?= $cfg['text'] ?> fs-12 px-2 py-1"><i class="<?= $cfg['icon'] ?> me-1"></i><?= __($cfg['label']) ?></span>
+                        <button class="btn btn-sm btn-outline-secondary ms-2" id="btn-change-status" title="<?= __('Đổi trạng thái') ?>"><i class="ri-edit-line"></i></button>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -96,12 +97,9 @@ require_once(__DIR__.'/sidebar.php');
 
                         <!-- Action buttons -->
                         <div class="mt-3 d-flex gap-2 flex-wrap">
-                            <?php if ($isPreparing): ?>
                             <button class="btn btn-primary btn-sm" id="btn-edit-shipment"><i class="ri-pencil-line me-1"></i><?= __('Sửa') ?></button>
-                            <button class="btn btn-warning btn-sm" id="btn-depart" <?= $shipment['total_packages'] < 1 ? 'disabled' : '' ?>><i class="ri-truck-line me-1"></i><?= __('Xuất phát') ?></button>
+                            <?php if ($isPreparing): ?>
                             <button class="btn btn-danger btn-sm" id="btn-delete-shipment"><i class="ri-delete-bin-line me-1"></i><?= __('Xóa') ?></button>
-                            <?php elseif ($shipment['status'] === 'in_transit'): ?>
-                            <button class="btn btn-success btn-sm" id="btn-arrived"><i class="ri-map-pin-2-line me-1"></i><?= __('Đã đến') ?></button>
                             <?php elseif ($shipment['status'] === 'arrived'): ?>
                             <button class="btn btn-secondary btn-sm" id="btn-complete"><i class="ri-check-double-line me-1"></i><?= __('Hoàn thành') ?></button>
                             <?php endif; ?>
@@ -117,18 +115,34 @@ require_once(__DIR__.'/sidebar.php');
                         <h5 class="card-title mb-0"><?= __('Danh sách kiện hàng') ?> (<?= count($packages) ?>)</h5>
                     </div>
                     <div class="card-body">
+                        <?php
+                        // Group packages by mã hàng (bag_code > product_code > order_code)
+                        $colSpan = $isPreparing ? 6 : 5;
+                        $grouped = [];
+                        foreach ($packages as $pkg) {
+                            $key = $pkg['bag_code'] ?: ($pkg['product_code'] ?: ($pkg['order_code'] ?: __('Không xác định')));
+                            if (!isset($grouped[$key])) {
+                                $grouped[$key] = [
+                                    'pkgs' => [],
+                                    'customer' => $pkg['customer_name'] ?: '',
+                                    'customer_code' => $pkg['customer_code'] ?: '',
+                                    'is_bag' => !empty($pkg['bag_code']),
+                                    'bag_weight' => $pkg['bag_weight'] ?? 0,
+                                    'bag_cbm' => (($pkg['bag_length'] ?? 0) * ($pkg['bag_width'] ?? 0) * ($pkg['bag_height'] ?? 0)) / 1000000,
+                                ];
+                            }
+                            $grouped[$key]['pkgs'][] = $pkg;
+                        }
+                        ?>
                         <div class="table-responsive">
                             <table class="table table-hover mb-0">
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th><?= __('Mã kiện') ?></th>
-                                        <th><?= __('Đơn hàng') ?></th>
+                                        <th><?= __('Mã hàng') ?></th>
                                         <th><?= __('Khách hàng') ?></th>
-                                        <th><?= __('Cân nặng') ?></th>
-                                        <th><?= __('Kích thước') ?></th>
-                                        <th><?= __('Số khối') ?></th>
-                                        <th><?= __('Trạng thái') ?></th>
+                                        <th><?= __('Tổng cân') ?></th>
+                                        <th><?= __('Tổng khối') ?></th>
                                         <?php if ($isPreparing): ?>
                                         <th></th>
                                         <?php endif; ?>
@@ -136,22 +150,74 @@ require_once(__DIR__.'/sidebar.php');
                                 </thead>
                                 <tbody>
                                     <?php if (empty($packages)): ?>
-                                    <tr><td colspan="<?= $isPreparing ? 9 : 8 ?>" class="text-center text-muted py-4"><?= __('Chưa có kiện hàng nào') ?></td></tr>
+                                    <tr><td colspan="<?= $colSpan ?>" class="text-center text-muted py-4"><?= __('Chưa có kiện hàng nào') ?></td></tr>
                                     <?php endif; ?>
-                                    <?php $idx = 0; foreach ($packages as $pkg): $idx++; ?>
-                                    <?php $cbm = ($pkg['length_cm'] * $pkg['width_cm'] * $pkg['height_cm']) / 1000000; ?>
+                                    <?php $gIdx = 0; foreach ($grouped as $maHang => $group): $gIdx++;
+                                        $pkgList = $group['pkgs'];
+                                        if ($group['is_bag']) {
+                                            $totalW = floatval($group['bag_weight']);
+                                            $totalCbm = floatval($group['bag_cbm']);
+                                        } else {
+                                            $totalW = array_sum(array_column($pkgList, 'weight_charged'));
+                                            $totalCbm = 0;
+                                            foreach ($pkgList as $p) { $totalCbm += ($p['length_cm'] * $p['width_cm'] * $p['height_cm']) / 1000000; }
+                                        }
+                                        $groupId = 'shipgrp-' . $gIdx;
+                                    ?>
                                     <tr>
-                                        <td><?= $idx ?></td>
-                                        <td><strong><?= htmlspecialchars($pkg['package_code']) ?></strong></td>
-                                        <td><?= htmlspecialchars($pkg['product_code'] ?: ($pkg['order_code'] ?: '-')) ?></td>
-                                        <td><?= htmlspecialchars($pkg['customer_name'] ?: '-') ?></td>
-                                        <td><?= $pkg['weight_charged'] > 0 ? fnum($pkg['weight_charged'], 2) . ' kg' : '-' ?></td>
-                                        <td><?= ($pkg['length_cm'] > 0) ? floatval($pkg['length_cm']) . '×' . floatval($pkg['width_cm']) . '×' . floatval($pkg['height_cm']) : '-' ?></td>
-                                        <td><?= $cbm > 0 ? fnum($cbm, 2) . ' m³' : '-' ?></td>
-                                        <td><?= display_package_status($pkg['status']) ?></td>
+                                        <td><?= $gIdx ?></td>
+                                        <td>
+                                            <strong><?= htmlspecialchars($maHang) ?></strong>
+                                            <div class="mt-1">
+                                                <a href="#" class="btn-expand-shipgrp text-muted text-decoration-none" data-group="<?= $groupId ?>">
+                                                    <i class="ri-archive-line"></i> <?= count($pkgList) ?> <?= __('kiện') ?> <i class="ri-arrow-down-s-line expand-icon-<?= $groupId ?> fs-14"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <?= htmlspecialchars($group['customer_code']) ?>
+                                            <?php if ($group['customer']): ?>
+                                            <br><small class="text-muted"><?= htmlspecialchars($group['customer']) ?></small>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><?= $totalW > 0 ? fnum($totalW, 2) . ' kg' : '' ?></td>
+                                        <td><?= $totalCbm > 0 ? fnum($totalCbm, 2) . ' m³' : '' ?></td>
                                         <?php if ($isPreparing): ?>
-                                        <td><button class="btn btn-sm btn-outline-danger btn-remove-pkg" data-id="<?= $pkg['id'] ?>" data-code="<?= htmlspecialchars($pkg['package_code']) ?>"><i class="ri-close-line"></i></button></td>
+                                        <td></td>
                                         <?php endif; ?>
+                                    </tr>
+                                    <!-- Expand row -->
+                                    <tr class="shipgrp-expand d-none" id="expand-<?= $groupId ?>">
+                                        <td colspan="<?= $colSpan ?>" class="p-0">
+                                            <div class="px-4 py-2 bg-light">
+                                                <table class="table table-sm table-borderless mb-0 text-muted">
+                                                    <thead><tr>
+                                                        <th><?= __('Mã kiện') ?></th>
+                                                        <th><?= __('Cân nặng') ?></th>
+                                                        <th><?= __('Kích thước') ?></th>
+                                                        <th><?= __('Số khối') ?></th>
+                                                        <th><?= __('Trạng thái') ?></th>
+                                                        <?php if ($isPreparing): ?><th></th><?php endif; ?>
+                                                    </tr></thead>
+                                                    <tbody>
+                                                    <?php foreach ($pkgList as $pkg):
+                                                        $cbm = ($pkg['length_cm'] * $pkg['width_cm'] * $pkg['height_cm']) / 1000000;
+                                                    ?>
+                                                    <tr>
+                                                        <td><strong><?= htmlspecialchars($pkg['package_code']) ?></strong></td>
+                                                        <td><?= $pkg['weight_charged'] > 0 ? fnum($pkg['weight_charged'], 2) . ' kg' : '' ?></td>
+                                                        <td><?= ($pkg['length_cm'] > 0) ? floatval($pkg['length_cm']) . '×' . floatval($pkg['width_cm']) . '×' . floatval($pkg['height_cm']) : '' ?></td>
+                                                        <td><?= $cbm > 0 ? fnum($cbm, 2) . ' m³' : '' ?></td>
+                                                        <td><?= display_package_status($pkg['status']) ?></td>
+                                                        <?php if ($isPreparing): ?>
+                                                        <td><button class="btn btn-sm btn-outline-danger btn-remove-pkg" data-id="<?= $pkg['id'] ?>" data-code="<?= htmlspecialchars($pkg['package_code']) ?>"><i class="ri-close-line"></i></button></td>
+                                                        <?php endif; ?>
+                                                    </tr>
+                                                    <?php endforeach; ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </td>
                                     </tr>
                                     <?php endforeach; ?>
                                 </tbody>
@@ -161,6 +227,29 @@ require_once(__DIR__.'/sidebar.php');
                 </div>
             </div>
         </div>
+
+<!-- Modal Change Status -->
+<div class="modal fade" id="modal-change-status" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><?= __('Đổi trạng thái') ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <select class="form-select" id="select-new-status">
+                    <?php foreach ($statusLabels as $key => $s): ?>
+                    <option value="<?= $key ?>" <?= $shipment['status'] === $key ? 'selected' : '' ?>><?= __($s['label']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= __('Hủy') ?></button>
+                <button type="button" class="btn btn-primary" id="btn-save-status"><i class="ri-check-line me-1"></i><?= __('Cập nhật') ?></button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Modal Edit Shipment -->
 <div class="modal fade" id="modal-edit-shipment" tabindex="-1">
@@ -218,6 +307,27 @@ $(function(){
     var ajaxUrl = '<?= base_url('ajaxs/admin/shipments.php') ?>';
     var shipmentId = <?= $id ?>;
 
+    // Change status
+    $('#btn-change-status').on('click', function(){ $('#modal-change-status').modal('show'); });
+    $('#btn-save-status').on('click', function(){
+        var newStatus = $('#select-new-status').val();
+        if (newStatus === '<?= $shipment['status'] ?>') {
+            $('#modal-change-status').modal('hide');
+            return;
+        }
+        var btn = $(this);
+        btn.prop('disabled', true);
+        $.post(ajaxUrl, {request_name: 'update_status', shipment_id: shipmentId, new_status: newStatus, csrf_token: csrfToken}, function(res){
+            if (res.status === 'success') {
+                $('#modal-change-status').modal('hide');
+                Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
+            } else {
+                Swal.fire({icon: 'error', text: res.msg});
+                btn.prop('disabled', false);
+            }
+        }, 'json');
+    });
+
     // Edit
     $('#btn-edit-shipment').on('click', function(){ $('#modal-edit-shipment').modal('show'); });
     $('#btn-save-edit').on('click', function(){
@@ -230,7 +340,6 @@ $(function(){
             driver_phone: $('#edit-driver-phone').val(),
             route: $('#edit-route').val(),
             max_weight: $('#edit-max-weight').val(),
-            shipping_method: 'road',
             shipping_cost: $('#edit-shipping-cost').val(),
             note: $('#edit-note').val(),
             csrf_token: csrfToken
@@ -268,49 +377,6 @@ $(function(){
         });
     });
 
-    // Depart
-    $('#btn-depart').on('click', function(){
-        Swal.fire({
-            title: '<?= __('Xác nhận xuất phát?') ?>',
-            html: '<?= __('Tất cả kiện hàng trong chuyến sẽ chuyển sang trạng thái Đang vận chuyển') ?>',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: '<?= __('Xuất phát') ?>',
-            cancelButtonText: '<?= __('Hủy') ?>'
-        }).then(function(result){
-            if (result.isConfirmed) {
-                $.post(ajaxUrl, {request_name: 'update_status', shipment_id: shipmentId, new_status: 'in_transit', csrf_token: csrfToken}, function(res){
-                    if (res.status === 'success') {
-                        Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
-                    } else {
-                        Swal.fire({icon: 'error', text: res.msg});
-                    }
-                }, 'json');
-            }
-        });
-    });
-
-    // Arrived
-    $('#btn-arrived').on('click', function(){
-        Swal.fire({
-            title: '<?= __('Xác nhận đã đến?') ?>',
-            html: '<?= __('Tất cả kiện hàng sẽ chuyển sang trạng thái Kho VN') ?>',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: '<?= __('Xác nhận') ?>',
-            cancelButtonText: '<?= __('Hủy') ?>'
-        }).then(function(result){
-            if (result.isConfirmed) {
-                $.post(ajaxUrl, {request_name: 'update_status', shipment_id: shipmentId, new_status: 'arrived', csrf_token: csrfToken}, function(res){
-                    if (res.status === 'success') {
-                        Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
-                    } else {
-                        Swal.fire({icon: 'error', text: res.msg});
-                    }
-                }, 'json');
-            }
-        });
-    });
 
     // Complete
     $('#btn-complete').on('click', function(){
@@ -345,6 +411,19 @@ $(function(){
                 }, 'json');
             }
         });
+    });
+    // Expand/collapse package groups (like orders-list)
+    $(document).on('click', '.btn-expand-shipgrp', function(e){
+        e.preventDefault();
+        var grp = $(this).data('group');
+        var $expand = $('#expand-' + grp);
+        var $icon = $('.expand-icon-' + grp);
+        $expand.toggleClass('d-none');
+        if ($expand.hasClass('d-none')) {
+            $icon.removeClass('ri-arrow-up-s-line').addClass('ri-arrow-down-s-line');
+        } else {
+            $icon.removeClass('ri-arrow-down-s-line').addClass('ri-arrow-up-s-line');
+        }
     });
 });
 </script>

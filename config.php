@@ -8,7 +8,7 @@ $config = [
     'limit_block_ip'        => 10
 ];
 
-// Shipping rate config (CNY per kg)
+// Shipping rate config
 $config_shipping = [
     'road'  => [
         'name'      => 'Đường bộ',
@@ -17,20 +17,6 @@ $config_shipping = [
         'min_weight'    => 0.5,
         'days'          => '7-12'
     ],
-    'sea'   => [
-        'name'      => 'Đường biển',
-        'name_zh'   => '海运',
-        'rate_per_kg'   => 15000,   // VND per kg
-        'min_weight'    => 1,
-        'days'          => '15-25'
-    ],
-    'air'   => [
-        'name'      => 'Đường bay',
-        'name_zh'   => '空运',
-        'rate_per_kg'   => 120000,  // VND per kg
-        'min_weight'    => 0.1,
-        'days'          => '3-5'
-    ]
 ];
 
 // Shipping rates per cargo type (VND)

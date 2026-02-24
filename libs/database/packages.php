@@ -16,7 +16,7 @@ class Packages extends DB
     public function generatePackageCode()
     {
         $this->connect();
-        $prefix = 'PKG' . date('Ymd');
+        $prefix = 'K' . date('ymd');
         $prefixLen = strlen($prefix) + 1; // +1 for 1-based SUBSTRING
         $row = $this->get_row_safe(
             "SELECT MAX(CAST(SUBSTRING(`package_code`, $prefixLen) AS UNSIGNED)) as max_seq FROM `packages` WHERE `package_code` LIKE ?",
@@ -144,27 +144,22 @@ class Packages extends DB
         );
         if (empty($packages)) return;
 
-        $pkgRank = ['cn_warehouse' => 1, 'packed' => 2, 'shipping' => 3, 'vn_warehouse' => 4, 'delivered' => 5];
+        $pkgRank = ['cn_warehouse' => 1, 'packed' => 2, 'loading' => 3, 'shipping' => 4, 'vn_warehouse' => 5, 'delivered' => 6];
         $minRank = 999;
         foreach ($packages as $pkg) {
             $rank = $pkgRank[$pkg['status']] ?? 0;
             if ($rank < $minRank) $minRank = $rank;
         }
 
-        $rankToStatus = [1 => 'cn_warehouse', 2 => 'packed', 3 => 'shipping', 4 => 'vn_warehouse', 5 => 'delivered'];
+        $rankToStatus = [1 => 'cn_warehouse', 2 => 'packed', 3 => 'loading', 4 => 'shipping', 5 => 'vn_warehouse', 6 => 'delivered'];
         $derivedStatus = $rankToStatus[$minRank] ?? null;
         if (!$derivedStatus) return;
 
-        // Order rank (forward-only check)
-        $orderRank = [
-            'cn_warehouse' => 1, 'packed' => 2,
-            'shipping' => 3, 'vn_warehouse' => 4,
-            'delivered' => 5, 'cancelled' => -1
-        ];
-        $currentRank = $orderRank[$order['status']] ?? 0;
-        $derivedRank = $orderRank[$derivedStatus] ?? 0;
+        // Skip cancelled orders
+        if ($order['status'] === 'cancelled') return;
 
-        if ($derivedRank > $currentRank) {
+        // Sync order status to match derived status from packages (both forward and backward)
+        if ($derivedStatus !== $order['status']) {
             $dateFields = [
                 'cn_warehouse' => 'cn_warehouse_date', 'shipping' => 'shipping_date',
                 'vn_warehouse' => 'vn_warehouse_date', 'delivered' => 'delivered_date',
@@ -284,7 +279,6 @@ class Packages extends DB
             foreach ($splits as $split) {
                 $data = [
                     'tracking_cn'     => $source['tracking_cn'],
-                    'shipping_method' => $source['shipping_method'],
                     'status'          => $source['status'],
                     'note'            => $split['note'] ?? '',
                     'created_by'      => $created_by,

@@ -12,8 +12,12 @@ $filterType = input_get('type') ?: '';
 $notInShipment = "p.id NOT IN (SELECT sp.package_id FROM `shipment_packages` sp JOIN `shipments` s ON sp.shipment_id = s.id WHERE s.status IN ('preparing','in_transit'))";
 
 // === Summary counts ===
+// Chỉ đếm kiện thực sự hiển thị: hàng lô cn_warehouse + hàng lẻ packed trong bao sealed
 $cntCnWarehouse = $ToryHub->num_rows_safe(
-    "SELECT p.id FROM `packages` p WHERE p.status = 'cn_warehouse' AND $notInShipment", []
+    "SELECT p.id FROM `packages` p
+     JOIN `package_orders` po ON p.id = po.package_id
+     JOIN `orders` o ON po.order_id = o.id
+     WHERE p.status = 'cn_warehouse' AND o.product_type = 'wholesale' AND $notInShipment", []
 );
 $cntPacked = $ToryHub->num_rows_safe(
     "SELECT p.id FROM `packages` p WHERE p.status = 'packed' AND p.id IN (SELECT bp2.package_id FROM `bag_packages` bp2 JOIN `bags` b2 ON bp2.bag_id = b2.id WHERE b2.status = 'sealed') AND $notInShipment", []
@@ -208,7 +212,7 @@ require_once(__DIR__.'/sidebar.php');
                                 <thead>
                                     <tr>
                                         <th style="width:40px;" class="align-middle"><input type="checkbox" class="form-check-input" id="check-all"></th>
-                                        <th class="align-middle"><?= __('Mã hàng / Mã bao') ?></th>
+                                        <th class="align-middle"><?= __('Mã hàng') ?></th>
                                         <th class="align-middle text-center" style="width:60px;"><?= __('Ảnh') ?></th>
                                         <th class="align-middle"><?= __('Phân loại') ?></th>
                                         <th class="align-middle"><?= __('Khách hàng') ?></th>
@@ -701,7 +705,7 @@ $(function(){
 
         $.post(pkgAjaxUrl, { request_name: 'get_order_packages', order_id: orderId, csrf_token: csrfToken }, function(res){
             if (res.status === 'success') {
-                var statusLabels = { 'cn_warehouse': '<?= __('Đã về kho Trung Quốc') ?>', 'packed': '<?= __('Đã đóng bao') ?>', 'shipping': '<?= __('Đang vận chuyển') ?>' };
+                var statusLabels = { 'cn_warehouse': '<?= __('Đã về kho Trung Quốc') ?>', 'packed': '<?= __('Đã đóng bao') ?>', 'loading': '<?= __('Đang xếp xe') ?>', 'shipping': '<?= __('Đang vận chuyển') ?>' };
                 var pendingPkgs = res.packages.filter(function(p){ return p.status === 'cn_warehouse'; });
 
                 var html = '<table class="table table-sm table-borderless mb-0"><thead><tr>';
@@ -938,7 +942,7 @@ $(function(){
             $.post(shipmentAjaxUrl, {
                 request_name: 'create', truck_plate: truckPlate, driver_name: $('#new-driver-name').val(),
                 driver_phone: $('#new-driver-phone').val(), route: $('#new-route').val(), max_weight: $('#new-max-weight').val(),
-                shipping_method: 'road', shipping_cost: $('#new-shipping-cost').val(), note: $('#new-note').val(), csrf_token: csrfToken
+                shipping_cost: $('#new-shipping-cost').val(), note: $('#new-note').val(), csrf_token: csrfToken
             }, function(res){
                 if (res.status === 'success' && res.shipment_id) {
                     $.post(shipmentAjaxUrl, { request_name: 'add_packages', shipment_id: res.shipment_id, package_ids: packageIds.join(','), csrf_token: csrfToken }, function(res2){
@@ -965,7 +969,7 @@ $(function(){
     // ===== Export Excel =====
     $('#btn-export-excel').on('click', function(){
         var rows = [];
-        rows.push(['<?= __('Mã hàng / Mã bao') ?>', '<?= __('Loại') ?>', '<?= __('Phân loại') ?>', '<?= __('Khách hàng') ?>', '<?= __('Số kiện') ?>', '<?= __('Cân nặng (kg)') ?>', '<?= __('Số khối (m³)') ?>', '<?= __('Trạng thái') ?>']);
+        rows.push(['<?= __('Mã hàng') ?>', '<?= __('Loại') ?>', '<?= __('Phân loại') ?>', '<?= __('Khách hàng') ?>', '<?= __('Số kiện') ?>', '<?= __('Cân nặng (kg)') ?>', '<?= __('Số khối (m³)') ?>', '<?= __('Trạng thái') ?>']);
 
         <?php foreach ($sealedBags as $bag):
             $bagW = floatval($bag['bag_weight'] ?? 0); $pkgWC = floatval($bag['pkg_weight_charged'] ?? 0); $pkgWA = floatval($bag['pkg_weight_actual'] ?? 0);

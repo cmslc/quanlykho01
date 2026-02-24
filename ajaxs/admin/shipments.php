@@ -29,7 +29,6 @@ if ($request === 'create') {
         'driver_phone'    => trim(input_post('driver_phone')),
         'route'           => trim(input_post('route')),
         'max_weight'      => floatval(input_post('max_weight')) ?: null,
-        'shipping_method' => input_post('shipping_method') ?: 'road',
         'shipping_cost'   => floatval(input_post('shipping_cost')) ?: null,
         'note'            => trim(input_post('note')),
         'created_by'      => $getUser['id'],
@@ -66,7 +65,6 @@ if ($request === 'edit') {
         'driver_phone'    => trim(input_post('driver_phone')),
         'route'           => trim(input_post('route')),
         'max_weight'      => floatval(input_post('max_weight')) ?: null,
-        'shipping_method' => input_post('shipping_method') ?: $shipment['shipping_method'],
         'shipping_cost'   => floatval(input_post('shipping_cost')) ?: null,
         'note'            => trim(input_post('note')),
         'update_date'     => gettime()

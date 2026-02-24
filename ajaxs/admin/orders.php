@@ -92,7 +92,7 @@ if ($request === 'add') {
 
     // Initial status
     $status = input_post('status') ?: 'cn_warehouse';
-    $validStatuses = ['cn_warehouse', 'packed', 'shipping', 'vn_warehouse', 'delivered'];
+    $validStatuses = ['cn_warehouse', 'packed', 'loading', 'shipping', 'vn_warehouse', 'delivered'];
     if (!in_array($status, $validStatuses)) {
         $status = 'cn_warehouse';
     }
@@ -240,7 +240,6 @@ if ($request === 'add') {
                 'height_cm'       => $pkg_height,
                 'weight_volume'   => round($pkg_vol_weight, 2),
                 'weight_charged'  => round($pkg_charged, 2),
-                'shipping_method' => 'road',
                 'status'          => 'cn_warehouse',
                 'note'            => '',
                 'created_by'      => $getUser['id'],
@@ -320,7 +319,7 @@ if ($request === 'edit') {
 
     // Validate status
     $status = input_post('status') ?: $order['status'];
-    $validStatuses = ['cn_warehouse', 'packed', 'shipping', 'vn_warehouse', 'delivered', 'cancelled'];
+    $validStatuses = ['cn_warehouse', 'packed', 'loading', 'shipping', 'vn_warehouse', 'delivered', 'cancelled'];
     if (!in_array($status, $validStatuses)) {
         $status = $order['status'];
     }

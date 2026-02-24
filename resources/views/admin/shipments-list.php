@@ -123,21 +123,24 @@ require_once(__DIR__.'/sidebar.php');
                                             <?php if ($s['truck_plate']): ?>
                                             <strong><?= htmlspecialchars($s['truck_plate']) ?></strong><br>
                                             <?php endif; ?>
-                                            <?= htmlspecialchars($s['driver_name'] ?: '-') ?>
+                                            <?= $s['driver_name'] ? htmlspecialchars($s['driver_name']) : '' ?>
                                         </td>
-                                        <td><?= htmlspecialchars($s['route'] ?: '-') ?></td>
+                                        <td><?= $s['route'] ? htmlspecialchars($s['route']) : '' ?></td>
                                         <td class="text-center"><?= $s['total_packages'] ?></td>
-                                        <td><?= $s['total_weight'] > 0 ? fnum($s['total_weight'], 1) . ' kg' : '-' ?>
+                                        <td><?= $s['total_weight'] > 0 ? fnum($s['total_weight'], 1) . ' kg' : '' ?>
                                             <?php if ($s['max_weight'] > 0): ?>
                                             <br><small class="text-muted">/<?= fnum($s['max_weight'], 0) ?> kg</small>
                                             <?php endif; ?>
                                         </td>
-                                        <td><?= $s['total_cbm'] > 0 ? fnum($s['total_cbm'], 2) . ' m³' : '-' ?></td>
+                                        <td><?= $s['total_cbm'] > 0 ? fnum($s['total_cbm'], 2) . ' m³' : '' ?></td>
                                         <td><span class="badge bg-<?= $cfg['bg'] ?> text-<?= $cfg['text'] ?> fs-12 px-2 py-1"><i class="<?= $cfg['icon'] ?> me-1"></i><?= __($cfg['label']) ?></span></td>
                                         <td>
                                             <?= date('d/m/Y H:i', strtotime($s['create_date'])) ?>
                                             <?php if ($s['departed_date']): ?>
                                             <br><small class="text-muted"><?= __('Xuất') ?>: <?= date('d/m/Y', strtotime($s['departed_date'])) ?></small>
+                                            <?php endif; ?>
+                                            <?php if ($s['arrived_date']): ?>
+                                            <br><small class="text-muted"><?= __('Đến') ?>: <?= date('d/m/Y', strtotime($s['arrived_date'])) ?></small>
                                             <?php endif; ?>
                                         </td>
                                         <td>
@@ -247,7 +250,6 @@ $(function(){
             driver_phone: $('#inp-driver-phone').val(),
             route: $('#inp-route').val(),
             max_weight: $('#inp-max-weight').val(),
-            shipping_method: 'road',
             shipping_cost: $('#inp-shipping-cost').val(),
             note: $('#inp-note').val(),
             csrf_token: csrfToken

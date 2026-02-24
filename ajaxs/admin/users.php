@@ -12,7 +12,15 @@ require_once(__DIR__.'/../../models/is_admin.php');
 
 header('Content-Type: application/json');
 $ToryHub = new DB();
-$csrf = new Csrf(true, true, false);
+$csrf = new Csrf(true, false, false);
+
+// Validate CSRF manually to return JSON error instead of die()
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (!$csrf->validate()) {
+        echo json_encode(['status' => 'error', 'msg' => __('Phiên làm việc hết hạn, vui lòng tải lại trang')]);
+        exit();
+    }
+}
 
 // ADD USER
 if (is_submit('add')) {
@@ -29,8 +37,8 @@ if (is_submit('add')) {
     }
 
     $allowed_roles = ['admin', 'staffcn', 'staffvn', 'customer'];
-    if (!in_array($role, $allowed_roles)) {
-        echo json_encode(['status' => 'error', 'msg' => __('Invalid role')]);
+    if (empty($role) || !in_array($role, $allowed_roles)) {
+        echo json_encode(['status' => 'error', 'msg' => __('Vui lòng chọn vai trò')]);
         exit();
     }
 
@@ -39,7 +47,7 @@ if (is_submit('add')) {
         exit();
     }
 
-    $ToryHub->insert_safe('users', [
+    $result = $ToryHub->insert_safe('users', [
         'username'    => $username,
         'password'    => TypePassword($password),
         'fullname'    => $fullname,
@@ -49,6 +57,11 @@ if (is_submit('add')) {
         'active'      => 1,
         'create_date' => gettime()
     ]);
+
+    if (!$result) {
+        echo json_encode(['status' => 'error', 'msg' => __('Lỗi lưu dữ liệu. Vui lòng kiểm tra lại thông tin')]);
+        exit();
+    }
 
     add_log($getUser['id'], 'ADD_USER', "Added user: $username ($role)");
     echo json_encode(['status' => 'success', 'msg' => __('User added successfully')]);
@@ -66,8 +79,8 @@ if (is_submit('edit')) {
     $password = input_post('password');
 
     $allowed_roles = ['admin', 'staffcn', 'staffvn', 'customer'];
-    if (!in_array($role, $allowed_roles)) {
-        echo json_encode(['status' => 'error', 'msg' => __('Invalid role')]);
+    if (empty($role) || !in_array($role, $allowed_roles)) {
+        echo json_encode(['status' => 'error', 'msg' => __('Vui lòng chọn vai trò')]);
         exit();
     }
 
@@ -84,7 +97,12 @@ if (is_submit('edit')) {
         $data['password'] = TypePassword($password);
     }
 
-    $ToryHub->update_safe('users', $data, "`id` = ?", [$id]);
+    $result = $ToryHub->update_safe('users', $data, "`id` = ?", [$id]);
+    if (!$result) {
+        echo json_encode(['status' => 'error', 'msg' => __('Lỗi cập nhật dữ liệu. Vui lòng kiểm tra lại')]);
+        exit();
+    }
+
     add_log($getUser['id'], 'EDIT_USER', "Edited user ID: $id");
     echo json_encode(['status' => 'success', 'msg' => __('User updated successfully')]);
     exit();
