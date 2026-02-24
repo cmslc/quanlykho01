@@ -455,6 +455,7 @@ require_once(__DIR__.'/sidebar.php');
 </div>
 
 <script>
+function esc(s){ if(!s) return ''; var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 function fnum(val, dec) {
     var n = parseFloat(val) || 0;
     var parts = n.toFixed(dec).split('.');
@@ -699,7 +700,7 @@ $(function(){
         $icon.removeClass('ri-arrow-down-s-line').addClass('ri-arrow-up-s-line');
         if ($expandRow.length) { $expandRow.show(); updateSelectedSummary(); return; }
 
-        var $newRow = $('<tr class="pkg-expand-row" id="pkg-row-' + orderId + '" data-order-id="' + orderId + '"><td colspan="' + colCount + '" class="p-0"><div class="px-4 py-2 bg-light"><div class="text-center text-muted py-2"><i class="ri-loader-4-line ri-spin"></i> <?= __('Đang tải...') ?></div></div></td></tr>');
+        var $newRow = $('<tr class="pkg-expand-row" id="pkg-row-' + orderId + '" data-order-id="' + orderId + '"><td colspan="' + colCount + '" class="p-0"><div class="px-4 py-2 bg-light"><div class="text-muted py-2"><i class="ri-loader-4-line ri-spin"></i> <?= __('Đang tải...') ?></div></div></td></tr>');
         $orderRow.after($newRow);
         var orderChecked = $('.row-check[data-order-id="' + orderId + '"]').is(':checked');
 
@@ -710,7 +711,7 @@ $(function(){
 
                 var html = '<table class="table table-sm table-borderless mb-0"><thead><tr>';
                 html += '<th style="width:30px;"><input type="checkbox" class="form-check-input sub-pkg-check-all" data-order-id="' + orderId + '"' + (orderChecked ? ' checked' : '') + '></th>';
-                html += '<th><?= __('Kiện') ?></th><th><?= __('Cân nặng') ?></th><th><?= __('Kích thước') ?></th><th><?= __('Số khối') ?></th><th><?= __('Trạng thái') ?></th>';
+                html += '<th><?= __('Mã kiện') ?></th><th><?= __('Cân nặng') ?></th><th><?= __('Kích thước') ?></th><th><?= __('Số khối') ?></th><th><?= __('Trạng thái') ?></th>';
                 html += '</tr></thead><tbody>';
 
                 // Group packages by same weight + dimensions + status
@@ -738,10 +739,9 @@ $(function(){
                         ? parseFloat(first.length_cm) + '×' + parseFloat(first.width_cm) + '×' + parseFloat(first.height_cm) : '-';
 
                     if (pkgs.length === 1) {
-                        var idx = pkgIndexMap[first.id];
                         html += '<tr>';
                         html += '<td><input type="checkbox" class="form-check-input sub-pkg-check" value="' + first.id + '" data-weight="' + first.weight_actual + '" data-cbm="' + first.cbm + '"' + (orderChecked ? ' checked' : '') + '></td>';
-                        html += '<td><strong><?= __('Kiện') ?> ' + idx + '</strong></td>';
+                        html += '<td><strong>' + esc(first.package_code) + '</strong></td>';
                         html += '<td>' + (first.weight_actual > 0 ? fnum(first.weight_actual, 2) + ' kg' : '-') + '</td>';
                         html += '<td>' + dim + '</td>';
                         html += '<td>' + (first.cbm > 0 ? fnum(first.cbm, 2) + ' m³' : '-') + '</td>';
@@ -758,7 +758,7 @@ $(function(){
 
                         html += '<tr class="pkg-group-row" data-group-id="' + groupId + '">';
                         html += '<td><input type="checkbox" class="form-check-input sub-pkg-group-check" data-group-id="' + groupId + '" data-total="' + pkgs.length + '"' + (orderChecked ? ' checked' : '') + '></td>';
-                        html += '<td><a href="#" class="btn-expand-group text-decoration-none" data-group-id="' + groupId + '"><strong><?= __('Kiện') ?> ' + firstIdx + ' ~ ' + lastIdx + '</strong> <span class="badge bg-primary-subtle text-primary">' + pkgs.length + ' <?= __('kiện') ?></span> <i class="ri-arrow-down-s-line grp-icon"></i></a>';
+                        html += '<td><a href="#" class="btn-expand-group text-decoration-none" data-group-id="' + groupId + '"><strong>' + esc(pkgs[0].package_code) + ' ~ ' + esc(pkgs[pkgs.length - 1].package_code) + '</strong> <span class="badge bg-primary-subtle text-primary">' + pkgs.length + ' <?= __('kiện') ?></span> <i class="ri-arrow-down-s-line grp-icon"></i></a>';
                         html += ' <input type="number" class="form-control form-control-sm d-inline-block grp-qty-input" data-group-id="' + groupId + '" min="0" max="' + pkgs.length + '" value="' + initQty + '" style="width:70px;" title="<?= __('Nhập số kiện muốn chọn') ?>">';
                         html += ' <span class="text-muted">/ ' + pkgs.length + '</span>';
                         html += '</td>';
@@ -773,7 +773,7 @@ $(function(){
                             var idx = pkgIndexMap[pkg.id];
                             html += '<tr class="pkg-group-detail d-none" data-group-id="' + groupId + '">';
                             html += '<td class="ps-4"><input type="checkbox" class="form-check-input sub-pkg-check" value="' + pkg.id + '" data-weight="' + pkg.weight_actual + '" data-cbm="' + pkg.cbm + '" data-group-id="' + groupId + '"' + (orderChecked ? ' checked' : '') + '></td>';
-                            html += '<td class="ps-4"><?= __('Kiện') ?> ' + idx + '</td>';
+                            html += '<td class="ps-4">' + esc(pkg.package_code) + '</td>';
                             html += '<td>' + (pkg.weight_actual > 0 ? fnum(pkg.weight_actual, 2) + ' kg' : '-') + '</td>';
                             html += '<td>' + dim + '</td>';
                             html += '<td>' + (pkg.cbm > 0 ? fnum(pkg.cbm, 2) + ' m³' : '-') + '</td>';

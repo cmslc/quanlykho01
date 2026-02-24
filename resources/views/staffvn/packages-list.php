@@ -9,7 +9,7 @@ $filterStatus = input_get('status') ?: 'vn_warehouse';
 $filterSearch = trim(input_get('search') ?? '');
 $filterDateFrom = input_get('date_from') ?: '';
 $filterDateTo = input_get('date_to') ?: '';
-$pkgStatuses = ['shipping', 'vn_warehouse', 'delivered'];
+$pkgStatuses = ['loading', 'shipping', 'vn_warehouse', 'delivered'];
 
 $where = "1=1";
 $params = [];
@@ -18,7 +18,7 @@ if ($filterStatus && in_array($filterStatus, $pkgStatuses)) {
     $where .= " AND p.status = ?";
     $params[] = $filterStatus;
 } else {
-    $where .= " AND p.status IN ('shipping','vn_warehouse','delivered')";
+    $where .= " AND p.status IN ('loading','shipping','vn_warehouse','delivered')";
     $filterStatus = '';
 }
 
@@ -73,7 +73,7 @@ require_once(__DIR__.'/sidebar.php');
 
         <!-- Status Summary -->
         <div class="row">
-            <div class="col-md-3">
+            <div class="col">
                 <a href="<?= base_url('staffvn/packages-list&status=') ?>" class="text-decoration-none">
                     <div class="card card-animate <?= empty($filterStatus) ? 'border border-primary' : '' ?>">
                         <div class="card-body py-2 text-center">
@@ -84,9 +84,9 @@ require_once(__DIR__.'/sidebar.php');
                 </a>
             </div>
             <?php
-            $statusColors = ['shipping' => 'warning', 'vn_warehouse' => 'success', 'delivered' => 'primary'];
+            $statusColors = ['loading' => 'secondary', 'shipping' => 'warning', 'vn_warehouse' => 'success', 'delivered' => 'primary'];
             foreach ($pkgStatuses as $s): ?>
-            <div class="col-md-3">
+            <div class="col">
                 <a href="<?= base_url('staffvn/packages-list&status=' . $s) ?>" class="text-decoration-none">
                     <div class="card card-animate <?= $filterStatus == $s ? 'border border-primary' : '' ?>">
                         <div class="card-body py-2 text-center">

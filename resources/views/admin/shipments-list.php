@@ -29,7 +29,17 @@ $totalPages = max(1, ceil($totalShipments / $perPage));
 if ($page > $totalPages) $page = $totalPages;
 $offset = ($page - 1) * $perPage;
 
-$shipments = $ToryHub->get_list_safe("SELECT s.*, u.fullname as creator_name
+$shipments = $ToryHub->get_list_safe("SELECT s.*, u.fullname as creator_name,
+    (SELECT COUNT(DISTINCT b.id) FROM `shipment_packages` sp2
+     JOIN `bag_packages` bp2 ON sp2.package_id = bp2.package_id
+     JOIN `bags` b ON bp2.bag_id = b.id
+     WHERE sp2.shipment_id = s.id) as cnt_bags,
+    (SELECT COUNT(DISTINCT o2.id) FROM `shipment_packages` sp3
+     JOIN `package_orders` po3 ON sp3.package_id = po3.package_id
+     JOIN `orders` o2 ON po3.order_id = o2.id
+     WHERE sp3.shipment_id = s.id
+     AND o2.product_type = 'wholesale'
+     AND sp3.package_id NOT IN (SELECT bp3.package_id FROM `bag_packages` bp3)) as cnt_wholesale
     FROM `shipments` s LEFT JOIN `users` u ON s.created_by = u.id
     WHERE $where ORDER BY s.create_date DESC LIMIT $perPage OFFSET $offset", $params);
 
@@ -118,7 +128,15 @@ require_once(__DIR__.'/sidebar.php');
                                     <?php foreach ($shipments as $s): ?>
                                     <?php $cfg = $statusLabels[$s['status']] ?? $statusLabels['preparing']; ?>
                                     <tr>
-                                        <td><a href="<?= base_url('admin/shipments-detail&id=' . $s['id']) ?>"><strong><?= htmlspecialchars($s['shipment_code']) ?></strong></a></td>
+                                        <td>
+                                            <a href="<?= base_url('admin/shipments-detail&id=' . $s['id']) ?>"><strong><?= htmlspecialchars($s['shipment_code']) ?></strong></a>
+                                            <?php $totalMaHang = intval($s['cnt_bags']) + intval($s['cnt_wholesale']); ?>
+                                            <div class="mt-1 text-muted small">
+                                                <i class="ri-archive-line"></i> <?= $totalMaHang ?> <?= __('mã hàng') ?>
+                                                &middot;
+                                                <i class="ri-inbox-line"></i> <?= intval($s['total_packages']) ?> <?= __('kiện') ?>
+                                            </div>
+                                        </td>
                                         <td>
                                             <?php if ($s['truck_plate']): ?>
                                             <strong><?= htmlspecialchars($s['truck_plate']) ?></strong><br>

@@ -343,7 +343,7 @@ if ($request === 'ship') {
     exit;
 }
 
-// ======== DELETE BAG (only if open) ========
+// ======== DELETE BAG (open or sealed only) ========
 if ($request === 'delete') {
     $bag_id = intval(input_post('bag_id'));
 
@@ -352,15 +352,15 @@ if ($request === 'delete') {
         echo json_encode(['status' => 'error', 'msg' => __('Bao hàng không tồn tại')]);
         exit;
     }
-    if ($bag['status'] !== 'open') {
-        echo json_encode(['status' => 'error', 'msg' => __('Chỉ có thể xóa bao đang mở, không thể xóa bao đã đóng hoặc đang vận chuyển')]);
+    if (!in_array($bag['status'], ['open', 'sealed'])) {
+        echo json_encode(['status' => 'error', 'msg' => __('Không thể xóa bao đang vận chuyển hoặc đã đến kho')]);
         exit;
     }
 
     // Revert all packages back to cn_warehouse
     $Packages = new Packages();
     $bagPackages = $ToryHub->get_list_safe(
-        "SELECT bp.package_id FROM `bag_packages` bp JOIN `packages` p ON bp.package_id = p.id WHERE bp.bag_id = ? AND p.status = 'packed'",
+        "SELECT bp.package_id FROM `bag_packages` bp JOIN `packages` p ON bp.package_id = p.id WHERE bp.bag_id = ? AND p.status IN ('packed', 'cn_warehouse')",
         [$bag_id]
     );
     foreach ($bagPackages as $bp) {

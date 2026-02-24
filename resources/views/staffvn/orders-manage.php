@@ -385,10 +385,10 @@ $(function(){
         }, function(res){
             if (res.csrf_token) csrfToken = res.csrf_token;
             if (res.status === 'success' && res.packages && res.packages.length > 0) {
-                var h = '<table class="table table-sm table-borderless mb-0"><thead><tr>';
+                var h = '<table class="table table-sm table-borderless mb-0 text-muted"><thead><tr>';
                 h += '<th>#</th><th><?= __("Mã kiện") ?></th><th><?= __("Mã vận đơn") ?></th>';
                 h += '<th><?= __("Sản phẩm") ?></th><th><?= __("Khách hàng") ?></th>';
-                h += '<th><?= __("Cân nặng") ?></th><th><?= __("Trạng thái") ?></th>';
+                h += '<th><?= __("Cân nặng") ?></th>';
                 h += '</tr></thead><tbody>';
                 res.packages.forEach(function(p, i){
                     h += '<tr>';
@@ -398,7 +398,6 @@ $(function(){
                     h += '<td><small>' + esc(p.product_name || '-') + '</small></td>';
                     h += '<td><small>' + esc(p.customer_name || '-') + '</small></td>';
                     h += '<td>' + (p.weight_charged > 0 ? p.weight_charged + ' kg' : '-') + '</td>';
-                    h += '<td>' + (p.status_html || p.status || '-') + '</td>';
                     h += '</tr>';
                 });
                 h += '</tbody></table>';
@@ -436,9 +435,9 @@ $(function(){
         }, function(res){
             if (res.csrf_token) csrfToken = res.csrf_token;
             if (res.status === 'success' && res.packages && res.packages.length > 0) {
-                var h = '<table class="table table-sm table-borderless mb-0"><thead><tr>';
+                var h = '<table class="table table-sm table-borderless mb-0 text-muted"><thead><tr>';
                 h += '<th>#</th><th><?= __("Mã kiện") ?></th><th><?= __("Mã vận đơn") ?></th>';
-                h += '<th><?= __("Cân nặng") ?></th><th><?= __("Số khối") ?></th><th><?= __("Trạng thái") ?></th>';
+                h += '<th><?= __("Cân nặng") ?></th><th><?= __("Số khối") ?></th>';
                 h += '</tr></thead><tbody>';
                 res.packages.forEach(function(p, i){
                     h += '<tr>';
@@ -447,7 +446,6 @@ $(function(){
                     h += '<td><code class="fs-11">' + esc(p.tracking_cn || '-') + '</code></td>';
                     h += '<td>' + (p.weight_charged > 0 ? p.weight_charged + ' kg' : (p.weight_actual > 0 ? p.weight_actual + ' kg' : '-')) + '</td>';
                     h += '<td>' + (p.cbm > 0 ? p.cbm + ' m³' : '-') + '</td>';
-                    h += '<td>' + (p.status_html || p.status || '-') + '</td>';
                     h += '</tr>';
                 });
                 h += '</tbody></table>';

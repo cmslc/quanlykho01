@@ -132,7 +132,7 @@ require_once(__DIR__.'/sidebar.php');
                                         <td class="align-middle"><?= floatval($bag['weight_volume']) ?></td>
                                         <td class="align-middle"><?= htmlspecialchars($bag['creator_name'] ?? '') ?></td>
                                         <td class="align-middle"><?= date('d/m/Y H:i', strtotime($bag['create_date'])) ?></td>
-                                        <td class="align-middle" onclick="event.stopPropagation();">
+                                        <td class="align-middle">
                                             <div class="d-flex gap-1">
                                                 <?php if ($bag['status'] === 'open'): ?>
                                                 <button type="button" class="btn btn-dark btn-seal-bag" data-id="<?= $bag['id'] ?>" data-code="<?= htmlspecialchars($bag['bag_code']) ?>" data-count="<?= $bag['total_packages'] ?>"><i class="ri-lock-line me-1"></i><?= __('Đóng bao') ?></button>

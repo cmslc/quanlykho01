@@ -235,7 +235,7 @@ class Shipments extends DB
             "SELECT p.*, sp.added_at, sp.added_by,
                     o.order_code, o.product_name, o.product_code, o.cargo_type,
                     c.fullname as customer_name, c.customer_code,
-                    b.bag_code, b.total_weight as bag_weight,
+                    b.bag_code, b.status as bag_status, b.total_weight as bag_weight,
                     b.length_cm as bag_length, b.width_cm as bag_width, b.height_cm as bag_height
              FROM `shipment_packages` sp
              JOIN `packages` p ON sp.package_id = p.id

@@ -117,7 +117,13 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="card-body">
                         <?php
                         // Group packages by mã hàng (bag_code > product_code > order_code)
-                        $colSpan = $isPreparing ? 6 : 5;
+                        $colSpan = $isPreparing ? 7 : 6;
+                        $bagStatusLabels = [
+                            'sealed' => ['label' => 'Chờ vận chuyển', 'bg' => 'warning', 'icon' => 'ri-time-line'],
+                            'loading' => ['label' => 'Đang xếp xe', 'bg' => 'secondary', 'icon' => 'ri-truck-line'],
+                            'shipping' => ['label' => 'Đang vận chuyển', 'bg' => 'primary', 'icon' => 'ri-ship-line'],
+                            'arrived' => ['label' => 'Đã đến kho VN', 'bg' => 'success', 'icon' => 'ri-check-double-line'],
+                        ];
                         $grouped = [];
                         foreach ($packages as $pkg) {
                             $key = $pkg['bag_code'] ?: ($pkg['product_code'] ?: ($pkg['order_code'] ?: __('Không xác định')));
@@ -127,6 +133,7 @@ require_once(__DIR__.'/sidebar.php');
                                     'customer' => $pkg['customer_name'] ?: '',
                                     'customer_code' => $pkg['customer_code'] ?: '',
                                     'is_bag' => !empty($pkg['bag_code']),
+                                    'bag_status' => $pkg['bag_status'] ?? '',
                                     'bag_weight' => $pkg['bag_weight'] ?? 0,
                                     'bag_cbm' => (($pkg['bag_length'] ?? 0) * ($pkg['bag_width'] ?? 0) * ($pkg['bag_height'] ?? 0)) / 1000000,
                                 ];
@@ -143,6 +150,7 @@ require_once(__DIR__.'/sidebar.php');
                                         <th><?= __('Khách hàng') ?></th>
                                         <th><?= __('Tổng cân') ?></th>
                                         <th><?= __('Tổng khối') ?></th>
+                                        <th><?= __('Trạng thái') ?></th>
                                         <?php if ($isPreparing): ?>
                                         <th></th>
                                         <?php endif; ?>
@@ -182,6 +190,14 @@ require_once(__DIR__.'/sidebar.php');
                                         </td>
                                         <td><?= $totalW > 0 ? fnum($totalW, 2) . ' kg' : '' ?></td>
                                         <td><?= $totalCbm > 0 ? fnum($totalCbm, 2) . ' m³' : '' ?></td>
+                                        <td>
+                                            <?php if ($group['is_bag'] && !empty($group['bag_status']) && isset($bagStatusLabels[$group['bag_status']])):
+                                                $bsl = $bagStatusLabels[$group['bag_status']]; ?>
+                                            <span class="badge bg-<?= $bsl['bg'] ?>-subtle text-<?= $bsl['bg'] ?>" style="font-size:11px;"><i class="<?= $bsl['icon'] ?> me-1"></i><?= __($bsl['label']) ?></span>
+                                            <?php else: ?>
+                                            <?= display_package_status($pkgList[0]['status']) ?>
+                                            <?php endif; ?>
+                                        </td>
                                         <?php if ($isPreparing): ?>
                                         <td></td>
                                         <?php endif; ?>
@@ -196,7 +212,6 @@ require_once(__DIR__.'/sidebar.php');
                                                         <th><?= __('Cân nặng') ?></th>
                                                         <th><?= __('Kích thước') ?></th>
                                                         <th><?= __('Số khối') ?></th>
-                                                        <th><?= __('Trạng thái') ?></th>
                                                         <?php if ($isPreparing): ?><th></th><?php endif; ?>
                                                     </tr></thead>
                                                     <tbody>
@@ -208,7 +223,6 @@ require_once(__DIR__.'/sidebar.php');
                                                         <td><?= $pkg['weight_charged'] > 0 ? fnum($pkg['weight_charged'], 2) . ' kg' : '' ?></td>
                                                         <td><?= ($pkg['length_cm'] > 0) ? floatval($pkg['length_cm']) . '×' . floatval($pkg['width_cm']) . '×' . floatval($pkg['height_cm']) : '' ?></td>
                                                         <td><?= $cbm > 0 ? fnum($cbm, 2) . ' m³' : '' ?></td>
-                                                        <td><?= display_package_status($pkg['status']) ?></td>
                                                         <?php if ($isPreparing): ?>
                                                         <td><button class="btn btn-sm btn-outline-danger btn-remove-pkg" data-id="<?= $pkg['id'] ?>" data-code="<?= htmlspecialchars($pkg['package_code']) ?>"><i class="ri-close-line"></i></button></td>
                                                         <?php endif; ?>
