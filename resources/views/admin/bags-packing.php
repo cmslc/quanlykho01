@@ -104,7 +104,7 @@ require_once(__DIR__.'/sidebar.php');
                             </tr>
                             <tr>
                                 <td class="text-muted"><?= __('Tổng cân') ?></td>
-                                <td><strong id="bag-weight"><?= number_format($bag['total_weight'], 2) ?></strong> kg</td>
+                                <td><strong id="bag-weight"><?= floatval($bag['total_weight']) ?></strong> kg</td>
                             </tr>
                             <tr>
                                 <td class="text-muted"><?= __('Số khối') ?></td>
@@ -118,19 +118,19 @@ require_once(__DIR__.'/sidebar.php');
                         <?php if ($bag['status'] === 'open'): ?>
                         <div class="mt-3">
                             <label class="form-label fw-bold"><?= __('Cân nặng (kg)') ?></label>
-                            <input type="number" step="0.01" min="0" class="form-control" id="input-bag-weight" value="<?= $bag['total_weight'] ?>" placeholder="0.00">
+                            <input type="number" step="0.01" min="0" class="form-control" id="input-bag-weight" value="<?= floatval($bag['total_weight']) ?>" placeholder="0">
                         </div>
                         <div class="mt-2">
                             <label class="form-label fw-bold"><?= __('Kích thước (cm)') ?></label>
                             <div class="row g-2">
                                 <div class="col-4">
-                                    <input type="number" step="0.1" min="0" class="form-control" id="input-length" value="<?= $bag['length_cm'] ?>" placeholder="Dài">
+                                    <input type="number" step="0.1" min="0" class="form-control" id="input-length" value="<?= floatval($bag['length_cm']) ?>" placeholder="Dài">
                                 </div>
                                 <div class="col-4">
-                                    <input type="number" step="0.1" min="0" class="form-control" id="input-width" value="<?= $bag['width_cm'] ?>" placeholder="Rộng">
+                                    <input type="number" step="0.1" min="0" class="form-control" id="input-width" value="<?= floatval($bag['width_cm']) ?>" placeholder="Rộng">
                                 </div>
                                 <div class="col-4">
-                                    <input type="number" step="0.1" min="0" class="form-control" id="input-height" value="<?= $bag['height_cm'] ?>" placeholder="Cao">
+                                    <input type="number" step="0.1" min="0" class="form-control" id="input-height" value="<?= floatval($bag['height_cm']) ?>" placeholder="Cao">
                                 </div>
                             </div>
                         </div>
@@ -228,7 +228,7 @@ require_once(__DIR__.'/sidebar.php');
                                         <td><strong><?= htmlspecialchars($pkg['tracking_cn']) ?></strong></td>
                                         <td><?= htmlspecialchars(mb_strimwidth($pkg['order_product'] ?? '', 0, 25, '...')) ?></td>
                                         <td><?= htmlspecialchars($pkg['customer_name'] ?? '-') ?></td>
-                                        <td><?= number_format($pkg['weight_charged'], 2) ?></td>
+                                        <td><?= floatval($pkg['weight_charged']) ?></td>
                                         <td><?= date('H:i:s', strtotime($pkg['scanned_at'])) ?></td>
                                         <?php if ($bag['status'] === 'open'): ?>
                                         <td><button type="button" class="btn btn-sm btn-outline-danger btn-unscan" data-id="<?= $pkg['id'] ?>"><i class="ri-close-line"></i></button></td>
@@ -302,7 +302,7 @@ $(function(){
                     + '<td><strong>' + $('<span>').text(p.tracking_cn).html() + '</strong></td>'
                     + '<td>' + $('<span>').text(p.order_product || '').html() + '</td>'
                     + '<td>' + $('<span>').text(p.customer_name || '-').html() + '</td>'
-                    + '<td>' + parseFloat(p.weight_charged).toFixed(2) + '</td>'
+                    + '<td>' + parseFloat(p.weight_charged) + '</td>'
                     + '<td>' + now + '</td>'
                     + '<td><button type="button" class="btn btn-sm btn-outline-danger btn-unscan" data-id="' + p.id + '"><i class="ri-close-line"></i></button></td>'
                     + '</tr>';
@@ -311,7 +311,7 @@ $(function(){
                 setTimeout(function(){ $('tr[data-package-id="' + p.id + '"]').removeClass('table-success'); }, 1500);
                 // Update totals
                 $('#bag-count').text(res.bag_total_packages);
-                $('#bag-weight').text(parseFloat(res.bag_total_weight).toFixed(2));
+                $('#bag-weight').text(parseFloat(res.bag_total_weight));
                 $('#pkg-count-header').text(res.bag_total_packages);
                 $input.val('').prop('disabled', false).focus();
             } else {
@@ -342,7 +342,7 @@ $(function(){
             if (res.status == 'success') {
                 btn.closest('tr').fadeOut(300, function(){ $(this).remove(); });
                 $('#bag-count').text(res.bag_total_packages);
-                $('#bag-weight').text(parseFloat(res.bag_total_weight).toFixed(2));
+                $('#bag-weight').text(parseFloat(res.bag_total_weight));
                 $('#pkg-count-header').text(res.bag_total_packages);
             } else {
                 Swal.fire({icon: 'error', text: res.msg});
@@ -377,7 +377,7 @@ $(function(){
             csrf_token: csrfToken
         }, function(res){
             if (res.status == 'success') {
-                $('#bag-weight').text(parseFloat(res.bag_total_weight).toFixed(2));
+                $('#bag-weight').text(parseFloat(res.bag_total_weight));
                 Swal.fire({icon: 'success', title: res.msg, timer: 1000, showConfirmButton: false});
             } else {
                 Swal.fire({icon: 'error', text: res.msg});
