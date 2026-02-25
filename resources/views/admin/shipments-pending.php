@@ -215,7 +215,6 @@ require_once(__DIR__.'/sidebar.php');
                                         <th class="align-middle"><?= __('Mã hàng') ?></th>
                                         <th class="align-middle"><?= __('Sản phẩm') ?></th>
                                         <th class="align-middle text-center" style="width:60px;"><?= __('Ảnh') ?></th>
-                                        <th class="align-middle"><?= __('Phân loại') ?></th>
                                         <th class="align-middle"><?= __('Khách hàng') ?></th>
                                         <th class="align-middle text-center"><?= __('Số kiện') ?></th>
                                         <th class="align-middle text-end"><?= __('Cân nặng') ?></th>
@@ -225,7 +224,7 @@ require_once(__DIR__.'/sidebar.php');
                                 </thead>
                                 <tbody>
                                     <?php if ($totalRows === 0): ?>
-                                    <tr><td colspan="10" class="text-center text-muted py-4"><?= __('Không có kiện hàng nào chờ xếp xe') ?></td></tr>
+                                    <tr><td colspan="9" class="text-center text-muted py-4"><?= __('Không có kiện hàng nào chờ xếp xe') ?></td></tr>
                                     <?php endif; ?>
 
                                     <?php // === BAG ROWS (retail) === ?>
@@ -249,7 +248,10 @@ require_once(__DIR__.'/sidebar.php');
                                             <div class="mt-1"><span class="text-muted"><i class="ri-archive-line"></i> <?= $pkgCount ?> <?= __('kiện') ?></span></div>
                                             <?php endif; ?>
                                         </td>
-                                        <td class="align-middle"><span class="text-muted">-</span></td>
+                                        <td class="align-middle">
+                                            <span class="text-muted">-</span>
+                                            <div class="mt-1"><?= display_cargo_type('easy') ?></div>
+                                        </td>
                                         <td class="align-middle text-center">
                                             <?php if (!empty($bag['bag_images'])):
                                                 $bagImgArr = array_filter(array_map('trim', explode(',', $bag['bag_images'])));
@@ -267,7 +269,6 @@ require_once(__DIR__.'/sidebar.php');
                                             <span class="text-muted">-</span>
                                             <?php endif; ?>
                                         </td>
-                                        <td class="align-middle"><?= display_cargo_type('easy') ?></td>
                                         <td class="align-middle">
                                             <?php if (count($bagCusts) == 1): ?>
                                                 <?= htmlspecialchars(array_values($bagCusts)[0]) ?>
@@ -304,7 +305,12 @@ require_once(__DIR__.'/sidebar.php');
                                             <div class="mt-1"><a href="#" class="btn-expand-pkgs text-muted text-decoration-none" data-order-id="<?= $order['id'] ?>"><i class="ri-archive-line"></i> <?= $pkgCount ?> <?= __('kiện') ?> <i class="ri-arrow-down-s-line expand-icon fs-14"></i></a></div>
                                             <?php endif; ?>
                                         </td>
-                                        <td class="align-middle"><small><?= htmlspecialchars($order['product_name'] ?? '-') ?></small></td>
+                                        <td class="align-middle">
+                                            <?= htmlspecialchars($order['product_name'] ?? '-') ?>
+                                            <?php if (!empty($order['cargo_type'])): ?>
+                                            <div class="mt-1"><?= display_cargo_type($order['cargo_type']) ?></div>
+                                            <?php endif; ?>
+                                        </td>
                                         <td class="align-middle text-center">
                                             <?php if (!empty($order['product_image'])):
                                                 $orderImgArr = array_filter(array_map('trim', explode(',', $order['product_image'])));
@@ -322,7 +328,6 @@ require_once(__DIR__.'/sidebar.php');
                                             <span class="text-muted">-</span>
                                             <?php endif; ?>
                                         </td>
-                                        <td class="align-middle"><?= !empty($order['cargo_type']) ? display_cargo_type($order['cargo_type']) : '<span class="text-muted">-</span>' ?></td>
                                         <td class="align-middle">
                                             <?php if ($order['customer_id']): ?>
                                             <a href="<?= base_url('admin/customers-detail&id=' . $order['customer_id']) ?>" class="fw-bold"><?= htmlspecialchars($order['customer_name'] ?? '') ?></a>
@@ -714,7 +719,7 @@ $(function(){
 
                 var html = '<table class="table table-sm table-borderless mb-0"><thead><tr>';
                 html += '<th style="width:30px;"><input type="checkbox" class="form-check-input sub-pkg-check-all" data-order-id="' + orderId + '"' + (orderChecked ? ' checked' : '') + '></th>';
-                html += '<th><?= __('Mã kiện') ?></th><th><?= __('Sản phẩm') ?></th><th><?= __('Cân nặng') ?></th><th><?= __('Kích thước') ?></th><th><?= __('Số khối') ?></th><th><?= __('Trạng thái') ?></th>';
+                html += '<th><?= __('Mã kiện') ?></th><th><?= __('Cân nặng') ?></th><th><?= __('Kích thước') ?></th><th><?= __('Số khối') ?></th><th><?= __('Trạng thái') ?></th>';
                 html += '</tr></thead><tbody>';
 
                 // Group packages by same weight + dimensions + status
@@ -745,7 +750,6 @@ $(function(){
                         html += '<tr>';
                         html += '<td><input type="checkbox" class="form-check-input sub-pkg-check" value="' + first.id + '" data-weight="' + first.weight_actual + '" data-cbm="' + first.cbm + '"' + (orderChecked ? ' checked' : '') + '></td>';
                         html += '<td><strong>' + esc(first.package_code) + '</strong></td>';
-                        html += '<td><small>' + esc(first.product_name || '-') + '</small></td>';
                         html += '<td>' + (first.weight_actual > 0 ? fnum(first.weight_actual, 2) + ' kg' : '-') + '</td>';
                         html += '<td>' + dim + '</td>';
                         html += '<td>' + (first.cbm > 0 ? fnum(first.cbm, 2) + ' m³' : '-') + '</td>';
@@ -766,7 +770,6 @@ $(function(){
                         html += ' <input type="number" class="form-control form-control-sm d-inline-block grp-qty-input" data-group-id="' + groupId + '" min="0" max="' + pkgs.length + '" value="' + initQty + '" style="width:70px;" title="<?= __('Nhập số kiện muốn chọn') ?>">';
                         html += ' <span class="text-muted">/ ' + pkgs.length + '</span>';
                         html += '</td>';
-                        html += '<td><small>' + esc(first.product_name || '-') + '</small></td>';
                         html += '<td class="grp-weight-cell" data-group-id="' + groupId + '" data-unit-w="' + first.weight_actual + '">' + (first.weight_actual > 0 ? '1 <?= __('kiện') ?>: ' + fnum(first.weight_actual, 2) + ' kg<br><strong>' + fnum(orderChecked ? totalW : 0, 2) + ' kg</strong>' : '-') + '</td>';
                         html += '<td>' + dim + '</td>';
                         html += '<td class="grp-cbm-cell" data-group-id="' + groupId + '" data-unit-c="' + first.cbm + '">' + (first.cbm > 0 ? '1 <?= __('kiện') ?>: ' + fnum(first.cbm, 2) + ' m³<br><strong>' + fnum(orderChecked ? totalC : 0, 2) + ' m³</strong>' : '-') + '</td>';
@@ -779,7 +782,6 @@ $(function(){
                             html += '<tr class="pkg-group-detail d-none" data-group-id="' + groupId + '">';
                             html += '<td class="ps-4"><input type="checkbox" class="form-check-input sub-pkg-check" value="' + pkg.id + '" data-weight="' + pkg.weight_actual + '" data-cbm="' + pkg.cbm + '" data-group-id="' + groupId + '"' + (orderChecked ? ' checked' : '') + '></td>';
                             html += '<td class="ps-4">' + esc(pkg.package_code) + '</td>';
-                            html += '<td><small>' + esc(pkg.product_name || '-') + '</small></td>';
                             html += '<td>' + (pkg.weight_actual > 0 ? fnum(pkg.weight_actual, 2) + ' kg' : '-') + '</td>';
                             html += '<td>' + dim + '</td>';
                             html += '<td>' + (pkg.cbm > 0 ? fnum(pkg.cbm, 2) + ' m³' : '-') + '</td>';
@@ -975,7 +977,7 @@ $(function(){
     // ===== Export Excel =====
     $('#btn-export-excel').on('click', function(){
         var rows = [];
-        rows.push(['<?= __('Mã hàng') ?>', '<?= __('Loại') ?>', '<?= __('Phân loại') ?>', '<?= __('Khách hàng') ?>', '<?= __('Số kiện') ?>', '<?= __('Cân nặng (kg)') ?>', '<?= __('Số khối (m³)') ?>', '<?= __('Trạng thái') ?>']);
+        rows.push(['<?= __('Mã hàng') ?>', '<?= __('Loại') ?>', '<?= __('Khách hàng') ?>', '<?= __('Số kiện') ?>', '<?= __('Cân nặng (kg)') ?>', '<?= __('Số khối (m³)') ?>', '<?= __('Trạng thái') ?>']);
 
         <?php foreach ($sealedBags as $bag):
             $bagW = floatval($bag['bag_weight'] ?? 0); $pkgWC = floatval($bag['pkg_weight_charged'] ?? 0); $pkgWA = floatval($bag['pkg_weight_actual'] ?? 0);
@@ -984,15 +986,14 @@ $(function(){
             $bCusts = $bagCustomerMap[$bag['bag_id']] ?? [];
             $custName = count($bCusts) == 1 ? array_values($bCusts)[0] : (count($bCusts) > 1 ? count($bCusts) . ' khách' : '');
         ?>
-        rows.push([<?= json_encode($bag['bag_code']) ?>, '<?= __('Mã bao') ?>', '<?= __('Hàng dễ') ?>', <?= json_encode($custName) ?>, <?= intval($bag['pkg_count']) ?>, <?= round($w, 2) ?>, <?= round($c, 4) ?>, '<?= __('Đã đóng bao') ?>']);
+        rows.push([<?= json_encode($bag['bag_code']) ?>, '<?= __('Mã bao') ?>', <?= json_encode($custName) ?>, <?= intval($bag['pkg_count']) ?>, <?= round($w, 2) ?>, <?= round($c, 4) ?>, '<?= __('Đã đóng bao') ?>']);
         <?php endforeach; ?>
 
         <?php foreach ($wholesaleOrders as $order):
             $wC = $order['total_weight_charged'] ?? 0; $wA = $order['total_weight_actual'] ?? 0; $w = $wC > 0 ? $wC : $wA;
             $c = $order['total_cbm'] ?? 0;
-            $cargoLabel = ($order['cargo_type'] ?? 'easy') === 'difficult' ? __('Hàng khó') : __('Hàng dễ');
         ?>
-        rows.push([<?= json_encode($order['product_code'] ?? '#' . $order['id']) ?>, '<?= __('Mã hàng') ?>', <?= json_encode($cargoLabel) ?>, <?= json_encode($order['customer_name'] ?? '') ?>, <?= intval($order['pkg_count']) ?>, <?= round($w, 2) ?>, <?= round($c, 4) ?>, '<?= __('Đã về kho TQ') ?>']);
+        rows.push([<?= json_encode($order['product_code'] ?? '#' . $order['id']) ?>, '<?= __('Mã hàng') ?>', <?= json_encode($order['customer_name'] ?? '') ?>, <?= intval($order['pkg_count']) ?>, <?= round($w, 2) ?>, <?= round($c, 4) ?>, '<?= __('Đã về kho TQ') ?>']);
         <?php endforeach; ?>
 
         var csvContent = '\uFEFF';

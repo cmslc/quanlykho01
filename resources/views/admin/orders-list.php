@@ -246,7 +246,6 @@ require_once(__DIR__.'/sidebar.php');
                                 <?php endforeach; ?>
                             </select>
                             <button class="btn btn-primary" id="btn-bulk-apply"><?= __('Áp dụng') ?></button>
-                            <button class="btn btn-info" id="btn-load-truck"><i class="ri-truck-line me-1"></i><?= __('Xếp xe') ?></button>
                             <button class="btn btn-success" id="btn-export-excel"><i class="ri-file-excel-2-line me-1"></i><?= __('Xuất Excel') ?></button>
                         </div>
                     </div>
@@ -269,9 +268,9 @@ require_once(__DIR__.'/sidebar.php');
                                         <th style="width:40px;"><input type="checkbox" class="form-check-input" id="check-all"></th>
                                         <th><?= __('Mã hàng / Mã vận đơn') ?></th>
                                         <?php if ($isRetailPage): ?><th><?= __('Mã bao') ?></th><?php endif; ?>
-                                        <?php if (!$isRetailPage): ?><th><?= __('Phân loại') ?></th><?php endif; ?>
                                         <th><?= __('Khách hàng') ?></th>
                                         <th><?= __('Sản phẩm') ?></th>
+                                        <th class="text-center" style="width:60px;"><?= __('Ảnh') ?></th>
                                         <th><?= __('Cân nặng / Số khối') ?></th>
                                         <th><?= __('Trạng thái') ?></th>
                                         <th><?= __('Thời gian') ?></th>
@@ -326,8 +325,6 @@ require_once(__DIR__.'/sidebar.php');
                                                 <span class="text-muted">-</span>
                                             <?php endif; ?>
                                         </td>
-                                        <?php else: ?>
-                                        <td><?= !empty($order['cargo_type']) ? display_cargo_type($order['cargo_type']) : '<span class="text-muted">-</span>' ?></td>
                                         <?php endif; ?>
                                         <td>
                                             <?php if ($order['customer_id']): ?>
@@ -336,7 +333,29 @@ require_once(__DIR__.'/sidebar.php');
                                             <span class="text-muted">-</span>
                                             <?php endif; ?>
                                         </td>
-                                        <td><?= htmlspecialchars(mb_strimwidth($order['product_name'] ?? '', 0, 30, '...')) ?></td>
+                                        <td>
+                                            <?= htmlspecialchars(mb_strimwidth($order['product_name'] ?? '', 0, 30, '...')) ?>
+                                            <?php if (!$isRetail && !empty($order['cargo_type'])): ?>
+                                            <div class="mt-1"><?= display_cargo_type($order['cargo_type']) ?></div>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="text-center">
+                                            <?php if (!empty($order['product_image'])):
+                                                $orderImgArr = array_filter(array_map('trim', explode(',', $order['product_image'])));
+                                                $orderImgUrls = array_map('get_upload_url', $orderImgArr);
+                                                $thumbUrl = $orderImgUrls[0];
+                                                $imgCount = count($orderImgArr);
+                                            ?>
+                                            <a href="#" class="btn-view-images position-relative d-inline-block" data-images="<?= htmlspecialchars(json_encode(array_values($orderImgUrls))) ?>">
+                                                <img src="<?= $thumbUrl ?>" class="rounded" style="width:40px;height:40px;object-fit:cover;">
+                                                <?php if ($imgCount > 1): ?>
+                                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="font-size:10px;"><?= $imgCount ?></span>
+                                                <?php endif; ?>
+                                            </a>
+                                            <?php else: ?>
+                                            <span class="text-muted">-</span>
+                                            <?php endif; ?>
+                                        </td>
                                         <td>
                                             <?php if ($wCharged > 0): ?>
                                                 <?= fnum($wCharged, 1) ?> kg
@@ -434,101 +453,30 @@ require_once(__DIR__.'/sidebar.php');
             </div>
         </div>
 
-<?php require_once(__DIR__.'/footer.php'); ?>
-
-<!-- Modal Xếp xe -->
-<div class="modal fade" id="modalLoadTruck" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="ri-truck-line me-2"></i><?= __('Xếp xe vận chuyển') ?></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Image Gallery Modal -->
+<div class="modal fade" id="imageGalleryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark border-0">
+            <div class="modal-header border-0 py-2">
+                <span class="text-white-50 fs-12" id="gallery-counter"></span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <div class="alert alert-info py-2 mb-3">
-                        <i class="ri-information-line me-1"></i>
-                        <?= __('Đã chọn') ?> <strong id="truck-pkg-count">0</strong> <?= __('kiện hàng') ?>
-                        — <?= __('Tổng cân') ?>: <strong id="truck-total-weight">0 kg</strong>
-                        — <?= __('Tổng khối') ?>: <strong id="truck-total-cbm">0 m³</strong>
-                    </div>
+            <div class="modal-body p-0">
+                <div id="imageCarousel" class="carousel slide" data-bs-touch="true">
+                    <div class="carousel-inner" id="carousel-items"></div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#imageCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#imageCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    </button>
                 </div>
-
-                <!-- Tab: Chọn chuyến có sẵn / Tạo mới -->
-                <ul class="nav nav-tabs" role="tablist">
-                    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-existing-shipment"><?= __('Chuyến xe có sẵn') ?></a></li>
-                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-new-shipment"><?= __('Tạo chuyến mới') ?></a></li>
-                </ul>
-                <div class="tab-content pt-3">
-                    <!-- Tab 1: Chuyến có sẵn -->
-                    <div class="tab-pane fade show active" id="tab-existing-shipment">
-                        <div id="existing-shipments-loading" class="text-center py-3">
-                            <i class="ri-loader-4-line ri-spin fs-24"></i>
-                        </div>
-                        <div id="existing-shipments-empty" class="text-center text-muted py-3 d-none">
-                            <?= __('Chưa có chuyến xe nào đang chuẩn bị') ?>. <a href="#" onclick="$('#tab-new-shipment-tab').tab('show'); return false;"><?= __('Tạo mới') ?></a>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover mb-0 d-none" id="tbl-existing-shipments">
-                                <thead>
-                                    <tr>
-                                        <th style="width:30px;"></th>
-                                        <th><?= __('Mã chuyến') ?></th>
-                                        <th><?= __('Biển số xe') ?></th>
-                                        <th><?= __('Tài xế') ?></th>
-                                        <th><?= __('Tuyến đường') ?></th>
-                                        <th><?= __('Số kiện') ?></th>
-                                        <th><?= __('Tổng cân') ?></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="existing-shipments-body"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <!-- Tab 2: Tạo mới -->
-                    <div class="tab-pane fade" id="tab-new-shipment">
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label"><?= __('Biển số xe') ?> <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="new-truck-plate" placeholder="<?= __('VD: 29C-12345') ?>">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label"><?= __('Tên tài xế') ?></label>
-                                <input type="text" class="form-control" id="new-driver-name">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label"><?= __('SĐT tài xế') ?></label>
-                                <input type="text" class="form-control" id="new-driver-phone">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label"><?= __('Tuyến đường') ?></label>
-                                <input type="text" class="form-control" id="new-route" value="<?= __('Kho Trung Quốc - Cửa Khẩu') ?>" placeholder="<?= __('VD: Quảng Châu - Hà Nội') ?>">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label"><?= __('Trọng tải tối đa (kg)') ?></label>
-                                <input type="number" class="form-control" id="new-max-weight" step="0.01">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label"><?= __('Chi phí vận chuyển') ?></label>
-                                <input type="number" class="form-control" id="new-shipping-cost" step="0.01">
-                            </div>
-                            <div class="col-md-8">
-                                <label class="form-label"><?= __('Ghi chú') ?></label>
-                                <input type="text" class="form-control" id="new-note">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?= __('Đóng') ?></button>
-                <button type="button" class="btn btn-warning" id="btn-confirm-load-truck">
-                    <i class="ri-truck-line me-1"></i><?= __('Xếp xe') ?>
-                </button>
             </div>
         </div>
     </div>
 </div>
+
+<?php require_once(__DIR__.'/footer.php'); ?>
 
 <script>
 // Format số kiểu VN: dấu . phân tách ngàn, dấu , thập phân, bỏ 0 thừa
@@ -615,11 +563,6 @@ $(function(){
                 $('#pkg-row-' + orderId + ' .sub-pkg-check').prop('checked', checked);
                 $('#pkg-row-' + orderId + ' .sub-pkg-check-all').prop('checked', checked).prop('indeterminate', false);
                 $('#pkg-row-' + orderId + ' .sub-pkg-group-check').prop('checked', checked).prop('indeterminate', false);
-                $('#pkg-row-' + orderId + ' .grp-qty-input').each(function(){
-                    var total = parseInt($(this).attr('max')) || 0;
-                    $(this).val(checked ? total : 0);
-                    updateGroupDisplay($(this).data('group-id'));
-                });
             }
         });
         updateSelectedSummary();
@@ -634,11 +577,6 @@ $(function(){
             $('#pkg-row-' + orderId + ' .sub-pkg-check').prop('checked', checked);
             $('#pkg-row-' + orderId + ' .sub-pkg-check-all').prop('checked', checked).prop('indeterminate', false);
             $('#pkg-row-' + orderId + ' .sub-pkg-group-check').prop('checked', checked).prop('indeterminate', false);
-            $('#pkg-row-' + orderId + ' .grp-qty-input').each(function(){
-                var total = parseInt($(this).attr('max')) || 0;
-                $(this).val(checked ? total : 0);
-                updateGroupDisplay($(this).data('group-id'));
-            });
         }
         // Update master checkbox
         var total = $('.order-check').length;
@@ -653,13 +591,6 @@ $(function(){
         var checked = this.checked;
         $('#pkg-row-' + orderId + ' .sub-pkg-check').prop('checked', checked);
         $('#pkg-row-' + orderId + ' .sub-pkg-group-check').prop('checked', checked).prop('indeterminate', false);
-        // Sync qty inputs
-        $('#pkg-row-' + orderId + ' .grp-qty-input').each(function(){
-            var groupId = $(this).data('group-id');
-            var total = parseInt($(this).attr('max')) || 0;
-            $(this).val(checked ? total : 0);
-            updateGroupDisplay(groupId);
-        });
         // Sync order checkbox
         syncOrderCheckbox(orderId);
         updateSelectedSummary();
@@ -676,7 +607,6 @@ $(function(){
             var checked = $groupChecks.filter(':checked').length;
             var $groupCb = $('.sub-pkg-group-check[data-group-id="' + groupId + '"]');
             $groupCb.prop('checked', total === checked).prop('indeterminate', checked > 0 && checked < total);
-            $('.grp-qty-input[data-group-id="' + groupId + '"]').val(checked);
             updateGroupDisplay(groupId);
         }
         syncOrderCheckbox(orderId);
@@ -689,31 +619,6 @@ $(function(){
         var checked = this.checked;
         var $checks = $('.sub-pkg-check[data-group-id="' + groupId + '"]');
         $checks.prop('checked', checked);
-        var total = parseInt($(this).data('total')) || $checks.length;
-        $('.grp-qty-input[data-group-id="' + groupId + '"]').val(checked ? total : 0);
-        updateGroupDisplay(groupId);
-        var orderId = $(this).closest('.pkg-expand-row').data('order-id');
-        syncOrderCheckbox(orderId);
-        updateSelectedSummary();
-    });
-
-    // ===== Group quantity input =====
-    $(document).on('input change', '.grp-qty-input', function(){
-        var groupId = $(this).data('group-id');
-        var $checks = $('.sub-pkg-check[data-group-id="' + groupId + '"]');
-        var total = $checks.length;
-        var qty = Math.max(0, Math.min(total, parseInt($(this).val()) || 0));
-        $(this).val(qty);
-
-        // Check first N, uncheck rest
-        $checks.each(function(i){
-            $(this).prop('checked', i < qty);
-        });
-
-        // Sync group checkbox
-        var $groupCb = $('.sub-pkg-group-check[data-group-id="' + groupId + '"]');
-        $groupCb.prop('checked', qty === total).prop('indeterminate', qty > 0 && qty < total);
-
         updateGroupDisplay(groupId);
         var orderId = $(this).closest('.pkg-expand-row').data('order-id');
         syncOrderCheckbox(orderId);
@@ -871,13 +776,9 @@ $(function(){
                         var firstIdx = pkgIndexMap[pkgs[0].id];
                         var lastIdx = pkgIndexMap[pkgs[pkgs.length - 1].id];
 
-                        var initQty = orderChecked ? pkgs.length : 0;
-
                         html += '<tr class="pkg-group-row" data-group-id="' + groupId + '">';
                         html += '<td><input type="checkbox" class="form-check-input sub-pkg-group-check" data-group-id="' + groupId + '" data-ids=\'' + JSON.stringify(ids) + '\' data-total="' + pkgs.length + '"' + (orderChecked ? ' checked' : '') + '></td>';
                         html += '<td><a href="#" class="btn-expand-group text-decoration-none" data-group-id="' + groupId + '"><strong>' + pkgs[0].package_code + ' ~ ' + pkgs[pkgs.length-1].package_code + '</strong> <span class="badge bg-primary-subtle text-primary">' + pkgs.length + ' <?= __('kiện') ?></span> <i class="ri-arrow-down-s-line grp-icon"></i></a>';
-                        html += ' <input type="number" class="form-control form-control-sm d-inline-block grp-qty-input" data-group-id="' + groupId + '" min="0" max="' + pkgs.length + '" value="' + initQty + '" style="width:70px;" title="<?= __('Nhập số kiện muốn chọn') ?>">';
-                        html += ' <span class="text-muted">/ ' + pkgs.length + '</span>';
                         html += '</td>';
                         html += '<td class="grp-weight-cell" data-group-id="' + groupId + '" data-unit-w="' + first.weight_actual + '">' + (first.weight_actual > 0 ? '1 kiện: ' + fnum(first.weight_actual, 2) + ' kg<br><strong>' + fnum(orderChecked ? totalW : 0, 2) + ' kg</strong>' : '-') + '</td>';
                         html += '<td>' + dim + '</td>';
@@ -1038,236 +939,43 @@ $(function(){
         window.location.href = '<?= base_url('ajaxs/admin/orders-export.php') ?>?' + params.toString();
     });
 
-    // ===== XẾP XE (Load Truck) =====
-    var shipmentAjaxUrl = '<?= base_url('ajaxs/admin/shipments.php') ?>';
-    var selectedShipmentId = null;
+    // ===== View Images (Bootstrap Carousel) =====
+    var galleryCarousel = null;
+    var galleryTotal = 0;
 
-    function collectSelectedPackageIds() {
-        var packageIds = [];
-        $('.order-check').each(function(){
-            var orderId = $(this).val();
-            if (expandedOrders[orderId]) {
-                $('#pkg-row-' + orderId + ' .sub-pkg-check:checked').each(function(){
-                    packageIds.push($(this).val());
-                });
-            } else if (this.checked) {
-                // Non-expanded: we need package IDs. Collect from data or load them.
-                // For non-expanded, we collect all packages of the order
-                // We'll handle this by passing order_ids to a separate flow
-            }
-        });
-        return packageIds;
-    }
-
-    function collectNonExpandedOrderIds() {
-        var orderIds = [];
-        $('.order-check:checked').each(function(){
-            var orderId = $(this).val();
-            if (!expandedOrders[orderId]) {
-                orderIds.push(orderId);
-            }
-        });
-        return orderIds;
-    }
-
-    // Open modal
-    $('#btn-load-truck').on('click', function(){
-        var packageIds = collectSelectedPackageIds();
-        var nonExpandedOrderIds = collectNonExpandedOrderIds();
-
-        if (packageIds.length === 0 && nonExpandedOrderIds.length === 0) {
-            Swal.fire({icon: 'warning', title: '<?= __('Vui lòng chọn ít nhất 1 kiện hàng') ?>'});
-            return;
-        }
-
-        // If there are non-expanded orders, we need to get their package IDs first
-        if (nonExpandedOrderIds.length > 0) {
-            // Load package IDs for non-expanded orders
-            var loadRequests = nonExpandedOrderIds.map(function(oid){
-                return $.post(pkgAjaxUrl, {
-                    request_name: 'get_order_packages',
-                    order_id: oid,
-                    csrf_token: csrfToken
-                }, null, 'json');
-            });
-
-            $.when.apply($, loadRequests).then(function(){
-                var results = loadRequests.length === 1 ? [arguments] : Array.from(arguments);
-                results.forEach(function(r){
-                    var res = r[0] || r;
-                    if (res.status === 'success' && res.packages) {
-                        res.packages.forEach(function(pkg){
-                            packageIds.push(pkg.id.toString());
-                        });
-                    }
-                });
-                openLoadTruckModal(packageIds);
-            });
+    function updateGalleryCounter() {
+        var idx = $('#imageCarousel .carousel-item.active').index();
+        $('#gallery-counter').text((idx + 1) + ' / ' + galleryTotal);
+        if (galleryTotal <= 1) {
+            $('#imageCarousel .carousel-control-prev, #imageCarousel .carousel-control-next').addClass('d-none');
         } else {
-            openLoadTruckModal(packageIds);
+            $('#imageCarousel .carousel-control-prev, #imageCarousel .carousel-control-next').removeClass('d-none');
         }
-    });
-
-    function openLoadTruckModal(packageIds) {
-        if (packageIds.length === 0) {
-            Swal.fire({icon: 'warning', title: '<?= __('Không có kiện hàng nào để xếp xe') ?>'});
-            return;
-        }
-
-        // Store package IDs for later
-        $('#modalLoadTruck').data('packageIds', packageIds);
-
-        // Update summary
-        var totalW = 0, totalC = 0;
-        packageIds.forEach(function(pid){
-            var $cb = $('.sub-pkg-check[value="' + pid + '"]');
-            if ($cb.length) {
-                totalW += parseFloat($cb.data('weight')) || 0;
-                totalC += parseFloat($cb.data('cbm')) || 0;
-            }
-        });
-        $('#truck-pkg-count').text(packageIds.length);
-        $('#truck-total-weight').text(fnum(totalW, 1) + ' kg');
-        $('#truck-total-cbm').text(fnum(totalC, 2) + ' m³');
-
-        // Reset selection
-        selectedShipmentId = null;
-        $('#existing-shipments-body').empty();
-        $('#tbl-existing-shipments').addClass('d-none');
-        $('#existing-shipments-empty').addClass('d-none');
-        $('#existing-shipments-loading').removeClass('d-none');
-
-        // Reset new shipment form
-        $('#new-truck-plate, #new-driver-name, #new-driver-phone, #new-max-weight, #new-shipping-cost, #new-note').val('');
-        $('#new-route').val('<?= __('Kho Trung Quốc - Cửa Khẩu') ?>');
-
-        // Load existing preparing shipments
-        $.post(shipmentAjaxUrl, {
-            request_name: 'get_preparing',
-            csrf_token: csrfToken
-        }, function(res){
-            $('#existing-shipments-loading').addClass('d-none');
-            if (res.status === 'success' && res.shipments && res.shipments.length > 0) {
-                var html = '';
-                res.shipments.forEach(function(s){
-                    html += '<tr class="shipment-select-row" data-id="' + s.id + '" style="cursor:pointer;">';
-                    html += '<td><input type="radio" name="select_shipment" class="form-check-input" value="' + s.id + '"></td>';
-                    html += '<td><strong>' + (s.shipment_code || '') + '</strong></td>';
-                    html += '<td>' + (s.truck_plate || '-') + '</td>';
-                    html += '<td>' + (s.driver_name || '-') + '</td>';
-                    html += '<td>' + (s.route || '-') + '</td>';
-                    html += '<td>' + (s.total_packages || 0) + '</td>';
-                    html += '<td>' + fnum(parseFloat(s.total_weight) || 0, 1) + ' kg</td>';
-                    html += '</tr>';
-                });
-                $('#existing-shipments-body').html(html);
-                $('#tbl-existing-shipments').removeClass('d-none');
-            } else {
-                $('#existing-shipments-empty').removeClass('d-none');
-                // Auto switch to "create new" tab
-                $('a[href="#tab-new-shipment"]').tab('show');
-            }
-        }, 'json');
-
-        var modal = new bootstrap.Modal(document.getElementById('modalLoadTruck'));
-        modal.show();
     }
 
-    // Click on shipment row to select
-    $(document).on('click', '.shipment-select-row', function(){
-        var id = $(this).data('id');
-        selectedShipmentId = id;
-        $(this).find('input[type="radio"]').prop('checked', true);
-        $('.shipment-select-row').removeClass('table-primary');
-        $(this).addClass('table-primary');
+    $('#imageCarousel').on('slid.bs.carousel', updateGalleryCounter);
+
+    $(document).on('click', '.btn-view-images', function(e){
+        e.preventDefault();
+        var images = $(this).data('images');
+        if (!images || !images.length) return;
+        galleryTotal = images.length;
+
+        var html = '';
+        images.forEach(function(url, i){
+            html += '<div class="carousel-item' + (i === 0 ? ' active' : '') + '">'
+                + '<div class="d-flex align-items-center justify-content-center" style="min-height:300px;">'
+                + '<img src="' + url + '" class="d-block" style="max-width:100%;max-height:75vh;object-fit:contain;">'
+                + '</div></div>';
+        });
+        $('#carousel-items').html(html);
+
+        if (galleryCarousel) galleryCarousel.dispose();
+        galleryCarousel = new bootstrap.Carousel($('#imageCarousel')[0], { interval: false, touch: true, keyboard: true });
+
+        updateGalleryCounter();
+        new bootstrap.Modal($('#imageGalleryModal')[0]).show();
     });
 
-    // Confirm load truck
-    $('#btn-confirm-load-truck').on('click', function(){
-        var packageIds = $('#modalLoadTruck').data('packageIds') || [];
-        if (packageIds.length === 0) return;
-
-        var btn = $(this);
-        var activeTab = $('#tab-new-shipment').hasClass('show') ? 'new' : 'existing';
-
-        if (activeTab === 'existing') {
-            // Add to existing shipment
-            if (!selectedShipmentId) {
-                Swal.fire({icon: 'warning', title: '<?= __('Vui lòng chọn một chuyến xe') ?>'});
-                return;
-            }
-            btn.prop('disabled', true).html('<i class="ri-loader-4-line ri-spin me-1"></i><?= __('Đang xử lý...') ?>');
-
-            $.post(shipmentAjaxUrl, {
-                request_name: 'add_packages',
-                shipment_id: selectedShipmentId,
-                package_ids: packageIds.join(','),
-                csrf_token: csrfToken
-            }, function(res){
-                if (res.status === 'success') {
-                    bootstrap.Modal.getInstance(document.getElementById('modalLoadTruck')).hide();
-                    Swal.fire({icon: 'success', title: res.msg, timer: 2000, showConfirmButton: false}).then(function(){ location.reload(); });
-                } else {
-                    Swal.fire({icon: 'error', title: 'Error', text: res.msg});
-                    btn.prop('disabled', false).html('<i class="ri-truck-line me-1"></i><?= __('Xếp xe') ?>');
-                }
-            }, 'json').fail(function(){
-                Swal.fire({icon: 'error', title: 'Error', text: '<?= __('Lỗi kết nối') ?>'});
-                btn.prop('disabled', false).html('<i class="ri-truck-line me-1"></i><?= __('Xếp xe') ?>');
-            });
-        } else {
-            // Create new shipment then add packages
-            var truckPlate = $('#new-truck-plate').val().trim();
-            if (!truckPlate) {
-                Swal.fire({icon: 'warning', title: '<?= __('Vui lòng nhập biển số xe') ?>'});
-                return;
-            }
-
-            btn.prop('disabled', true).html('<i class="ri-loader-4-line ri-spin me-1"></i><?= __('Đang xử lý...') ?>');
-
-            // Step 1: Create shipment
-            $.post(shipmentAjaxUrl, {
-                request_name: 'create',
-                truck_plate: truckPlate,
-                driver_name: $('#new-driver-name').val(),
-                driver_phone: $('#new-driver-phone').val(),
-                route: $('#new-route').val(),
-                max_weight: $('#new-max-weight').val(),
-                                shipping_cost: $('#new-shipping-cost').val(),
-                note: $('#new-note').val(),
-                csrf_token: csrfToken
-            }, function(res){
-                if (res.status === 'success' && res.shipment_id) {
-                    // Step 2: Add packages to new shipment
-                    $.post(shipmentAjaxUrl, {
-                        request_name: 'add_packages',
-                        shipment_id: res.shipment_id,
-                        package_ids: packageIds.join(','),
-                        csrf_token: csrfToken
-                    }, function(res2){
-                        bootstrap.Modal.getInstance(document.getElementById('modalLoadTruck')).hide();
-                        if (res2.status === 'success') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: '<?= __('Tạo chuyến xe và xếp kiện thành công') ?>',
-                                html: res2.msg + '<br><a href="<?= base_url('admin/shipments-detail&id=') ?>' + res.shipment_id + '" class="btn btn-sm btn-primary mt-2"><i class="ri-eye-line me-1"></i><?= __('Xem chuyến xe') ?></a>',
-                                showConfirmButton: true,
-                                confirmButtonText: '<?= __('Ở lại trang này') ?>'
-                            }).then(function(){ location.reload(); });
-                        } else {
-                            Swal.fire({icon: 'error', title: 'Error', text: res2.msg});
-                            btn.prop('disabled', false).html('<i class="ri-truck-line me-1"></i><?= __('Xếp xe') ?>');
-                        }
-                    }, 'json');
-                } else {
-                    Swal.fire({icon: 'error', title: 'Error', text: res.msg});
-                    btn.prop('disabled', false).html('<i class="ri-truck-line me-1"></i><?= __('Xếp xe') ?>');
-                }
-            }, 'json').fail(function(){
-                Swal.fire({icon: 'error', title: 'Error', text: '<?= __('Lỗi kết nối') ?>'});
-                btn.prop('disabled', false).html('<i class="ri-truck-line me-1"></i><?= __('Xếp xe') ?>');
-            });
-        }
-    });
 });
 </script>
