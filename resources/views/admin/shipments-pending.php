@@ -711,7 +711,7 @@ $(function(){
 
                 var html = '<table class="table table-sm table-borderless mb-0"><thead><tr>';
                 html += '<th style="width:30px;"><input type="checkbox" class="form-check-input sub-pkg-check-all" data-order-id="' + orderId + '"' + (orderChecked ? ' checked' : '') + '></th>';
-                html += '<th><?= __('Mã kiện') ?></th><th><?= __('Cân nặng') ?></th><th><?= __('Kích thước') ?></th><th><?= __('Số khối') ?></th><th><?= __('Trạng thái') ?></th>';
+                html += '<th><?= __('Mã kiện') ?></th><th><?= __('Sản phẩm') ?></th><th><?= __('Cân nặng') ?></th><th><?= __('Kích thước') ?></th><th><?= __('Số khối') ?></th><th><?= __('Trạng thái') ?></th>';
                 html += '</tr></thead><tbody>';
 
                 // Group packages by same weight + dimensions + status
@@ -742,6 +742,7 @@ $(function(){
                         html += '<tr>';
                         html += '<td><input type="checkbox" class="form-check-input sub-pkg-check" value="' + first.id + '" data-weight="' + first.weight_actual + '" data-cbm="' + first.cbm + '"' + (orderChecked ? ' checked' : '') + '></td>';
                         html += '<td><strong>' + esc(first.package_code) + '</strong></td>';
+                        html += '<td><small>' + esc(first.product_name || '-') + '</small></td>';
                         html += '<td>' + (first.weight_actual > 0 ? fnum(first.weight_actual, 2) + ' kg' : '-') + '</td>';
                         html += '<td>' + dim + '</td>';
                         html += '<td>' + (first.cbm > 0 ? fnum(first.cbm, 2) + ' m³' : '-') + '</td>';
@@ -762,6 +763,7 @@ $(function(){
                         html += ' <input type="number" class="form-control form-control-sm d-inline-block grp-qty-input" data-group-id="' + groupId + '" min="0" max="' + pkgs.length + '" value="' + initQty + '" style="width:70px;" title="<?= __('Nhập số kiện muốn chọn') ?>">';
                         html += ' <span class="text-muted">/ ' + pkgs.length + '</span>';
                         html += '</td>';
+                        html += '<td><small>' + esc(first.product_name || '-') + '</small></td>';
                         html += '<td class="grp-weight-cell" data-group-id="' + groupId + '" data-unit-w="' + first.weight_actual + '">' + (first.weight_actual > 0 ? '1 <?= __('kiện') ?>: ' + fnum(first.weight_actual, 2) + ' kg<br><strong>' + fnum(orderChecked ? totalW : 0, 2) + ' kg</strong>' : '-') + '</td>';
                         html += '<td>' + dim + '</td>';
                         html += '<td class="grp-cbm-cell" data-group-id="' + groupId + '" data-unit-c="' + first.cbm + '">' + (first.cbm > 0 ? '1 <?= __('kiện') ?>: ' + fnum(first.cbm, 2) + ' m³<br><strong>' + fnum(orderChecked ? totalC : 0, 2) + ' m³</strong>' : '-') + '</td>';
@@ -774,6 +776,7 @@ $(function(){
                             html += '<tr class="pkg-group-detail d-none" data-group-id="' + groupId + '">';
                             html += '<td class="ps-4"><input type="checkbox" class="form-check-input sub-pkg-check" value="' + pkg.id + '" data-weight="' + pkg.weight_actual + '" data-cbm="' + pkg.cbm + '" data-group-id="' + groupId + '"' + (orderChecked ? ' checked' : '') + '></td>';
                             html += '<td class="ps-4">' + esc(pkg.package_code) + '</td>';
+                            html += '<td><small>' + esc(pkg.product_name || '-') + '</small></td>';
                             html += '<td>' + (pkg.weight_actual > 0 ? fnum(pkg.weight_actual, 2) + ' kg' : '-') + '</td>';
                             html += '<td>' + dim + '</td>';
                             html += '<td>' + (pkg.cbm > 0 ? fnum(pkg.cbm, 2) + ' m³' : '-') + '</td>';

@@ -237,8 +237,9 @@ if ($request === 'split') {
 if ($request === 'get_order_packages') {
     $order_id = intval(input_post('order_id'));
     $packages = $ToryHub->get_list_safe(
-        "SELECT p.* FROM `packages` p
+        "SELECT p.*, o.product_name FROM `packages` p
          JOIN `package_orders` po ON p.id = po.package_id
+         JOIN `orders` o ON po.order_id = o.id
          WHERE po.order_id = ? ORDER BY p.id ASC", [$order_id]
     );
     $result = [];
@@ -248,6 +249,7 @@ if ($request === 'get_order_packages') {
             'id' => $p['id'],
             'package_code' => $p['package_code'],
             'tracking_cn' => $p['tracking_cn'] ?: '',
+            'product_name' => $p['product_name'] ?: '',
             'weight_actual' => floatval($p['weight_actual']),
             'length_cm' => floatval($p['length_cm']),
             'width_cm' => floatval($p['width_cm']),
