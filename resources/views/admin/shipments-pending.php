@@ -109,7 +109,7 @@ if ($filterType !== 'retail') {
     }
 
     $wholesaleOrders = $ToryHub->get_list_safe(
-        "SELECT o.id, o.product_code, o.cargo_type, o.product_image, o.customer_id,
+        "SELECT o.id, o.product_code, o.product_name, o.cargo_type, o.product_image, o.customer_id,
             c.fullname as customer_name, c.customer_code,
             COUNT(p.id) as pkg_count,
             SUM(COALESCE(p.weight_charged, 0)) as total_weight_charged,
@@ -213,6 +213,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <tr>
                                         <th style="width:40px;" class="align-middle"><input type="checkbox" class="form-check-input" id="check-all"></th>
                                         <th class="align-middle"><?= __('Mã hàng') ?></th>
+                                        <th class="align-middle"><?= __('Sản phẩm') ?></th>
                                         <th class="align-middle text-center" style="width:60px;"><?= __('Ảnh') ?></th>
                                         <th class="align-middle"><?= __('Phân loại') ?></th>
                                         <th class="align-middle"><?= __('Khách hàng') ?></th>
@@ -224,7 +225,7 @@ require_once(__DIR__.'/sidebar.php');
                                 </thead>
                                 <tbody>
                                     <?php if ($totalRows === 0): ?>
-                                    <tr><td colspan="9" class="text-center text-muted py-4"><?= __('Không có kiện hàng nào chờ xếp xe') ?></td></tr>
+                                    <tr><td colspan="10" class="text-center text-muted py-4"><?= __('Không có kiện hàng nào chờ xếp xe') ?></td></tr>
                                     <?php endif; ?>
 
                                     <?php // === BAG ROWS (retail) === ?>
@@ -248,6 +249,7 @@ require_once(__DIR__.'/sidebar.php');
                                             <div class="mt-1"><span class="text-muted"><i class="ri-archive-line"></i> <?= $pkgCount ?> <?= __('kiện') ?></span></div>
                                             <?php endif; ?>
                                         </td>
+                                        <td class="align-middle"><span class="text-muted">-</span></td>
                                         <td class="align-middle text-center">
                                             <?php if (!empty($bag['bag_images'])):
                                                 $bagImgArr = array_filter(array_map('trim', explode(',', $bag['bag_images'])));
@@ -302,6 +304,7 @@ require_once(__DIR__.'/sidebar.php');
                                             <div class="mt-1"><a href="#" class="btn-expand-pkgs text-muted text-decoration-none" data-order-id="<?= $order['id'] ?>"><i class="ri-archive-line"></i> <?= $pkgCount ?> <?= __('kiện') ?> <i class="ri-arrow-down-s-line expand-icon fs-14"></i></a></div>
                                             <?php endif; ?>
                                         </td>
+                                        <td class="align-middle"><small><?= htmlspecialchars($order['product_name'] ?? '-') ?></small></td>
                                         <td class="align-middle text-center">
                                             <?php if (!empty($order['product_image'])):
                                                 $orderImgArr = array_filter(array_map('trim', explode(',', $order['product_image'])));
