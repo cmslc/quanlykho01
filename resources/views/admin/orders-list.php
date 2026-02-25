@@ -334,7 +334,7 @@ require_once(__DIR__.'/sidebar.php');
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <?= htmlspecialchars(mb_strimwidth($order['product_name'] ?? '', 0, 30, '...')) ?>
+                                            <strong><?= htmlspecialchars(mb_strimwidth($order['product_name'] ?? '', 0, 30, '...')) ?></strong>
                                             <?php if (!$isRetail && !empty($order['cargo_type'])): ?>
                                             <div class="mt-1"><?= display_cargo_type($order['cargo_type']) ?></div>
                                             <?php endif; ?>
