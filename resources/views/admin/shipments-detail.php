@@ -31,7 +31,10 @@ require_once(__DIR__.'/sidebar.php');
             <div class="col-12">
                 <div class="page-title-box d-sm-flex align-items-center justify-content-between">
                     <h4 class="mb-sm-0"><?= __('Chi tiết chuyến xe') ?>: <?= htmlspecialchars($shipment['shipment_code']) ?></h4>
-                    <a href="<?= base_url('admin/shipments-list') ?>" class="btn btn-secondary"><i class="ri-arrow-left-line me-1"></i><?= __('Quay lại') ?></a>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-success" id="btn-export-excel"><i class="ri-file-excel-2-line me-1"></i><?= __('Xuất Excel') ?></button>
+                        <a href="<?= base_url('admin/shipments-list') ?>" class="btn btn-secondary"><i class="ri-arrow-left-line me-1"></i><?= __('Quay lại') ?></a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -117,7 +120,7 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="card-body">
                         <?php
                         // Group packages by mã hàng (bag_code > product_code > order_code)
-                        $colSpan = $isPreparing ? 7 : 6;
+                        $colSpan = $isPreparing ? 8 : 7;
                         $bagStatusLabels = [
                             'sealed' => ['label' => 'Chờ vận chuyển', 'bg' => 'warning', 'icon' => 'ri-time-line'],
                             'loading' => ['label' => 'Đang xếp xe', 'bg' => 'secondary', 'icon' => 'ri-truck-line'],
@@ -130,6 +133,7 @@ require_once(__DIR__.'/sidebar.php');
                             if (!isset($grouped[$key])) {
                                 $grouped[$key] = [
                                     'pkgs' => [],
+                                    'product_name' => $pkg['product_name'] ?? '',
                                     'customer' => $pkg['customer_name'] ?: '',
                                     'customer_code' => $pkg['customer_code'] ?: '',
                                     'is_bag' => !empty($pkg['bag_code']),
@@ -147,6 +151,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <tr>
                                         <th>#</th>
                                         <th><?= __('Mã hàng') ?></th>
+                                        <th><?= __('Sản phẩm') ?></th>
                                         <th><?= __('Khách hàng') ?></th>
                                         <th><?= __('Tổng cân') ?></th>
                                         <th><?= __('Tổng khối') ?></th>
@@ -182,6 +187,7 @@ require_once(__DIR__.'/sidebar.php');
                                                 </a>
                                             </div>
                                         </td>
+                                        <td><?php $pn = $group['product_name'] ?? ''; echo htmlspecialchars(mb_strlen($pn) > 35 ? mb_substr($pn, 0, 35) . '…' : $pn); ?></td>
                                         <td>
                                             <?= htmlspecialchars($group['customer_code']) ?>
                                             <?php if ($group['customer']): ?>
@@ -313,6 +319,33 @@ require_once(__DIR__.'/sidebar.php');
     </div>
 </div>
 
+<?php
+$pkgStatusText = [
+    'cn_warehouse' => 'Tại kho TQ', 'packed' => 'Đã đóng bao',
+    'shipping' => 'Đang vận chuyển', 'vn_warehouse' => 'Tại kho VN',
+    'delivered' => 'Đã giao', 'cancelled' => 'Đã hủy',
+];
+$exportRows = [];
+$stt = 0;
+foreach ($grouped as $maHang => $group) {
+    foreach ($group['pkgs'] as $pkg) {
+        $stt++;
+        $cbm = round(($pkg['length_cm'] * $pkg['width_cm'] * $pkg['height_cm']) / 1000000, 4);
+        $dim = ($pkg['length_cm'] > 0) ? floatval($pkg['length_cm']).'×'.floatval($pkg['width_cm']).'×'.floatval($pkg['height_cm']) : '';
+        $exportRows[] = [
+            $stt,
+            $maHang,
+            $group['product_name'],
+            $pkg['package_code'],
+            $group['customer_code'] . ($group['customer'] ? ' - '.$group['customer'] : ''),
+            $pkg['weight_charged'] > 0 ? floatval($pkg['weight_charged']) : '',
+            $dim,
+            $cbm > 0 ? $cbm : '',
+            $pkgStatusText[$pkg['status']] ?? $pkg['status'],
+        ];
+    }
+}
+?>
 <?php require_once(__DIR__.'/footer.php'); ?>
 
 <script>
@@ -426,6 +459,39 @@ $(function(){
             }
         });
     });
+    // Export Excel
+    $('#btn-export-excel').on('click', function(){
+        var rows = [['STT','Mã hàng','Sản phẩm','Mã kiện','Khách hàng','Cân tính phí (kg)','Kích thước','Số khối (m³)','Trạng thái']]
+            .concat(<?= json_encode($exportRows, JSON_UNESCAPED_UNICODE) ?>);
+        function xlsEsc(v) {
+            if (v === null || v === undefined) return '';
+            return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+        var xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+            + '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n'
+            + '<Styles><Style ss:ID="H"><Font ss:Bold="1"/></Style></Styles>\n'
+            + '<Worksheet ss:Name="Sheet1"><Table>\n';
+        rows.forEach(function(row, ri){
+            xml += '<Row>';
+            row.forEach(function(cell){
+                var t = (typeof cell === 'number') ? 'Number' : 'String';
+                var s = (ri === 0) ? ' ss:StyleID="H"' : '';
+                xml += '<Cell' + s + '><Data ss:Type="' + t + '">' + xlsEsc(cell) + '</Data></Cell>';
+            });
+            xml += '</Row>\n';
+        });
+        xml += '</Table></Worksheet></Workbook>';
+        var blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'ChuyenXe_<?= $shipment['shipment_code'] ?>_<?= date('Y-m-d') ?>.xls';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+
     // Expand/collapse package groups (like orders-list)
     $(document).on('click', '.btn-expand-shipgrp', function(e){
         e.preventDefault();
