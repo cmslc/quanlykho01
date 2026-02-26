@@ -120,7 +120,7 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="card-body">
                         <?php
                         // Group packages by mã hàng (bag_code > product_code > order_code)
-                        $colSpan = $isPreparing ? 9 : 8;
+                        $colSpan = $isPreparing ? 10 : 9;
                         $bagStatusLabels = [
                             'sealed' => ['label' => 'Chờ vận chuyển', 'bg' => 'warning', 'icon' => 'ri-time-line'],
                             'loading' => ['label' => 'Đang xếp xe', 'bg' => 'secondary', 'icon' => 'ri-truck-line'],
@@ -134,6 +134,7 @@ require_once(__DIR__.'/sidebar.php');
                                 $grouped[$key] = [
                                     'pkgs' => [],
                                     'product_name' => $pkg['product_name'] ?? '',
+                                    'product_image' => $pkg['product_image'] ?? '',
                                     'create_date' => $pkg['create_date'] ?? '',
                                     'customer' => $pkg['customer_name'] ?: '',
                                     'customer_code' => $pkg['customer_code'] ?: '',
@@ -152,6 +153,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <tr>
                                         <th>#</th>
                                         <th><?= __('Mã hàng') ?></th>
+                                        <th><?= __('Ảnh') ?></th>
                                         <th><?= __('Sản phẩm') ?></th>
                                         <th><?= __('Khách hàng') ?></th>
                                         <th><?= __('Tổng cân') ?></th>
@@ -188,6 +190,23 @@ require_once(__DIR__.'/sidebar.php');
                                                     <i class="ri-archive-line"></i> <?= count($pkgList) ?> <?= __('kiện') ?> <i class="ri-arrow-down-s-line expand-icon-<?= $groupId ?> fs-14"></i>
                                                 </a>
                                             </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <?php if (!empty($group['product_image'])):
+                                                $grpImgArr = array_filter(array_map('trim', explode(',', $group['product_image'])));
+                                                $grpImgUrls = array_map('get_upload_url', $grpImgArr);
+                                                $grpThumb = $grpImgUrls[0];
+                                                $grpImgCount = count($grpImgArr);
+                                            ?>
+                                            <a href="#" class="btn-view-images position-relative d-inline-block" data-images="<?= htmlspecialchars(json_encode(array_values($grpImgUrls))) ?>">
+                                                <img src="<?= $grpThumb ?>" class="rounded" style="width:40px;height:40px;object-fit:cover;">
+                                                <?php if ($grpImgCount > 1): ?>
+                                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="font-size:10px;"><?= $grpImgCount ?></span>
+                                                <?php endif; ?>
+                                            </a>
+                                            <?php else: ?>
+                                            <span class="text-muted">-</span>
+                                            <?php endif; ?>
                                         </td>
                                         <td><?php $pn = $group['product_name'] ?? ''; echo htmlspecialchars(mb_strlen($pn) > 35 ? mb_substr($pn, 0, 35) . '…' : $pn); ?></td>
                                         <td>
@@ -317,6 +336,25 @@ require_once(__DIR__.'/sidebar.php');
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= __('Hủy') ?></button>
                 <button type="button" class="btn btn-primary" id="btn-save-edit"><i class="ri-save-line me-1"></i><?= __('Lưu') ?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Gallery Modal -->
+<div class="modal fade" id="imageGalleryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark border-0">
+            <div class="modal-header border-0 py-2">
+                <span class="text-white-50 fs-12" id="gallery-counter"></span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="imageCarousel" class="carousel slide" data-bs-touch="true">
+                    <div class="carousel-inner" id="carousel-items"></div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#imageCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#imageCarousel" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
+                </div>
             </div>
         </div>
     </div>
@@ -474,6 +512,30 @@ $(function(){
             }
         });
     });
+    // Image gallery
+    var galleryCarousel = null, galleryTotal = 0;
+    function updateGalleryCounter() {
+        var idx = $('#imageCarousel .carousel-item.active').index();
+        $('#gallery-counter').text((idx + 1) + ' / ' + galleryTotal);
+        $('#imageCarousel .carousel-control-prev, #imageCarousel .carousel-control-next').toggleClass('d-none', galleryTotal <= 1);
+    }
+    $('#imageCarousel').on('slid.bs.carousel', updateGalleryCounter);
+    $(document).on('click', '.btn-view-images', function(e){
+        e.preventDefault();
+        var images = $(this).data('images');
+        if (!images || !images.length) return;
+        galleryTotal = images.length;
+        var html = '';
+        images.forEach(function(url, i){
+            html += '<div class="carousel-item' + (i === 0 ? ' active' : '') + '"><div class="d-flex align-items-center justify-content-center" style="min-height:300px;"><img src="' + url + '" class="d-block" style="max-width:100%;max-height:75vh;object-fit:contain;"></div></div>';
+        });
+        $('#carousel-items').html(html);
+        if (galleryCarousel) galleryCarousel.dispose();
+        galleryCarousel = new bootstrap.Carousel($('#imageCarousel')[0], { interval: false, touch: true, keyboard: true });
+        updateGalleryCounter();
+        new bootstrap.Modal($('#imageGalleryModal')[0]).show();
+    });
+
     // Export Excel
     $('#btn-export-excel').on('click', function(){
         var rows = [['STT','Mã hàng','Sản phẩm','Khách hàng','Số kiện','Tổng cân (kg)','Tổng khối (m³)','Ngày tạo','Trạng thái']]
