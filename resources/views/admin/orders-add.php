@@ -483,6 +483,15 @@ $('#form-quick-customer').on('submit', function(e){
     });
 });
 
+// Enter key to submit wholesale form
+$('#form-add-order').on('keydown', 'input[type="text"], input[type="number"]', function(e){
+    if(e.key !== 'Enter') return;
+    if($('select[name="product_type"]').val() === 'retail') return; // retail uses scan
+    if($(this).attr('id') === 'retail-scan-input') return;
+    e.preventDefault();
+    $('#form-add-order').submit();
+});
+
 $('#form-add-order').on('submit', function(e){
     e.preventDefault();
     // Retail uses scan auto-save, block normal submit
