@@ -996,22 +996,30 @@ $(function(){
         rows.push([<?= json_encode($order['product_code'] ?? '#' . $order['id']) ?>, '<?= __('Mã hàng') ?>', <?= json_encode($order['customer_name'] ?? '') ?>, <?= intval($order['pkg_count']) ?>, <?= round($w, 2) ?>, <?= round($c, 4) ?>, '<?= __('Đã về kho TQ') ?>']);
         <?php endforeach; ?>
 
-        var csvContent = '\uFEFF';
-        rows.forEach(function(row){
-            csvContent += row.map(function(cell){
-                var s = (cell === null || cell === undefined) ? '' : String(cell);
-                if (s.indexOf(',') !== -1 || s.indexOf('"') !== -1 || s.indexOf('\n') !== -1) {
-                    s = '"' + s.replace(/"/g, '""') + '"';
-                }
-                return s;
-            }).join(',') + '\n';
+        function xlsEsc(v) {
+            if (v === null || v === undefined) return '';
+            return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+        var xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+            + '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n'
+            + '<Styles><Style ss:ID="H"><Font ss:Bold="1"/></Style></Styles>\n'
+            + '<Worksheet ss:Name="Sheet1"><Table>\n';
+        rows.forEach(function(row, ri){
+            xml += '<Row>';
+            row.forEach(function(cell){
+                var t = (typeof cell === 'number') ? 'Number' : 'String';
+                var s = (ri === 0) ? ' ss:StyleID="H"' : '';
+                xml += '<Cell' + s + '><Data ss:Type="' + t + '">' + xlsEsc(cell) + '</Data></Cell>';
+            });
+            xml += '</Row>\n';
         });
+        xml += '</Table></Worksheet></Workbook>';
 
-        var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        var blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
         a.href = url;
-        a.download = '<?= __('hang-cho-xep-xe') ?>_' + new Date().toISOString().slice(0,10) + '.csv';
+        a.download = '<?= __('hang-cho-xep-xe') ?>_' + new Date().toISOString().slice(0,10) + '.xls';
         a.click();
         URL.revokeObjectURL(url);
     });

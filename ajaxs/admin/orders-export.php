@@ -85,43 +85,42 @@ $statusLabel = [
     'cancelled' => 'Đã hủy'
 ];
 
-$filename = "DanhSachHang_" . date('Y-m-d_His') . ".csv";
+$filename = "DanhSachHang_" . date('Y-m-d_His') . ".xls";
 
-header('Content-Type: text/csv; charset=utf-8');
+header('Content-Type: application/vnd.ms-excel; charset=utf-8');
 header('Content-Disposition: attachment; filename="' . $filename . '"');
 header('Pragma: no-cache');
 header('Expires: 0');
 
-$output = fopen('php://output', 'w');
-// BOM for UTF-8 Excel
-fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+function xls_esc($v) {
+    return htmlspecialchars((string)$v, ENT_XML1, 'UTF-8');
+}
+function xls_cell($v, $bold = false) {
+    $t = is_numeric($v) && $v !== '' ? 'Number' : 'String';
+    $s = $bold ? ' ss:StyleID="H"' : '';
+    return '<Cell' . $s . '><Data ss:Type="' . $t . '">' . xls_esc($v) . '</Data></Cell>';
+}
 
-// Header
-fputcsv($output, [
-    'STT',
-    'Loại hàng',
-    'Mã hàng',
-    'Mã vận đơn TQ',
-    'Khách hàng',
-    'Mã khách hàng',
-    'Sản phẩm',
-    'Cân tính phí (kg)',
-    'Trạng thái',
-    'Ghi chú khách hàng',
-    'Ghi chú nội bộ',
-    'Ngày nhập',
-    'Cập nhật'
-]);
+echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+echo '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">' . "\n";
+echo '<Styles><Style ss:ID="H"><Font ss:Bold="1"/></Style></Styles>' . "\n";
+echo '<Worksheet ss:Name="Sheet1"><Table>' . "\n";
 
-// Data
+// Header row
+$headers = ['STT','Loại hàng','Mã hàng','Mã vận đơn TQ','Khách hàng','Mã khách hàng','Sản phẩm','Cân tính phí (kg)','Trạng thái','Ghi chú khách hàng','Ghi chú nội bộ','Ngày nhập','Cập nhật'];
+echo '<Row>';
+foreach ($headers as $h) echo xls_cell($h, true);
+echo '</Row>' . "\n";
+
+// Data rows
 $stt = 0;
 foreach ($orders as $row) {
     $stt++;
     $productType = ($row['product_type'] ?? 'retail') === 'retail' ? 'Hàng lẻ' : 'Hàng lô';
     $trackings = isset($trackingMap[$row['id']]) ? implode(', ', $trackingMap[$row['id']]) : '';
-    $totalWeight = isset($weightMap[$row['id']]) ? number_format($weightMap[$row['id']], 2) : '';
+    $totalWeight = isset($weightMap[$row['id']]) ? floatval($weightMap[$row['id']]) : '';
 
-    fputcsv($output, [
+    $cells = [
         $stt,
         $productType,
         $row['product_code'] ?? '',
@@ -135,9 +134,12 @@ foreach ($orders as $row) {
         $row['note_internal'] ?? '',
         $row['create_date'],
         $row['update_date']
-    ]);
+    ];
+    echo '<Row>';
+    foreach ($cells as $c) echo xls_cell($c);
+    echo '</Row>' . "\n";
 }
 
-fclose($output);
+echo '</Table></Worksheet></Workbook>';
 
 add_log('export', 'Xuất danh sách hàng (' . count($orders) . ' đơn)');
