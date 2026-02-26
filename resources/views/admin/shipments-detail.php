@@ -32,7 +32,7 @@ require_once(__DIR__.'/sidebar.php');
                 <div class="page-title-box d-sm-flex align-items-center justify-content-between">
                     <h4 class="mb-sm-0"><?= __('Chi tiết chuyến xe') ?>: <?= htmlspecialchars($shipment['shipment_code']) ?></h4>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-success" id="btn-export-excel"><i class="ri-file-excel-2-line me-1"></i><?= __('Xuất Excel') ?></button>
+                        <a href="<?= base_url('ajaxs/admin/shipments-export.php?id=' . $id) ?>" class="btn btn-success" target="_blank"><i class="ri-file-excel-2-line me-1"></i><?= __('Xuất Excel') ?></a>
                         <a href="<?= base_url('admin/shipments-list') ?>" class="btn btn-secondary"><i class="ri-arrow-left-line me-1"></i><?= __('Quay lại') ?></a>
                     </div>
                 </div>
@@ -349,45 +349,6 @@ require_once(__DIR__.'/sidebar.php');
     </div>
 </div>
 
-<?php
-$pkgStatusText = [
-    'cn_warehouse' => 'Tại kho TQ', 'packed' => 'Đã đóng bao',
-    'shipping' => 'Đang vận chuyển', 'vn_warehouse' => 'Tại kho VN',
-    'delivered' => 'Đã giao', 'cancelled' => 'Đã hủy',
-];
-$bagStatusText = [
-    'sealed' => 'Chờ vận chuyển', 'loading' => 'Đang xếp xe',
-    'shipping' => 'Đang vận chuyển', 'arrived' => 'Đã đến kho VN',
-];
-$exportRows = [];
-$stt = 0;
-foreach ($grouped as $maHang => $group) {
-    $stt++;
-    $pkgList = $group['pkgs'];
-    if ($group['is_bag']) {
-        $expW = round(floatval($group['bag_weight']), 2);
-        $expCbm = round(floatval($group['bag_cbm']), 4);
-        $expStatus = $bagStatusText[$group['bag_status']] ?? $group['bag_status'];
-    } else {
-        $expW = round(array_sum(array_column($pkgList, 'weight_charged')), 2);
-        $expCbm = 0;
-        foreach ($pkgList as $p) { $expCbm += ($p['length_cm'] * $p['width_cm'] * $p['height_cm']) / 1000000; }
-        $expCbm = round($expCbm, 4);
-        $expStatus = $pkgStatusText[$pkgList[0]['status']] ?? $pkgList[0]['status'];
-    }
-    $exportRows[] = [
-        $stt,
-        $maHang,
-        $group['product_name'],
-        $group['customer_code'] . ($group['customer'] ? ' - '.$group['customer'] : ''),
-        count($pkgList),
-        $expW > 0 ? $expW : '',
-        $expCbm > 0 ? $expCbm : '',
-        $group['create_date'] ? date('d/m/Y', strtotime($group['create_date'])) : '',
-        $expStatus,
-    ];
-}
-?>
 <?php require_once(__DIR__.'/footer.php'); ?>
 
 <script>
@@ -523,39 +484,6 @@ $(function(){
         galleryCarousel = new bootstrap.Carousel($('#imageCarousel')[0], { interval: false, touch: true, keyboard: true });
         updateGalleryCounter();
         new bootstrap.Modal($('#imageGalleryModal')[0]).show();
-    });
-
-    // Export Excel
-    $('#btn-export-excel').on('click', function(){
-        var rows = [['STT','Mã hàng','Sản phẩm','Khách hàng','Số kiện','Tổng cân (kg)','Tổng khối (m³)','Ngày tạo','Trạng thái']]
-            .concat(<?= json_encode($exportRows, JSON_UNESCAPED_UNICODE) ?>);
-        function xlsEsc(v) {
-            if (v === null || v === undefined) return '';
-            return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-        }
-        var xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-            + '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n'
-            + '<Styles><Style ss:ID="H"><Font ss:Bold="1"/></Style></Styles>\n'
-            + '<Worksheet ss:Name="Sheet1"><Table>\n';
-        rows.forEach(function(row, ri){
-            xml += '<Row>';
-            row.forEach(function(cell){
-                var t = (typeof cell === 'number') ? 'Number' : 'String';
-                var s = (ri === 0) ? ' ss:StyleID="H"' : '';
-                xml += '<Cell' + s + '><Data ss:Type="' + t + '">' + xlsEsc(cell) + '</Data></Cell>';
-            });
-            xml += '</Row>\n';
-        });
-        xml += '</Table></Worksheet></Workbook>';
-        var blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = 'ChuyenXe_<?= $shipment['shipment_code'] ?>_<?= date('Y-m-d') ?>.xls';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
     });
 
     // Expand/collapse package groups (like orders-list)
