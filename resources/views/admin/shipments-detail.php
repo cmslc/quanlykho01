@@ -110,7 +110,7 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="card-body">
                         <?php
                         // Group packages by mã hàng (bag_code > product_code > order_code)
-                        $colSpan = $isPreparing ? 10 : 9;
+                        $colSpan = $isPreparing ? 11 : 10;
                         $bagStatusLabels = [
                             'sealed' => ['label' => 'Chờ vận chuyển', 'bg' => 'warning', 'icon' => 'ri-time-line'],
                             'loading' => ['label' => 'Đang xếp xe', 'bg' => 'secondary', 'icon' => 'ri-truck-line'],
@@ -142,13 +142,14 @@ require_once(__DIR__.'/sidebar.php');
                                 <thead>
                                     <tr>
                                         <th>#</th>
+                                        <th><?= __('Ngày tạo') ?></th>
                                         <th><?= __('Mã hàng') ?></th>
-                                        <th><?= __('Ảnh') ?></th>
                                         <th><?= __('Sản phẩm') ?></th>
-                                        <th><?= __('Khách hàng') ?></th>
+                                        <th><?= __('Số kiện') ?></th>
                                         <th><?= __('Tổng cân') ?></th>
                                         <th><?= __('Tổng khối') ?></th>
-                                        <th><?= __('Ngày tạo') ?></th>
+                                        <th><?= __('Ảnh') ?></th>
+                                        <th><?= __('Khách hàng') ?></th>
                                         <th><?= __('Trạng thái') ?></th>
                                         <?php if ($isPreparing): ?>
                                         <th></th>
@@ -173,14 +174,16 @@ require_once(__DIR__.'/sidebar.php');
                                     ?>
                                     <tr>
                                         <td><?= $gIdx ?></td>
+                                        <td><?= $group['create_date'] ? date('d/m/Y', strtotime($group['create_date'])) : '' ?></td>
+                                        <td><strong><?= htmlspecialchars($maHang) ?></strong></td>
+                                        <td><?php $pn = $group['product_name'] ?? ''; echo htmlspecialchars(mb_strlen($pn) > 35 ? mb_substr($pn, 0, 35) . '…' : $pn); ?></td>
                                         <td>
-                                            <strong><?= htmlspecialchars($maHang) ?></strong>
-                                            <div class="mt-1">
-                                                <a href="#" class="btn-expand-shipgrp text-muted text-decoration-none" data-group="<?= $groupId ?>">
-                                                    <i class="ri-archive-line"></i> <?= count($pkgList) ?> <?= __('kiện') ?> <i class="ri-arrow-down-s-line expand-icon-<?= $groupId ?> fs-14"></i>
-                                                </a>
-                                            </div>
+                                            <a href="#" class="btn-expand-shipgrp text-decoration-none" data-group="<?= $groupId ?>">
+                                                <?= count($pkgList) ?> <i class="ri-arrow-down-s-line expand-icon-<?= $groupId ?> fs-14"></i>
+                                            </a>
                                         </td>
+                                        <td><?= $totalW > 0 ? fnum($totalW, 2) . ' kg' : '' ?></td>
+                                        <td><?= $totalCbm > 0 ? fnum($totalCbm, 2) . ' m³' : '' ?></td>
                                         <td class="text-center">
                                             <?php if (!empty($group['product_image'])):
                                                 $grpImgArr = array_filter(array_map('trim', explode(',', $group['product_image'])));
@@ -198,16 +201,12 @@ require_once(__DIR__.'/sidebar.php');
                                             <span class="text-muted">-</span>
                                             <?php endif; ?>
                                         </td>
-                                        <td><?php $pn = $group['product_name'] ?? ''; echo htmlspecialchars(mb_strlen($pn) > 35 ? mb_substr($pn, 0, 35) . '…' : $pn); ?></td>
                                         <td>
                                             <?= htmlspecialchars($group['customer_code']) ?>
                                             <?php if ($group['customer']): ?>
                                             <br><small class="text-muted"><?= htmlspecialchars($group['customer']) ?></small>
                                             <?php endif; ?>
                                         </td>
-                                        <td><?= $totalW > 0 ? fnum($totalW, 2) . ' kg' : '' ?></td>
-                                        <td><?= $totalCbm > 0 ? fnum($totalCbm, 2) . ' m³' : '' ?></td>
-                                        <td><?= $group['create_date'] ? date('d/m/Y', strtotime($group['create_date'])) : '' ?></td>
                                         <td>
                                             <?php if ($group['is_bag'] && !empty($group['bag_status']) && isset($bagStatusLabels[$group['bag_status']])):
                                                 $bsl = $bagStatusLabels[$group['bag_status']]; ?>
