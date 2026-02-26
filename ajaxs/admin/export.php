@@ -1,7 +1,6 @@
 <?php
 /**
- * Export to CSV (Excel-compatible)
- * Uses plain CSV with BOM for Excel UTF-8 compatibility
+ * Export to XLS (SpreadsheetML) - compatible with Excel and WPS
  */
 define('IN_SITE', true);
 require_once(__DIR__.'/../../libs/db.php');
@@ -16,20 +15,35 @@ $type = input_get('type');
 $dateFrom = input_get('date_from') ?: date('Y-m-01');
 $dateTo = input_get('date_to') ?: date('Y-m-d');
 
-$filename = "ToryHub_{$type}_{$dateFrom}_{$dateTo}.csv";
+$filename = "ToryHub_{$type}_{$dateFrom}_{$dateTo}.xls";
 
-header('Content-Type: text/csv; charset=utf-8');
+header('Content-Type: application/vnd.ms-excel; charset=utf-8');
 header('Content-Disposition: attachment; filename="' . $filename . '"');
 header('Pragma: no-cache');
 header('Expires: 0');
 
-// BOM for UTF-8 Excel
-$output = fopen('php://output', 'w');
-fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+function xls_esc($v) {
+    return htmlspecialchars((string)$v, ENT_XML1, 'UTF-8');
+}
+function xls_cell($v, $bold = false) {
+    $t = is_numeric($v) && $v !== '' ? 'Number' : 'String';
+    $s = $bold ? ' ss:StyleID="H"' : '';
+    return '<Cell' . $s . '><Data ss:Type="' . $t . '">' . xls_esc($v) . '</Data></Cell>';
+}
+function xls_row($cells, $bold = false) {
+    $out = '<Row>';
+    foreach ($cells as $c) $out .= xls_cell($c, $bold);
+    return $out . '</Row>' . "\n";
+}
+
+echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+echo '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">' . "\n";
+echo '<Styles><Style ss:ID="H"><Font ss:Bold="1"/></Style></Styles>' . "\n";
+echo '<Worksheet ss:Name="Sheet1"><Table>' . "\n";
 
 // ======== REVENUE EXPORT ========
 if ($type === 'revenue') {
-    fputcsv($output, ['Kỳ', 'Số đơn', 'Tiền hàng CNY', 'Tiền hàng VND', 'Phí dịch vụ', 'Phí vận chuyển', 'Phí khác', 'Tổng phí', 'Tổng cộng']);
+    echo xls_row(['Kỳ', 'Số đơn', 'Tiền hàng CNY', 'Tiền hàng VND', 'Phí dịch vụ', 'Phí vận chuyển', 'Phí khác', 'Tổng phí', 'Tổng cộng'], true);
 
     $data = $ToryHub->get_list_safe("SELECT DATE_FORMAT(create_date, '%Y-%m-%d') as period,
         COUNT(*) as order_count,
@@ -45,7 +59,7 @@ if ($type === 'revenue') {
         GROUP BY DATE(create_date) ORDER BY period ASC", [$dateFrom, $dateTo]);
 
     foreach ($data as $row) {
-        fputcsv($output, [
+        echo xls_row([
             $row['period'], $row['order_count'], $row['total_cny'],
             $row['total_vnd'], $row['service_fee'], $row['shipping_fee'],
             $row['other_fees'], $row['total_fee'], $row['grand_total']
@@ -57,7 +71,7 @@ if ($type === 'revenue') {
 
 // ======== ORDERS EXPORT ========
 elseif ($type === 'orders') {
-    fputcsv($output, ['Mã đơn', 'Khách hàng', 'Mã khách hàng', 'Nền tảng', 'Sản phẩm', 'Số lượng', 'Đơn giá CNY', 'Tổng CNY', 'Tỷ giá', 'Tiền hàng VND', 'Phí dịch vụ', 'Ship nội Trung Quốc', 'Ship quốc tế', 'Đóng gỗ', 'Bảo hiểm', 'Phí khác', 'Tổng cộng', 'Trạng thái', 'Mã vận đơn Trung Quốc', 'Mã quốc tế', 'Mã Việt Nam', 'Cân tính phí', 'Ngày tạo']);
+    echo xls_row(['Mã đơn', 'Khách hàng', 'Mã khách hàng', 'Nền tảng', 'Sản phẩm', 'Số lượng', 'Đơn giá CNY', 'Tổng CNY', 'Tỷ giá', 'Tiền hàng VND', 'Phí dịch vụ', 'Ship nội Trung Quốc', 'Ship quốc tế', 'Đóng gỗ', 'Bảo hiểm', 'Phí khác', 'Tổng cộng', 'Trạng thái', 'Mã vận đơn Trung Quốc', 'Mã quốc tế', 'Mã Việt Nam', 'Cân tính phí', 'Ngày tạo'], true);
 
     $data = $ToryHub->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code
         FROM `orders` o LEFT JOIN `customers` c ON o.customer_id = c.id
@@ -71,7 +85,7 @@ elseif ($type === 'orders') {
     ];
 
     foreach ($data as $row) {
-        fputcsv($output, [
+        echo xls_row([
             $row['order_code'], $row['customer_name'] ?? '', $row['customer_code'] ?? '',
             $row['platform'], $row['product_name'], $row['quantity'],
             $row['unit_price_cny'], $row['total_cny'], $row['exchange_rate'],
@@ -89,14 +103,14 @@ elseif ($type === 'orders') {
 
 // ======== CUSTOMERS EXPORT ========
 elseif ($type === 'customers') {
-    fputcsv($output, ['Mã khách hàng', 'Họ tên', 'Điện thoại', 'Email', 'Loại khách hàng', 'Tổng đơn', 'Tổng chi tiêu', 'Số dư', 'Zalo', 'WeChat', 'Địa chỉ Việt Nam', 'Ngày tạo']);
+    echo xls_row(['Mã khách hàng', 'Họ tên', 'Điện thoại', 'Email', 'Loại khách hàng', 'Tổng đơn', 'Tổng chi tiêu', 'Số dư', 'Zalo', 'WeChat', 'Địa chỉ Việt Nam', 'Ngày tạo'], true);
 
     $data = $ToryHub->get_list_safe("SELECT * FROM `customers` ORDER BY `id` ASC", []);
 
     $typeLabel = ['normal' => 'Thường', 'vip' => 'VIP', 'agent' => 'Đại lý'];
 
     foreach ($data as $row) {
-        fputcsv($output, [
+        echo xls_row([
             $row['customer_code'], $row['fullname'], $row['phone'] ?? '',
             $row['email'] ?? '', $typeLabel[$row['customer_type']] ?? $row['customer_type'],
             $row['total_orders'], $row['total_spent'], $row['balance'],
@@ -110,7 +124,7 @@ elseif ($type === 'customers') {
 
 // ======== TRANSACTIONS EXPORT ========
 elseif ($type === 'transactions') {
-    fputcsv($output, ['ID', 'Khách hàng', 'Mã khách hàng', 'Loại', 'Số tiền', 'Số dư trước', 'Số dư sau', 'Mô tả', 'Ngày']);
+    echo xls_row(['ID', 'Khách hàng', 'Mã khách hàng', 'Loại', 'Số tiền', 'Số dư trước', 'Số dư sau', 'Mô tả', 'Ngày'], true);
 
     $data = $ToryHub->get_list_safe("SELECT t.*, c.fullname as customer_name, c.customer_code
         FROM `transactions` t LEFT JOIN `customers` c ON t.customer_id = c.id
@@ -120,7 +134,7 @@ elseif ($type === 'transactions') {
     $typeLabel = ['deposit' => 'Nạp tiền', 'payment' => 'Thanh toán', 'refund' => 'Hoàn tiền', 'adjustment' => 'Điều chỉnh'];
 
     foreach ($data as $row) {
-        fputcsv($output, [
+        echo xls_row([
             $row['id'], $row['customer_name'] ?? '', $row['customer_code'] ?? '',
             $typeLabel[$row['type']] ?? $row['type'], $row['amount'],
             $row['balance_before'], $row['balance_after'],
@@ -131,4 +145,4 @@ elseif ($type === 'transactions') {
     add_log('export', 'Xuất giao dịch: ' . $dateFrom . ' → ' . $dateTo);
 }
 
-fclose($output);
+echo '</Table></Worksheet></Workbook>';
