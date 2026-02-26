@@ -57,42 +57,81 @@ require_once(__DIR__.'/sidebar.php');
                         </div>
                     </div>
                     <div class="card-body py-3">
-                        <div class="d-flex flex-wrap gap-4 align-items-start">
-                            <div><div class="text-muted small"><?= __('Mã chuyến') ?></div><strong><?= htmlspecialchars($shipment['shipment_code']) ?></strong></div>
-                            <div><div class="text-muted small"><?= __('Biển số xe') ?></div><?= htmlspecialchars($shipment['truck_plate'] ?: '-') ?></div>
-                            <div><div class="text-muted small"><?= __('Tài xế') ?></div><?= htmlspecialchars($shipment['driver_name'] ?: '-') ?><?= $shipment['driver_phone'] ? '<br><small class="text-muted">' . htmlspecialchars($shipment['driver_phone']) . '</small>' : '' ?></div>
-                            <div><div class="text-muted small"><?= __('Tuyến đường') ?></div><?= htmlspecialchars($shipment['route'] ?: '-') ?></div>
-                            <div><div class="text-muted small"><?= __('Trọng tải') ?></div><?= $shipment['max_weight'] > 0 ? fnum($shipment['max_weight'], 1) . ' kg' : '-' ?></div>
-                            <div><div class="text-muted small"><?= __('Chi phí') ?></div><?= $shipment['shipping_cost'] > 0 ? fnum($shipment['shipping_cost'], 0) : '-' ?></div>
-                            <div><div class="text-muted small"><?= __('Người tạo') ?></div><?= htmlspecialchars($shipment['creator_name'] ?? '-') ?></div>
-                            <div><div class="text-muted small"><?= __('Ngày tạo') ?></div><?= date('d/m/Y H:i', strtotime($shipment['create_date'])) ?></div>
-                            <?php if ($shipment['departed_date']): ?>
-                            <div><div class="text-muted small"><?= __('Ngày xuất phát') ?></div><?= date('d/m/Y H:i', strtotime($shipment['departed_date'])) ?></div>
-                            <?php endif; ?>
-                            <?php if ($shipment['arrived_date']): ?>
-                            <div><div class="text-muted small"><?= __('Ngày đến') ?></div><?= date('d/m/Y H:i', strtotime($shipment['arrived_date'])) ?></div>
-                            <?php endif; ?>
-                            <?php if ($shipment['note']): ?>
-                            <div><div class="text-muted small"><?= __('Ghi chú') ?></div><?= nl2br(htmlspecialchars($shipment['note'])) ?></div>
-                            <?php endif; ?>
-                            <!-- Stats -->
-                            <div class="ms-auto">
-                                <div class="d-flex gap-4 p-3 bg-light rounded text-center">
-                                    <div><h5 class="mb-0" id="info-packages"><?= $shipment['total_packages'] ?></h5><small class="text-muted"><?= __('Kiện') ?></small></div>
-                                    <div class="vr"></div>
-                                    <div><h5 class="mb-0 text-primary" id="info-weight"><?= fnum($shipment['total_weight'], 1) ?></h5><small class="text-muted">kg</small></div>
-                                    <div class="vr"></div>
-                                    <div><h5 class="mb-0 text-info" id="info-cbm"><?= fnum($shipment['total_cbm'], 2) ?></h5><small class="text-muted">m³</small></div>
+                        <div class="row g-3 align-items-start">
+                            <!-- Info fields -->
+                            <div class="col-12 col-xl-9">
+                                <div class="row g-3">
+                                    <div class="col-6 col-md-3">
+                                        <div class="text-muted small mb-1"><?= __('Mã chuyến') ?></div>
+                                        <strong class="fs-14"><?= htmlspecialchars($shipment['shipment_code']) ?></strong>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="text-muted small mb-1"><?= __('Biển số xe') ?></div>
+                                        <?= htmlspecialchars($shipment['truck_plate'] ?: '-') ?>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="text-muted small mb-1"><?= __('Tài xế') ?></div>
+                                        <?= htmlspecialchars($shipment['driver_name'] ?: '-') ?>
+                                        <?= $shipment['driver_phone'] ? '<div class="text-muted small">' . htmlspecialchars($shipment['driver_phone']) . '</div>' : '' ?>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="text-muted small mb-1"><?= __('Tuyến đường') ?></div>
+                                        <?= htmlspecialchars($shipment['route'] ?: '-') ?>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="text-muted small mb-1"><?= __('Trọng tải') ?></div>
+                                        <?= $shipment['max_weight'] > 0 ? fnum($shipment['max_weight'], 1) . ' kg' : '-' ?>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="text-muted small mb-1"><?= __('Chi phí') ?></div>
+                                        <?= $shipment['shipping_cost'] > 0 ? fnum($shipment['shipping_cost'], 0) : '-' ?>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="text-muted small mb-1"><?= __('Người tạo') ?></div>
+                                        <?= htmlspecialchars($shipment['creator_name'] ?? '-') ?>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="text-muted small mb-1"><?= __('Ngày tạo') ?></div>
+                                        <?= date('d/m/Y H:i', strtotime($shipment['create_date'])) ?>
+                                    </div>
+                                    <?php if ($shipment['departed_date']): ?>
+                                    <div class="col-6 col-md-3">
+                                        <div class="text-muted small mb-1"><?= __('Ngày xuất phát') ?></div>
+                                        <?= date('d/m/Y H:i', strtotime($shipment['departed_date'])) ?>
+                                    </div>
+                                    <?php endif; ?>
+                                    <?php if ($shipment['arrived_date']): ?>
+                                    <div class="col-6 col-md-3">
+                                        <div class="text-muted small mb-1"><?= __('Ngày đến') ?></div>
+                                        <?= date('d/m/Y H:i', strtotime($shipment['arrived_date'])) ?>
+                                    </div>
+                                    <?php endif; ?>
+                                    <?php if ($shipment['note']): ?>
+                                    <div class="col-12">
+                                        <div class="text-muted small mb-1"><?= __('Ghi chú') ?></div>
+                                        <?= nl2br(htmlspecialchars($shipment['note'])) ?>
+                                    </div>
+                                    <?php endif; ?>
                                 </div>
-                                <?php if ($shipment['max_weight'] > 0): ?>
-                                <?php $pct = min(100, round($shipment['total_weight'] / $shipment['max_weight'] * 100)); ?>
-                                <div class="mt-2">
-                                    <div class="progress" style="height:6px;">
+                            </div>
+                            <!-- Stats -->
+                            <div class="col-12 col-xl-3">
+                                <div class="p-3 bg-light rounded text-center">
+                                    <div class="d-flex justify-content-around mb-2">
+                                        <div><h5 class="mb-0" id="info-packages"><?= $shipment['total_packages'] ?></h5><small class="text-muted"><?= __('Kiện') ?></small></div>
+                                        <div class="vr"></div>
+                                        <div><h5 class="mb-0 text-primary" id="info-weight"><?= fnum($shipment['total_weight'], 1) ?></h5><small class="text-muted">kg</small></div>
+                                        <div class="vr"></div>
+                                        <div><h5 class="mb-0 text-info" id="info-cbm"><?= fnum($shipment['total_cbm'], 2) ?></h5><small class="text-muted">m³</small></div>
+                                    </div>
+                                    <?php if ($shipment['max_weight'] > 0): ?>
+                                    <?php $pct = min(100, round($shipment['total_weight'] / $shipment['max_weight'] * 100)); ?>
+                                    <div class="progress mb-1" style="height:6px;">
                                         <div class="progress-bar <?= $pct > 90 ? 'bg-danger' : ($pct > 70 ? 'bg-warning' : 'bg-success') ?>" style="width:<?= $pct ?>%"></div>
                                     </div>
                                     <small class="text-muted"><?= $pct ?>% <?= __('trọng tải') ?></small>
+                                    <?php endif; ?>
                                 </div>
-                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
