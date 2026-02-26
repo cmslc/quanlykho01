@@ -325,25 +325,36 @@ $pkgStatusText = [
     'shipping' => 'Đang vận chuyển', 'vn_warehouse' => 'Tại kho VN',
     'delivered' => 'Đã giao', 'cancelled' => 'Đã hủy',
 ];
+$bagStatusText = [
+    'sealed' => 'Chờ vận chuyển', 'loading' => 'Đang xếp xe',
+    'shipping' => 'Đang vận chuyển', 'arrived' => 'Đã đến kho VN',
+];
 $exportRows = [];
 $stt = 0;
 foreach ($grouped as $maHang => $group) {
-    foreach ($group['pkgs'] as $pkg) {
-        $stt++;
-        $cbm = round(($pkg['length_cm'] * $pkg['width_cm'] * $pkg['height_cm']) / 1000000, 4);
-        $dim = ($pkg['length_cm'] > 0) ? floatval($pkg['length_cm']).'×'.floatval($pkg['width_cm']).'×'.floatval($pkg['height_cm']) : '';
-        $exportRows[] = [
-            $stt,
-            $maHang,
-            $group['product_name'],
-            $pkg['package_code'],
-            $group['customer_code'] . ($group['customer'] ? ' - '.$group['customer'] : ''),
-            $pkg['weight_charged'] > 0 ? floatval($pkg['weight_charged']) : '',
-            $dim,
-            $cbm > 0 ? $cbm : '',
-            $pkgStatusText[$pkg['status']] ?? $pkg['status'],
-        ];
+    $stt++;
+    $pkgList = $group['pkgs'];
+    if ($group['is_bag']) {
+        $expW = round(floatval($group['bag_weight']), 2);
+        $expCbm = round(floatval($group['bag_cbm']), 4);
+        $expStatus = $bagStatusText[$group['bag_status']] ?? $group['bag_status'];
+    } else {
+        $expW = round(array_sum(array_column($pkgList, 'weight_charged')), 2);
+        $expCbm = 0;
+        foreach ($pkgList as $p) { $expCbm += ($p['length_cm'] * $p['width_cm'] * $p['height_cm']) / 1000000; }
+        $expCbm = round($expCbm, 4);
+        $expStatus = $pkgStatusText[$pkgList[0]['status']] ?? $pkgList[0]['status'];
     }
+    $exportRows[] = [
+        $stt,
+        $maHang,
+        $group['product_name'],
+        $group['customer_code'] . ($group['customer'] ? ' - '.$group['customer'] : ''),
+        count($pkgList),
+        $expW > 0 ? $expW : '',
+        $expCbm > 0 ? $expCbm : '',
+        $expStatus,
+    ];
 }
 ?>
 <?php require_once(__DIR__.'/footer.php'); ?>
@@ -461,7 +472,7 @@ $(function(){
     });
     // Export Excel
     $('#btn-export-excel').on('click', function(){
-        var rows = [['STT','Mã hàng','Sản phẩm','Mã kiện','Khách hàng','Cân tính phí (kg)','Kích thước','Số khối (m³)','Trạng thái']]
+        var rows = [['STT','Mã hàng','Sản phẩm','Khách hàng','Số kiện','Tổng cân (kg)','Tổng khối (m³)','Trạng thái']]
             .concat(<?= json_encode($exportRows, JSON_UNESCAPED_UNICODE) ?>);
         function xlsEsc(v) {
             if (v === null || v === undefined) return '';
