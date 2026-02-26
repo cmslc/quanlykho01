@@ -120,7 +120,7 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="card-body">
                         <?php
                         // Group packages by mã hàng (bag_code > product_code > order_code)
-                        $colSpan = $isPreparing ? 8 : 7;
+                        $colSpan = $isPreparing ? 9 : 8;
                         $bagStatusLabels = [
                             'sealed' => ['label' => 'Chờ vận chuyển', 'bg' => 'warning', 'icon' => 'ri-time-line'],
                             'loading' => ['label' => 'Đang xếp xe', 'bg' => 'secondary', 'icon' => 'ri-truck-line'],
@@ -134,6 +134,7 @@ require_once(__DIR__.'/sidebar.php');
                                 $grouped[$key] = [
                                     'pkgs' => [],
                                     'product_name' => $pkg['product_name'] ?? '',
+                                    'create_date' => $pkg['create_date'] ?? '',
                                     'customer' => $pkg['customer_name'] ?: '',
                                     'customer_code' => $pkg['customer_code'] ?: '',
                                     'is_bag' => !empty($pkg['bag_code']),
@@ -155,6 +156,7 @@ require_once(__DIR__.'/sidebar.php');
                                         <th><?= __('Khách hàng') ?></th>
                                         <th><?= __('Tổng cân') ?></th>
                                         <th><?= __('Tổng khối') ?></th>
+                                        <th><?= __('Ngày tạo') ?></th>
                                         <th><?= __('Trạng thái') ?></th>
                                         <?php if ($isPreparing): ?>
                                         <th></th>
@@ -196,6 +198,7 @@ require_once(__DIR__.'/sidebar.php');
                                         </td>
                                         <td><?= $totalW > 0 ? fnum($totalW, 2) . ' kg' : '' ?></td>
                                         <td><?= $totalCbm > 0 ? fnum($totalCbm, 2) . ' m³' : '' ?></td>
+                                        <td><?= $group['create_date'] ? date('d/m/Y', strtotime($group['create_date'])) : '' ?></td>
                                         <td>
                                             <?php if ($group['is_bag'] && !empty($group['bag_status']) && isset($bagStatusLabels[$group['bag_status']])):
                                                 $bsl = $bagStatusLabels[$group['bag_status']]; ?>
@@ -353,6 +356,7 @@ foreach ($grouped as $maHang => $group) {
         count($pkgList),
         $expW > 0 ? $expW : '',
         $expCbm > 0 ? $expCbm : '',
+        $group['create_date'] ? date('d/m/Y', strtotime($group['create_date'])) : '',
         $expStatus,
     ];
 }
@@ -472,7 +476,7 @@ $(function(){
     });
     // Export Excel
     $('#btn-export-excel').on('click', function(){
-        var rows = [['STT','Mã hàng','Sản phẩm','Khách hàng','Số kiện','Tổng cân (kg)','Tổng khối (m³)','Trạng thái']]
+        var rows = [['STT','Mã hàng','Sản phẩm','Khách hàng','Số kiện','Tổng cân (kg)','Tổng khối (m³)','Ngày tạo','Trạng thái']]
             .concat(<?= json_encode($exportRows, JSON_UNESCAPED_UNICODE) ?>);
         function xlsEsc(v) {
             if (v === null || v === undefined) return '';
