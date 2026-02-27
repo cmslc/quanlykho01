@@ -157,7 +157,7 @@ require_once(__DIR__.'/sidebar.php');
                 <div class="card">
                     <div class="card-body">
                         <form method="GET" action="<?= base_url('staffcn/' . $_currentAction) ?>">
-                            <input type="hidden" name="module" value="staffcn">
+                            <input type="hidden" name="module" value="admin">
                             <input type="hidden" name="action" value="<?= $_currentAction ?>">
                             <div class="row g-3 align-items-end">
                                 <div class="col-md-4">
@@ -426,6 +426,7 @@ require_once(__DIR__.'/sidebar.php');
                             <nav>
                                 <ul class="pagination pagination-sm mb-0">
                                     <?php
+                                    // Build base URL with current filters
                                     $queryParams = $_GET;
                                     unset($queryParams['page']);
                                     unset($queryParams['module'], $queryParams['action']);
@@ -488,6 +489,7 @@ require_once(__DIR__.'/sidebar.php');
 <?php require_once(__DIR__.'/footer.php'); ?>
 
 <script>
+// Format số kiểu VN: dấu . phân tách ngàn, dấu , thập phân, bỏ 0 thừa
 function fnum(val, dec) {
     var n = parseFloat(val) || 0;
     var parts = n.toFixed(dec).split('.');
@@ -498,15 +500,21 @@ function fnum(val, dec) {
 $(function(){
     var csrfToken = '<?= (new Csrf())->get_token_value() ?>';
     var pkgAjaxUrl = '<?= base_url('ajaxs/staffcn/packages.php') ?>';
-    var expandedOrders = {};
 
+    // Track which orders have been expanded (packages loaded)
+    var expandedOrders = {}; // orderId -> true
+
+    // ===== Summary calculation =====
     function updateSelectedSummary(){
         var orderCount = 0, pkgCount = 0, totalWeight = 0, totalCbm = 0, cbmEasy = 0, cbmDifficult = 0;
+
         $('.order-check').each(function(){
             var $cb = $(this);
             var orderId = $cb.val();
             var cargo = $cb.data('cargo');
+
             if (expandedOrders[orderId]) {
+                // Expanded: count only checked packages
                 var $pkgChecked = $('#pkg-row-' + orderId + ' .sub-pkg-check:checked');
                 if ($pkgChecked.length > 0) {
                     orderCount++;
@@ -521,6 +529,7 @@ $(function(){
                     });
                 }
             } else if ($cb.is(':checked')) {
+                // Not expanded: use aggregate
                 orderCount++;
                 pkgCount += parseInt($cb.data('pkg-count')) || 0;
                 var w = parseFloat($cb.data('weight')) || 0;
@@ -531,6 +540,7 @@ $(function(){
                 else if (cargo === 'difficult') cbmDifficult += c;
             }
         });
+
         if (orderCount > 0 || pkgCount > 0) {
             $('#selected-summary').removeClass('d-none');
             $('#sum-orders').text(orderCount);
@@ -552,9 +562,11 @@ $(function(){
         }
     }
 
+    // ===== Select all orders =====
     $('#check-all').on('change', function(){
         var checked = this.checked;
         $('.order-check').prop('checked', checked);
+        // Sync expanded package checkboxes
         $('.order-check').each(function(){
             var orderId = $(this).val();
             if (expandedOrders[orderId]) {
@@ -566,31 +578,38 @@ $(function(){
         updateSelectedSummary();
     });
 
+    // ===== Order checkbox change =====
     $(document).on('change', '.order-check', function(){
         var orderId = $(this).val();
         var checked = this.checked;
+        // Sync package checkboxes if expanded
         if (expandedOrders[orderId]) {
             $('#pkg-row-' + orderId + ' .sub-pkg-check').prop('checked', checked);
             $('#pkg-row-' + orderId + ' .sub-pkg-check-all').prop('checked', checked).prop('indeterminate', false);
             $('#pkg-row-' + orderId + ' .sub-pkg-group-check').prop('checked', checked).prop('indeterminate', false);
         }
+        // Update master checkbox
         var total = $('.order-check').length;
         var chk = $('.order-check:checked').length;
         $('#check-all').prop('checked', total === chk).prop('indeterminate', chk > 0 && chk < total);
         updateSelectedSummary();
     });
 
+    // ===== Package "select all" checkbox =====
     $(document).on('change', '.sub-pkg-check-all', function(){
         var orderId = $(this).data('order-id');
         var checked = this.checked;
         $('#pkg-row-' + orderId + ' .sub-pkg-check').prop('checked', checked);
         $('#pkg-row-' + orderId + ' .sub-pkg-group-check').prop('checked', checked).prop('indeterminate', false);
+        // Sync order checkbox
         syncOrderCheckbox(orderId);
         updateSelectedSummary();
     });
 
+    // ===== Individual package checkbox =====
     $(document).on('change', '.sub-pkg-check', function(){
         var orderId = $(this).closest('.pkg-expand-row').data('order-id');
+        // Sync group checkbox + qty input if part of a group
         var groupId = $(this).data('group-id');
         if (groupId) {
             var $groupChecks = $('.sub-pkg-check[data-group-id="' + groupId + '"]');
@@ -604,16 +623,19 @@ $(function(){
         updateSelectedSummary();
     });
 
+    // ===== Group checkbox =====
     $(document).on('change', '.sub-pkg-group-check', function(){
         var groupId = $(this).data('group-id');
         var checked = this.checked;
-        $('.sub-pkg-check[data-group-id="' + groupId + '"]').prop('checked', checked);
+        var $checks = $('.sub-pkg-check[data-group-id="' + groupId + '"]');
+        $checks.prop('checked', checked);
         updateGroupDisplay(groupId);
         var orderId = $(this).closest('.pkg-expand-row').data('order-id');
         syncOrderCheckbox(orderId);
         updateSelectedSummary();
     });
 
+    // Update group row weight/cbm display based on selected qty
     function updateGroupDisplay(groupId) {
         var $checks = $('.sub-pkg-check[data-group-id="' + groupId + '"]');
         var checkedCount = $checks.filter(':checked').length;
@@ -621,10 +643,15 @@ $(function(){
         var $cCell = $('.grp-cbm-cell[data-group-id="' + groupId + '"]');
         var unitW = parseFloat($wCell.data('unit-w')) || 0;
         var unitC = parseFloat($cCell.data('unit-c')) || 0;
-        if (unitW > 0) $wCell.html('1 kiện: ' + fnum(unitW, 2) + ' kg<br><strong>' + fnum(unitW * checkedCount, 2) + ' kg</strong>');
-        if (unitC > 0) $cCell.html('1 kiện: ' + fnum(unitC, 2) + ' m³<br><strong>' + fnum(unitC * checkedCount, 2) + ' m³</strong>');
+        if (unitW > 0) {
+            $wCell.html('1 kiện: ' + fnum(unitW, 2) + ' kg<br><strong>' + fnum(unitW * checkedCount, 2) + ' kg</strong>');
+        }
+        if (unitC > 0) {
+            $cCell.html('1 kiện: ' + fnum(unitC, 2) + ' m³<br><strong>' + fnum(unitC * checkedCount, 2) + ' m³</strong>');
+        }
     }
 
+    // ===== Expand/Collapse group =====
     $(document).on('click', '.btn-expand-group', function(e){
         e.preventDefault();
         var groupId = $(this).data('group-id');
@@ -643,16 +670,20 @@ $(function(){
         var $row = $('#pkg-row-' + orderId);
         var total = $row.find('.sub-pkg-check').length;
         var checked = $row.find('.sub-pkg-check:checked').length;
+        // Update sub-pkg-check-all
         $row.find('.sub-pkg-check-all').prop('checked', total === checked).prop('indeterminate', checked > 0 && checked < total);
+        // Update order checkbox
         var $orderCb = $('.order-check[value="' + orderId + '"]');
         $orderCb.prop('checked', checked > 0 && total === checked);
         $orderCb.prop('indeterminate', checked > 0 && checked < total);
+        // Update master checkbox
         var totalOrders = $('.order-check').length;
         var chkOrders = $('.order-check:checked').length;
         var indOrders = $('.order-check:indeterminate').length;
         $('#check-all').prop('checked', totalOrders === chkOrders && indOrders === 0).prop('indeterminate', (chkOrders > 0 || indOrders > 0) && (chkOrders < totalOrders || indOrders > 0));
     }
 
+    // ===== Expand/Collapse packages =====
     var colCount = $('table.table-hover > thead > tr > th').length;
 
     $(document).on('click', '.btn-expand-pkgs', function(e){
@@ -661,21 +692,32 @@ $(function(){
         var $orderRow = $(this).closest('tr');
         var $expandRow = $('#pkg-row-' + orderId);
         var $icon = $(this).find('.expand-icon');
+
         if ($expandRow.length && $expandRow.is(':visible')) {
+            // Collapse (keep expanded state for accurate summary)
             $expandRow.hide();
             $icon.removeClass('ri-arrow-up-s-line').addClass('ri-arrow-down-s-line');
             return;
         }
+
+        // Show expand icon
         $icon.removeClass('ri-arrow-down-s-line').addClass('ri-arrow-up-s-line');
+
         if ($expandRow.length) {
+            // Already created, just show
             $expandRow.show();
             updateSelectedSummary();
             return;
         }
+
+        // Create expand row dynamically
         var cargo = $('.order-check[value="' + orderId + '"]').data('cargo');
         var $newRow = $('<tr class="pkg-expand-row" id="pkg-row-' + orderId + '" data-order-id="' + orderId + '" data-cargo="' + (cargo || '') + '"><td colspan="' + colCount + '" class="p-0"><div class="px-4 py-2 bg-light"><div class="text-center text-muted py-2"><i class="ri-loader-4-line ri-spin"></i> <?= __('Đang tải...') ?></div></div></td></tr>');
         $orderRow.after($newRow);
+
+        // Load packages via AJAX
         var orderChecked = $('.order-check[value="' + orderId + '"]').is(':checked');
+
         $.post(pkgAjaxUrl, {
             request_name: 'get_order_packages',
             order_id: orderId,
@@ -698,6 +740,8 @@ $(function(){
                 html += '<th><?= __('Số khối') ?></th>';
                 html += '<th><?= __('Trạng thái') ?></th>';
                 html += '</tr></thead><tbody>';
+
+                // Group packages by same weight + dimensions + status
                 var groups = [];
                 var groupMap = {};
                 res.packages.forEach(function(pkg){
@@ -709,16 +753,22 @@ $(function(){
                         groups[groupMap[key]].pkgs.push(pkg);
                     }
                 });
+
+                // Build sequential index for each package
                 var pkgIndex = 0;
                 var pkgIndexMap = {};
                 res.packages.forEach(function(pkg){ pkgIndexMap[pkg.id] = ++pkgIndex; });
+
                 groups.forEach(function(group){
                     var pkgs = group.pkgs;
                     var first = pkgs[0];
                     var dim = (first.length_cm > 0 || first.width_cm > 0 || first.height_cm > 0)
                         ? parseFloat(first.length_cm) + '×' + parseFloat(first.width_cm) + '×' + parseFloat(first.height_cm)
                         : '-';
+
                     if (pkgs.length === 1) {
+                        // Single package
+                        var idx = pkgIndexMap[first.id];
                         html += '<tr>';
                         html += '<td><input type="checkbox" class="form-check-input sub-pkg-check" value="' + first.id + '" data-weight="' + first.weight_actual + '" data-cbm="' + first.cbm + '"' + (orderChecked ? ' checked' : '') + '></td>';
                         html += '<td><strong>' + first.package_code + '</strong></td>';
@@ -728,19 +778,27 @@ $(function(){
                         html += '<td>' + (statusLabels[first.status] || first.status) + '</td>';
                         html += '</tr>';
                     } else {
+                        // Grouped packages - collapsible group row
                         var groupId = 'grp-' + orderId + '-' + group.key.replace(/[|.]/g, '_');
                         var ids = pkgs.map(function(p){ return p.id; });
                         var totalW = first.weight_actual * pkgs.length;
                         var totalC = first.cbm * pkgs.length;
+                        var firstIdx = pkgIndexMap[pkgs[0].id];
+                        var lastIdx = pkgIndexMap[pkgs[pkgs.length - 1].id];
+
                         html += '<tr class="pkg-group-row" data-group-id="' + groupId + '">';
                         html += '<td><input type="checkbox" class="form-check-input sub-pkg-group-check" data-group-id="' + groupId + '" data-ids=\'' + JSON.stringify(ids) + '\' data-total="' + pkgs.length + '"' + (orderChecked ? ' checked' : '') + '></td>';
-                        html += '<td><a href="#" class="btn-expand-group text-decoration-none" data-group-id="' + groupId + '"><strong>' + pkgs[0].package_code + ' ~ ' + pkgs[pkgs.length-1].package_code + '</strong> <span class="badge bg-primary-subtle text-primary">' + pkgs.length + ' <?= __('kiện') ?></span> <i class="ri-arrow-down-s-line grp-icon"></i></a></td>';
+                        html += '<td><a href="#" class="btn-expand-group text-decoration-none" data-group-id="' + groupId + '"><strong>' + pkgs[0].package_code + ' ~ ' + pkgs[pkgs.length-1].package_code + '</strong> <span class="badge bg-primary-subtle text-primary">' + pkgs.length + ' <?= __('kiện') ?></span> <i class="ri-arrow-down-s-line grp-icon"></i></a>';
+                        html += '</td>';
                         html += '<td class="grp-weight-cell" data-group-id="' + groupId + '" data-unit-w="' + first.weight_actual + '">' + (first.weight_actual > 0 ? '1 kiện: ' + fnum(first.weight_actual, 2) + ' kg<br><strong>' + fnum(orderChecked ? totalW : 0, 2) + ' kg</strong>' : '-') + '</td>';
                         html += '<td>' + dim + '</td>';
                         html += '<td class="grp-cbm-cell" data-group-id="' + groupId + '" data-unit-c="' + first.cbm + '">' + (first.cbm > 0 ? '1 kiện: ' + fnum(first.cbm, 2) + ' m³<br><strong>' + fnum(orderChecked ? totalC : 0, 2) + ' m³</strong>' : '-') + '</td>';
                         html += '<td>' + (statusLabels[first.status] || first.status) + '</td>';
                         html += '</tr>';
+
+                        // Hidden individual rows
                         pkgs.forEach(function(pkg){
+                            var idx = pkgIndexMap[pkg.id];
                             html += '<tr class="pkg-group-detail d-none" data-group-id="' + groupId + '">';
                             html += '<td class="ps-4"><input type="checkbox" class="form-check-input sub-pkg-check" value="' + pkg.id + '" data-weight="' + pkg.weight_actual + '" data-cbm="' + pkg.cbm + '" data-group-id="' + groupId + '"' + (orderChecked ? ' checked' : '') + '></td>';
                             html += '<td class="ps-4">' + pkg.package_code + '</td>';
@@ -752,6 +810,7 @@ $(function(){
                         });
                     }
                 });
+
                 html += '</tbody></table>';
                 $newRow.find('.bg-light > div').removeClass('text-center').html(html);
                 expandedOrders[orderId] = true;
@@ -760,21 +819,25 @@ $(function(){
         }, 'json');
     });
 
-    // Bulk apply
+    // Bulk apply - smart: package-level for expanded, order-level for non-expanded
     $('#btn-bulk-apply').on('click', function(){
         var newStatus = $('#bulk-action').val();
-        var orderIds = [];
-        var packageIds = [];
+        var orderIds = [];   // non-expanded fully-checked orders
+        var packageIds = []; // specific packages from expanded orders
+
         $('.order-check').each(function(){
             var orderId = $(this).val();
             if (expandedOrders[orderId]) {
+                // Expanded: collect only checked package IDs
                 $('#pkg-row-' + orderId + ' .sub-pkg-check:checked').each(function(){
                     packageIds.push($(this).val());
                 });
             } else if (this.checked) {
+                // Non-expanded fully checked: update whole order
                 orderIds.push(orderId);
             }
         });
+
         if (orderIds.length === 0 && packageIds.length === 0) {
             Swal.fire({icon: 'warning', title: '<?= __('Vui lòng chọn ít nhất 1 đơn hàng hoặc kiện hàng') ?>'});
             return;
@@ -783,9 +846,11 @@ $(function(){
             Swal.fire({icon: 'warning', title: '<?= __('Vui lòng chọn hành động') ?>'});
             return;
         }
+
         var msgParts = [];
         if (orderIds.length > 0) msgParts.push(orderIds.length + ' <?= __('đơn hàng') ?>');
         if (packageIds.length > 0) msgParts.push(packageIds.length + ' <?= __('kiện hàng') ?>');
+
         Swal.fire({
             title: '<?= __('Xác nhận cập nhật hàng loạt?') ?>',
             html: '<?= __('Cập nhật') ?> <strong>' + msgParts.join(' + ') + '</strong>',
@@ -795,9 +860,13 @@ $(function(){
             cancelButtonText: '<?= __('Hủy') ?>'
         }).then(function(result){
             if (!result.isConfirmed) return;
+
             var btn = $('#btn-bulk-apply');
             btn.prop('disabled', true).html('<i class="ri-loader-4-line ri-spin me-1"></i>');
+
             var requests = [];
+
+            // Update whole orders (non-expanded)
             if (orderIds.length > 0) {
                 requests.push($.post('<?= base_url('ajaxs/staffcn/orders-status.php') ?>', {
                     request_name: 'bulk_update_status',
@@ -807,6 +876,8 @@ $(function(){
                     csrf_token: csrfToken
                 }, null, 'json'));
             }
+
+            // Update specific packages (expanded)
             if (packageIds.length > 0) {
                 requests.push($.post(pkgAjaxUrl, {
                     request_name: 'bulk_update_status',
@@ -815,7 +886,9 @@ $(function(){
                     csrf_token: csrfToken
                 }, null, 'json'));
             }
+
             $.when.apply($, requests).then(function(){
+                // Collect results from all requests
                 var results = requests.length === 1 ? [arguments] : Array.from(arguments);
                 var allSuccess = true;
                 var msgs = [];
@@ -837,9 +910,43 @@ $(function(){
         });
     });
 
-    // View Images
+    // Delete order
+    $(document).on('click', '.btn-delete-order', function(){
+        var btn = $(this);
+        var id = btn.data('id');
+        var code = btn.data('code');
+        Swal.fire({
+            title: '<?= __('Xác nhận xóa?') ?>',
+            html: '<?= __('Bạn có chắc muốn xóa đơn hàng') ?> <strong>' + code + '</strong>?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: '<?= __('Xóa') ?>',
+            cancelButtonText: '<?= __('Hủy') ?>'
+        }).then(function(result){
+            if(result.isConfirmed){
+                $.post('<?= base_url('ajaxs/staffcn/orders.php') ?>', {
+                    request_name: 'delete',
+                    id: id,
+                    csrf_token: csrfToken
+                }, function(res){
+                    if(res.status == 'success'){
+                        Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
+                    } else {
+                        Swal.fire({icon: 'error', title: 'Error', text: res.msg});
+                    }
+                }, 'json').fail(function(){
+                    Swal.fire({icon: 'error', title: 'Error', text: '<?= __('Lỗi kết nối') ?>'});
+                });
+            }
+        });
+    });
+
+
+    // ===== View Images (Bootstrap Carousel) =====
     var galleryCarousel = null;
     var galleryTotal = 0;
+
     function updateGalleryCounter() {
         var idx = $('#imageCarousel .carousel-item.active').index();
         $('#gallery-counter').text((idx + 1) + ' / ' + galleryTotal);
@@ -849,50 +956,30 @@ $(function(){
             $('#imageCarousel .carousel-control-prev, #imageCarousel .carousel-control-next').removeClass('d-none');
         }
     }
+
     $('#imageCarousel').on('slid.bs.carousel', updateGalleryCounter);
+
     $(document).on('click', '.btn-view-images', function(e){
         e.preventDefault();
         var images = $(this).data('images');
         if (!images || !images.length) return;
         galleryTotal = images.length;
+
         var html = '';
         images.forEach(function(url, i){
-            html += '<div class="carousel-item' + (i === 0 ? ' active' : '') + '"><div class="d-flex align-items-center justify-content-center" style="min-height:300px;"><img src="' + url + '" class="d-block" style="max-width:100%;max-height:75vh;object-fit:contain;"></div></div>';
+            html += '<div class="carousel-item' + (i === 0 ? ' active' : '') + '">'
+                + '<div class="d-flex align-items-center justify-content-center" style="min-height:300px;">'
+                + '<img src="' + url + '" class="d-block" style="max-width:100%;max-height:75vh;object-fit:contain;">'
+                + '</div></div>';
         });
         $('#carousel-items').html(html);
+
         if (galleryCarousel) galleryCarousel.dispose();
         galleryCarousel = new bootstrap.Carousel($('#imageCarousel')[0], { interval: false, touch: true, keyboard: true });
+
         updateGalleryCounter();
         new bootstrap.Modal($('#imageGalleryModal')[0]).show();
     });
 
-    // Delete order
-    $(document).on('click', '.btn-delete-order', function(){
-        var id = $(this).data('id');
-        var code = $(this).data('code');
-        Swal.fire({
-            title: '<?= __('Xóa đơn hàng?') ?>',
-            html: '<?= __('Xóa mã hàng') ?> <strong>' + code + '</strong>?<br><small class="text-muted"><?= __('Thao tác này không thể hoàn tác') ?></small>',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            confirmButtonText: '<?= __('Xóa') ?>',
-            cancelButtonText: '<?= __('Hủy') ?>'
-        }).then(function(result){
-            if (result.isConfirmed) {
-                $.post('<?= base_url('ajaxs/staffcn/orders.php') ?>', {
-                    request_name: 'delete',
-                    order_id: id,
-                    csrf_token: csrfToken
-                }, function(res){
-                    if (res.status === 'success') {
-                        Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
-                    } else {
-                        Swal.fire({icon: 'error', title: 'Error', text: res.msg});
-                    }
-                }, 'json');
-            }
-        });
-    });
 });
 </script>
