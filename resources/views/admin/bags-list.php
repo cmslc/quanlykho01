@@ -139,7 +139,7 @@ require_once(__DIR__.'/sidebar.php');
                                                 $bagImgUrls = array_map('get_upload_url', $bagImgArr);
                                                 $imgCount = count($bagImgArr);
                                             ?>
-                                            <a href="#" class="btn-view-images position-relative d-inline-block" data-images="<?= htmlspecialchars(json_encode(array_values($bagImgUrls))) ?>" onclick="event.stopPropagation();">
+                                            <a href="#" class="btn-view-images position-relative d-inline-block" data-images="<?= htmlspecialchars(json_encode(array_values($bagImgUrls))) ?>">
                                                 <img src="<?= $bagImgUrls[0] ?>" class="rounded" style="width:40px;height:40px;object-fit:cover;">
                                                 <?php if ($imgCount > 1): ?>
                                                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="font-size:10px;"><?= $imgCount ?></span>
