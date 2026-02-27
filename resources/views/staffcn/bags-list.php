@@ -31,6 +31,11 @@ $bags = $ToryHub->get_list_safe("SELECT b.*, u.fullname as creator_name
     FROM `bags` b LEFT JOIN `users` u ON b.created_by = u.id
     WHERE $where ORDER BY b.create_date DESC LIMIT $perPage OFFSET $offset", $params);
 
+// All bags for export (no pagination)
+$bagsAll = $ToryHub->get_list_safe("SELECT b.*, u.fullname as creator_name
+    FROM `bags` b LEFT JOIN `users` u ON b.created_by = u.id
+    WHERE $where ORDER BY b.create_date DESC", $params);
+
 $bagStatuses = ['open', 'sealed', 'loading', 'shipping', 'arrived'];
 $bagStatusLabels = [
     'open' => ['label' => 'Đang mở', 'bg' => 'info-subtle', 'text' => 'info', 'icon' => 'ri-lock-unlock-line'],
@@ -48,9 +53,12 @@ require_once(__DIR__.'/sidebar.php');
             <div class="col-12">
                 <div class="page-title-box d-sm-flex align-items-center justify-content-between">
                     <h4 class="mb-sm-0"><?= __('Danh sách bao hàng') ?></h4>
-                    <a href="<?= base_url('staffcn/bags-packing') ?>" class="btn btn-primary">
-                        <i class="ri-archive-drawer-line"></i> <?= __('Đóng bao mới') ?>
-                    </a>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-success" id="btn-export-bags"><i class="ri-file-excel-2-line me-1"></i><?= __('Xuất Excel') ?></button>
+                        <a href="<?= base_url('staffcn/bags-packing') ?>" class="btn btn-primary">
+                            <i class="ri-archive-drawer-line"></i> <?= __('Đóng bao mới') ?>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -410,6 +418,54 @@ $(function(){
                 }, 'json');
             }
         });
+    });
+
+    // Export Excel
+    $('#btn-export-bags').on('click', function(){
+        var statusMap = {
+            'open': '<?= __('Đang mở') ?>',
+            'sealed': '<?= __('Chờ vận chuyển') ?>',
+            'loading': '<?= __('Đang xếp xe') ?>',
+            'shipping': '<?= __('Đang vận chuyển') ?>',
+            'arrived': '<?= __('Đã đến kho VN') ?>'
+        };
+        var rows = [['STT', '<?= __('Mã bao') ?>', '<?= __('Trạng thái') ?>', '<?= __('Số kiện') ?>', '<?= __('Tổng cân (kg)') ?>', '<?= __('Số khối (m³)') ?>', '<?= __('Người tạo') ?>', '<?= __('Ngày tạo') ?>']];
+        <?php $bStt = 0; foreach ($bagsAll as $b): $bStt++; ?>
+        rows.push([
+            <?= $bStt ?>,
+            <?= json_encode($b['bag_code']) ?>,
+            statusMap[<?= json_encode($b['status']) ?>] || <?= json_encode($b['status']) ?>,
+            <?= intval($b['total_packages']) ?>,
+            <?= floatval($b['total_weight']) ?>,
+            <?= floatval($b['weight_volume']) ?>,
+            <?= json_encode($b['creator_name'] ?? '') ?>,
+            <?= json_encode(date('d/m/Y H:i', strtotime($b['create_date']))) ?>
+        ]);
+        <?php endforeach; ?>
+        function xlsEsc(v) {
+            if (v === null || v === undefined) return '';
+            return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+        var xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+            + '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n'
+            + '<Styles><Style ss:ID="H"><Font ss:Bold="1"/></Style></Styles>\n'
+            + '<Worksheet ss:Name="Sheet1"><Table>\n';
+        rows.forEach(function(row, ri){
+            xml += '<Row>';
+            row.forEach(function(cell){
+                var t = (typeof cell === 'number') ? 'Number' : 'String';
+                var s = (ri === 0) ? ' ss:StyleID="H"' : '';
+                xml += '<Cell' + s + '><Data ss:Type="' + t + '">' + xlsEsc(cell) + '</Data></Cell>';
+            });
+            xml += '</Row>\n';
+        });
+        xml += '</Table></Worksheet></Workbook>';
+        var blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = '<?= __('danh-sach-bao') ?>_' + new Date().toISOString().slice(0,10) + '.xls';
+        a.click();
+        URL.revokeObjectURL(a.href);
     });
 });
 </script>
