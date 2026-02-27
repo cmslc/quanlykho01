@@ -258,6 +258,12 @@ require_once(__DIR__.'/sidebar.php');
                                         }
                                     }
                                     ?>
+                                    <?php if (!$isRetail && floatval($order['weight_actual'] ?? 0) > 0): ?>
+                                    <tr>
+                                        <td class="text-muted"><?= __('Tổng cân nặng mã hàng') ?></td>
+                                        <td class="fw-bold"><?= floatval($order['weight_actual']) ?> kg</td>
+                                    </tr>
+                                    <?php endif; ?>
                                     <tr>
                                         <td class="text-muted"><?= __('Số khối') ?></td>
                                         <td class="fw-bold"><?= $totalCbm > 0 ? number_format($totalCbm, 3) . ' m³' : '-' ?></td>

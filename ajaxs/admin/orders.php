@@ -395,6 +395,7 @@ if ($request === 'edit') {
 
     $cargo_type = in_array(input_post('cargo_type'), ['easy', 'difficult']) ? input_post('cargo_type') : null;
 
+    $edit_weight_actual = floatval(input_post('weight_actual'));
     $ToryHub->update_safe("orders", [
         'customer_id' => $customer_id,
         'order_type' => 'shipping',
@@ -404,6 +405,7 @@ if ($request === 'edit') {
         'status' => $status,
         'product_name' => trim(input_post('product_name')),
         'product_image' => $product_image,
+        'weight_actual' => $edit_weight_actual,
         'note' => trim(input_post('note')),
         'note_internal' => trim(input_post('note_internal')),
         'updated_by' => $getUser['id'],
