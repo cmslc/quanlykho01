@@ -367,6 +367,14 @@ if ($request === 'delete') {
         $Packages->updateStatus($bp['package_id'], 'cn_warehouse', $getUser['id'], __('Xóa bao') . ' ' . $bag['bag_code']);
     }
 
+    // Delete bag images from disk
+    if (!empty($bag['images'])) {
+        $imageList = array_filter(array_map('trim', explode(',', $bag['images'])));
+        foreach ($imageList as $imgPath) {
+            delete_uploaded_file($imgPath);
+        }
+    }
+
     $ToryHub->remove_safe("bag_packages", "bag_id = ?", [$bag_id]);
     $ToryHub->remove_safe("bags", "id = ?", [$bag_id]);
 
