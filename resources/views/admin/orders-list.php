@@ -144,12 +144,9 @@ require_once(__DIR__.'/sidebar.php');
             <div class="col-12">
                 <div class="page-title-box d-sm-flex align-items-center justify-content-between">
                     <h4 class="mb-sm-0"><?= $page_title ?></h4>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-success" id="btn-export-excel"><i class="ri-file-excel-2-line me-1"></i><?= __('Xuất Excel') ?></button>
-                        <a href="<?= base_url('admin/orders-add&product_type=' . $_productTypeFilter) ?>" class="btn btn-primary">
-                            <i class="ri-add-line"></i> <?= __('Nhập kho') ?>
-                        </a>
-                    </div>
+                    <a href="<?= base_url('admin/orders-add&product_type=' . $_productTypeFilter) ?>" class="btn btn-primary">
+                        <i class="ri-add-line"></i> <?= __('Nhập kho') ?>
+                    </a>
                 </div>
             </div>
         </div>
