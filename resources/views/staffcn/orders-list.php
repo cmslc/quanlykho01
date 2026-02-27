@@ -404,7 +404,7 @@ require_once(__DIR__.'/sidebar.php');
                                                     $cnt = $opkgMap[$st] ?? 0;
                                                     if ($cnt > 0):
                                                 ?>
-                                                <span class="badge bg-<?= $cfg['bg'] ?>-subtle text-<?= $cfg['bg'] ?>" style="font-size:10px;"><?= __($cfg['label']) ?>: <?= $cnt ?></span>
+                                                <span class="badge bg-<?= $cfg['bg'] ?>-subtle text-<?= $cfg['bg'] ?> fs-12 px-2 py-1"><?= __($cfg['label']) ?>: <?= $cnt ?></span>
                                                 <?php endif; endforeach; ?>
                                             </div>
                                             <?php endif; ?>
