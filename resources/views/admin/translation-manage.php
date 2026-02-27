@@ -130,7 +130,7 @@ if ($editLangId) {
             <div class="col">
                 <div class="card card-body py-3 mb-0">
                     <div class="text-muted fs-12 mb-1"><?= __('Đã dịch') ?></div>
-                    <h5 class="mb-0 <?= $translated == $totalKeys ? 'text-success' : 'text-warning' ?>">
+                    <h5 class="mb-0 <?= $translated == $totalKeys ? 'text-success' : 'text-primary' ?>">
                         <?= $translated ?> / <?= $totalKeys ?>
                     </h5>
                     <small class="text-muted"><?= $totalKeys > 0 ? round($translated / $totalKeys * 100) : 0 ?>%</small>
@@ -470,7 +470,7 @@ require_once(__DIR__.'/sidebar.php');
                                             ?>
                                                 <span class="text-muted fs-12"><?= __('Gốc') ?></span>
                                             <?php else: ?>
-                                                <span class="<?= $pct == 100 ? 'text-success' : ($pct > 0 ? 'text-warning' : 'text-danger') ?>"><?= $cnt ?>/<?= $totalKeys ?></span>
+                                                <span class="<?= $pct == 100 ? 'text-success' : ($pct > 0 ? 'text-primary' : 'text-danger') ?>"><?= $cnt ?>/<?= $totalKeys ?></span>
                                                 <small class="text-muted">(<?= $pct ?>%)</small>
                                             <?php endif; ?>
                                         </td>

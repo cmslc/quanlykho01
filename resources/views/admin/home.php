@@ -293,7 +293,7 @@ require_once(__DIR__.'/sidebar.php');
                     </div>
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span><i class="ri-map-pin-line me-1 text-warning"></i><?= __('Tại kho Trung Quốc') ?></span>
+                            <span><i class="ri-map-pin-line me-1 text-muted"></i><?= __('Tại kho Trung Quốc') ?></span>
                             <span class="badge bg-warning fs-13"><?= $cnWarehouseOrders ?></span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center mb-3">

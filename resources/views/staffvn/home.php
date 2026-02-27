@@ -137,7 +137,7 @@ require_once(__DIR__.'/sidebar.php');
                                 <p class="text-muted mb-1 small"><?= __('COD thu hôm nay') ?></p>
                                 <h5 class="mb-0"><?= format_vnd($cod_today) ?></h5>
                             </div>
-                            <span class="avatar-title bg-soft-warning text-warning rounded-circle" style="width:36px;height:36px;"><i class="ri-money-dollar-circle-line"></i></span>
+                            <span class="avatar-title bg-warning text-dark rounded-circle" style="width:36px;height:36px;"><i class="ri-money-dollar-circle-line"></i></span>
                         </div>
                     </div>
                 </div>

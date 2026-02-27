@@ -107,7 +107,7 @@ require_once(__DIR__.'/sidebar.php');
                                     </div>
                                     <small class="<?= $isCurrent ? 'fw-bold text-primary' : ($isCompleted ? 'text-success' : 'text-muted') ?>"><?= __($statusLabels[$s]) ?></small>
                                     <?php if ($totalPkgs > 0): ?>
-                                    <br><small class="<?= $reached > 0 ? ($reached == $totalPkgs ? 'text-success' : 'text-warning') : 'text-muted' ?>"><?= $reached ?>/<?= $totalPkgs ?> <?= __('kiện') ?></small>
+                                    <br><small class="<?= $reached > 0 ? ($reached == $totalPkgs ? 'text-success' : 'text-primary') : 'text-muted' ?>"><?= $reached ?>/<?= $totalPkgs ?> <?= __('kiện') ?></small>
                                     <?php endif; ?>
                                 </div>
                                 <?php if ($idx < count($flowKeys) - 1): ?>
@@ -299,7 +299,7 @@ require_once(__DIR__.'/sidebar.php');
                         <p><strong><?= __('Ghi chú khách hàng') ?>:</strong> <?= htmlspecialchars($order['note']) ?></p>
                         <?php endif; ?>
                         <?php if ($order['note_internal']): ?>
-                        <p><strong><?= __('Ghi chú nội bộ') ?>:</strong> <span class="text-warning"><?= htmlspecialchars($order['note_internal']) ?></span></p>
+                        <p><strong><?= __('Ghi chú nội bộ') ?>:</strong> <span class="text-dark"><?= htmlspecialchars($order['note_internal']) ?></span></p>
                         <?php endif; ?>
                     </div>
                 </div>

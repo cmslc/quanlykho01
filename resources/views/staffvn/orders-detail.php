@@ -326,7 +326,7 @@ $(function(){
         extraCount++;
         $('#extra-count').text(extraCount);
         $('#card-extras').removeClass('d-none');
-        $('#extra-list').append('<li class="list-group-item py-2"><i class="ri-error-warning-line text-warning me-1"></i>' + $('<span>').text(barcode).html() + '</li>');
+        $('#extra-list').append('<li class="list-group-item py-2"><i class="ri-error-warning-line text-danger me-1"></i>' + $('<span>').text(barcode).html() + '</li>');
     }
 
     function tickGroup(grpIdx) {
@@ -456,7 +456,7 @@ $(function(){
                     }
 
                     if (res.extra_items && res.extra_items.length > 0) {
-                        html += '<div class="text-start mt-3"><strong class="text-warning"><?= __('Danh sách thừa') ?>:</strong><ul class="mb-0 mt-1">';
+                        html += '<div class="text-start mt-3"><strong class="text-danger"><?= __('Danh sách thừa') ?>:</strong><ul class="mb-0 mt-1">';
                         res.extra_items.forEach(function(item){
                             html += '<li>' + item.barcode + '</li>';
                         });
@@ -508,7 +508,7 @@ $(function(){
     var existingExtras = <?= json_encode($existingExtras) ?>;
     existingExtras.forEach(function(e){
         extraCount++;
-        $('#extra-list').append('<li class="list-group-item py-2"><i class="ri-error-warning-line text-warning me-1"></i>' + $('<span>').text(e.barcode).html() + '</li>');
+        $('#extra-list').append('<li class="list-group-item py-2"><i class="ri-error-warning-line text-danger me-1"></i>' + $('<span>').text(e.barcode).html() + '</li>');
     });
     $('#extra-count').text(extraCount);
     $('#card-extras').removeClass('d-none');

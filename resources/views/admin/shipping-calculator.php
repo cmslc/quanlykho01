@@ -393,7 +393,7 @@ require_once(__DIR__.'/sidebar.php');
                             <span><?= __('Tổng số khối') ?>: <strong id="sum-cbm" class="text-primary">0 m³</strong></span>
                             <span><?= __('Cước theo kg') ?>: <strong id="sum-cost-kg" class="text-danger">0 ₫</strong></span>
                             <span><?= __('Cước theo m³') ?>: <strong id="sum-cost-cbm" class="text-danger">0 ₫</strong></span>
-                            <span><?= __('Cước nội địa') ?>: <strong id="sum-domestic" class="text-warning">¥0</strong> <small id="sum-domestic-vnd" class="text-muted"></small></span>
+                            <span><?= __('Cước nội địa') ?>: <strong id="sum-domestic" class="text-dark">¥0</strong> <small id="sum-domestic-vnd" class="text-muted"></small></span>
                             <span id="sum-cargo" class="d-none">
                                 <span class="badge bg-success-subtle text-success fs-12 px-2 py-1"><i class="ri-truck-line me-1"></i><?= __('Hàng dễ') ?>: <strong id="sum-cargo-easy">0 m³</strong> (<span id="sum-cargo-easy-pct">0</span>%)</span>
                                 <span class="badge bg-danger-subtle text-danger fs-12 px-2 py-1"><i class="ri-alarm-warning-line me-1"></i><?= __('Hàng khó') ?>: <strong id="sum-cargo-difficult">0 m³</strong> (<span id="sum-cargo-difficult-pct">0</span>%)</span>
@@ -469,8 +469,8 @@ require_once(__DIR__.'/sidebar.php');
                                         <td class="align-middle"><?= display_cargo_type('easy') ?></td>
                                         <td class="align-middle"><?php if (count($bagCusts) == 1): ?><?= htmlspecialchars(array_values($bagCusts)[0]) ?><?php elseif (count($bagCusts) > 1): ?><span class="text-muted"><?= count($bagCusts) ?> <?= __('khách') ?></span><?php else: ?><span class="text-muted">-</span><?php endif; ?></td>
                                         <td class="align-middle">
-                                            <div><?= $weight > 0 ? fnum($weight, 1) . ' kg' : '<span class="text-warning"><i class="ri-alert-line"></i> 0 kg</span>' ?></div>
-                                            <div><?= $cbm > 0 ? fnum($cbm, 2) . ' m&sup3;' : '<span class="text-warning"><i class="ri-alert-line"></i> 0 m&sup3;</span>' ?></div>
+                                            <div><?= $weight > 0 ? fnum($weight, 1) . ' kg' : '<span class="text-danger"><i class="ri-alert-line"></i> 0 kg</span>' ?></div>
+                                            <div><?= $cbm > 0 ? fnum($cbm, 2) . ' m&sup3;' : '<span class="text-danger"><i class="ri-alert-line"></i> 0 m&sup3;</span>' ?></div>
                                         </td>
                                         <td class="align-middle" data-item-type="bag" data-item-id="<?= $bag['bag_id'] ?>">
                                             <div class="mb-1 d-flex align-items-center gap-1"><small class="text-muted" style="min-width:22px;">Kg</small><input type="text" inputmode="decimal" class="form-control form-control-sm rate-input rate-kg" data-weight="<?= $weight ?>" data-cbm="<?= $cbm ?>" value="<?= number_format($row['rate_kg'], 0, '', '.') ?>" style="width:85px;"></div>
@@ -517,8 +517,8 @@ require_once(__DIR__.'/sidebar.php');
                                         <td class="align-middle"><?= !empty($orderCargoType) ? display_cargo_type($orderCargoType) : '<span class="text-muted">-</span>' ?></td>
                                         <td class="align-middle"><?php if ($order['customer_id']): ?><a href="<?= base_url('admin/customers-detail&id=' . $order['customer_id']) ?>" class="fw-bold"><?= htmlspecialchars($order['customer_name'] ?? '') ?></a><?php else: ?><span class="text-muted">-</span><?php endif; ?></td>
                                         <td class="align-middle">
-                                            <div><?= $weight > 0 ? fnum($weight, 1) . ' kg' : '<span class="text-warning"><i class="ri-alert-line"></i> 0 kg</span>' ?></div>
-                                            <div><?= $cbm > 0 ? fnum($cbm, 2) . ' m&sup3;' : '<span class="text-warning"><i class="ri-alert-line"></i> 0 m&sup3;</span>' ?></div>
+                                            <div><?= $weight > 0 ? fnum($weight, 1) . ' kg' : '<span class="text-danger"><i class="ri-alert-line"></i> 0 kg</span>' ?></div>
+                                            <div><?= $cbm > 0 ? fnum($cbm, 2) . ' m&sup3;' : '<span class="text-danger"><i class="ri-alert-line"></i> 0 m&sup3;</span>' ?></div>
                                         </td>
                                         <td class="align-middle" data-item-type="order" data-item-id="<?= $order['id'] ?>">
                                             <div class="mb-1 d-flex align-items-center gap-1"><small class="text-muted" style="min-width:22px;">Kg</small><input type="text" inputmode="decimal" class="form-control form-control-sm rate-input rate-kg" data-weight="<?= $weight ?>" data-cbm="<?= $cbm ?>" value="<?= number_format($row['rate_kg'], 0, '', '.') ?>" style="width:85px;"></div>

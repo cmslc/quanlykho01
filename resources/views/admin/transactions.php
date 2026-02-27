@@ -96,7 +96,7 @@ require_once(__DIR__.'/sidebar.php');
                         <div class="d-flex align-items-end justify-content-between mt-2">
                             <div>
                                 <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Tổng hoàn tiền') ?></p>
-                                <h4 class="fs-22 fw-semibold mt-4 mb-0 text-warning"><?= format_vnd($totalRefund['total']) ?></h4>
+                                <h4 class="fs-22 fw-semibold mt-4 mb-0 text-danger"><?= format_vnd($totalRefund['total']) ?></h4>
                             </div>
                             <div class="avatar-sm flex-shrink-0">
                                 <span class="avatar-title bg-warning rounded fs-3"><i class="ri-refund-2-line text-dark"></i></span>

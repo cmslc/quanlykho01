@@ -59,7 +59,7 @@ require_once(__DIR__.'/sidebar.php');
                                 </div>
                                 <div class="col">
                                     <small class="text-muted d-block"><?= __('Thừa') ?></small>
-                                    <strong id="ic-extra" class="text-warning">0</strong>
+                                    <strong id="ic-extra" class="text-danger">0</strong>
                                 </div>
                                 <div class="col">
                                     <small class="text-muted d-block"><?= __('Không thấy') ?></small>
@@ -128,7 +128,7 @@ require_once(__DIR__.'/sidebar.php');
                                 <div class="col"><h4 id="res-scanned" class="mb-0 text-primary">0</h4><small class="text-muted"><?= __('Đã quét') ?></small></div>
                                 <div class="col"><h4 id="res-matched" class="mb-0 text-success">0</h4><small class="text-muted"><?= __('Khớp') ?></small></div>
                                 <div class="col"><h4 id="res-missing" class="mb-0 text-danger">0</h4><small class="text-muted"><?= __('Thiếu') ?></small></div>
-                                <div class="col"><h4 id="res-extra" class="mb-0 text-warning">0</h4><small class="text-muted"><?= __('Thừa') ?></small></div>
+                                <div class="col"><h4 id="res-extra" class="mb-0 text-danger">0</h4><small class="text-muted"><?= __('Thừa') ?></small></div>
                             </div>
 
                             <div id="missing-list-container" style="display:none;">
@@ -190,7 +190,7 @@ require_once(__DIR__.'/sidebar.php');
                                         <td><?= $ck['total_expected'] ?></td>
                                         <td class="text-success"><?= $ck['total_matched'] ?></td>
                                         <td class="text-danger"><?= $ck['total_missing'] ?></td>
-                                        <td class="text-warning"><?= $ck['total_extra'] ?></td>
+                                        <td class="text-danger"><?= $ck['total_extra'] ?></td>
                                         <td><?= date('d/m/Y H:i', strtotime($ck['create_date'])) ?></td>
                                     </tr>
                                     <?php endforeach; ?>
