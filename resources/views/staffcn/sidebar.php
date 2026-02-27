@@ -13,10 +13,13 @@ $sidebarMenu = [
         'active' => ['home'],
     ],
     [
-        'label' => __('Đơn hàng cần xử lý'),
-        'icon'  => 'ri-shopping-cart-2-line',
-        'url'   => base_url('staffcn/orders-list'),
-        'active' => ['orders-list'],
+        'label' => __('Kho hàng'),
+        'icon'  => 'ri-inbox-archive-line',
+        'active' => ['orders-list', 'orders-retail', 'orders-detail'],
+        'children' => [
+            ['label' => __('Hàng lẻ'),  'url' => base_url('staffcn/orders-retail'), 'active' => ['orders-retail']],
+            ['label' => __('Hàng lô'),  'url' => base_url('staffcn/orders-list'),   'active' => ['orders-list', 'orders-detail']],
+        ],
     ],
     [
         'label' => __('Quét mã nhập kho'),
