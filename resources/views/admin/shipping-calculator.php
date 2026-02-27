@@ -15,7 +15,7 @@ $_cmin = input_get('cbm_min'); $filterCbmMin = ($_cmin !== '' && $_cmin !== null
 $_cmax = input_get('cbm_max'); $filterCbmMax = ($_cmax !== '' && $_cmax !== null && floatval($_cmax) > 0) ? floatval($_cmax) : null;
 $filterSort = input_get('sort') ?: '';
 $filterSortDir = input_get('dir') ?: 'asc';
-$perPage = intval(input_get('per_page') ?: 50);
+$perPage = intval(input_get('per_page') ?: 10);
 $currentPage = max(1, intval(input_get('page') ?: 1));
 
 $notInShipment = "p.id NOT IN (SELECT sp.package_id FROM `shipment_packages` sp JOIN `shipments` s ON sp.shipment_id = s.id WHERE s.status IN ('preparing','in_transit'))";
@@ -122,6 +122,8 @@ if ($filterType !== 'retail') {
             o.weight_charged as order_weight_charged,
             c.fullname as customer_name, c.customer_code,
             COUNT(p.id) as pkg_count,
+            SUM(p.weight_charged) as pkg_weight_charged,
+            SUM(p.weight_actual) as pkg_weight_actual,
             SUM(p.length_cm * p.width_cm * p.height_cm / 1000000) as total_cbm,
             COALESCE(o.domestic_cost, 0) as domestic_cost,
             o.custom_rate_kg, o.custom_rate_cbm,
@@ -159,7 +161,7 @@ if (!empty($wholesaleOrders) && $filterCargo) {
 }
 if (!empty($wholesaleOrders) && ($filterWeightMin !== null || $filterWeightMax !== null || $filterCbmMin !== null || $filterCbmMax !== null)) {
     $wholesaleOrders = array_values(array_filter($wholesaleOrders, function($o) use ($filterWeightMin, $filterWeightMax, $filterCbmMin, $filterCbmMax) {
-        $wC = floatval($o['order_weight_charged'] ?? 0); $wA = floatval($o['order_weight_actual'] ?? 0); $w = $wC > 0 ? $wC : $wA;
+        $wC = floatval($o['order_weight_charged'] ?? 0); $wA = floatval($o['order_weight_actual'] ?? 0); $pkgWC = floatval($o['pkg_weight_charged'] ?? 0); $pkgWA = floatval($o['pkg_weight_actual'] ?? 0); $w = $wC > 0 ? $wC : ($wA > 0 ? $wA : ($pkgWC > 0 ? $pkgWC : $pkgWA));
         $c = $o['total_cbm'] ?? 0;
         if ($filterWeightMin !== null && $w < $filterWeightMin) return false;
         if ($filterWeightMax !== null && $w > $filterWeightMax) return false;
@@ -201,7 +203,7 @@ foreach ($sealedBags as $bag) {
     $allRows[] = ['type' => 'bag', 'data' => $bag, 'weight' => $w, 'cbm' => $c, 'cost' => $cost, 'pkg_count' => intval($bag['pkg_count'] ?? 0), 'cargo' => 'easy', 'rate_kg' => $rkg, 'rate_cbm' => $rcbm, 'domestic_cost' => floatval($bag['domestic_cost'] ?? 0)];
 }
 foreach ($wholesaleOrders as $order) {
-    $wC = floatval($order['order_weight_charged'] ?? 0); $wA = floatval($order['order_weight_actual'] ?? 0); $w = $wC > 0 ? $wC : $wA;
+    $wC = floatval($order['order_weight_charged'] ?? 0); $wA = floatval($order['order_weight_actual'] ?? 0); $pkgWC = floatval($order['pkg_weight_charged'] ?? 0); $pkgWA = floatval($order['pkg_weight_actual'] ?? 0); $w = $wC > 0 ? $wC : ($wA > 0 ? $wA : ($pkgWC > 0 ? $pkgWC : $pkgWA));
     $c = $order['total_cbm'] ?? 0; $cargo = $order['cargo_type'] ?? 'easy';
     $rate = $shippingRates['road'][$cargo] ?? $shippingRates['road']['easy'];
     $rkg = $order['custom_rate_kg'] !== null ? floatval($order['custom_rate_kg']) : $rate['per_kg'];
