@@ -211,7 +211,7 @@ if ($editLangId) {
                                         $rowIdx++;
                                         $val = $transMap[$key] ?? '';
                                     ?>
-                                    <tr class="tr-key <?= empty($val) ? 'table-warning' : '' ?>" data-key="<?= htmlspecialchars($key) ?>">
+                                    <tr class="tr-key " data-key="<?= htmlspecialchars($key) ?>">
                                         <td class="text-muted"><?= $rowIdx ?></td>
                                         <td><code class="text-dark"><?= htmlspecialchars($key) ?></code></td>
                                         <td>
@@ -294,7 +294,6 @@ $(function(){
                 $input.removeClass('border-warning');
                 $btn.removeClass('btn-warning').addClass('btn-outline-success');
                 $btn.html('<i class="ri-check-line"></i>');
-                $tr.toggleClass('table-warning', !$input.val().trim());
                 setTimeout(function(){
                     $btn.removeClass('btn-outline-success').addClass('btn-outline-primary').html('<i class="ri-save-line"></i>').prop('disabled', false);
                 }, 1500);

@@ -440,7 +440,7 @@ require_once(__DIR__.'/sidebar.php');
                                         $cbm = $row['cbm'];
                                         $shipCost = $row['cost'];
                                         $pkgCount = $row['pkg_count'];
-                                        $warnClass = $row['warn'] ? ' table-warning' : '';
+                                        $warnClass = '';
                                     ?>
                                     <?php if ($row['type'] === 'bag'):
                                         $bag = $row['data'];

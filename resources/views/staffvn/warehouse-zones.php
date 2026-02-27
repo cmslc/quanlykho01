@@ -418,7 +418,7 @@ $(document).ready(function(){
         logCounter++;
         $('#empty-row').remove();
         var time = new Date().toLocaleTimeString('vi-VN');
-        var rowClass = resultType === 'success' ? 'table-success' : (resultType === 'duplicate' ? 'table-warning' : 'table-danger');
+        var rowClass = resultType === 'success' ? 'table-success' : (resultType === 'duplicate' ? '' : 'table-danger');
         var badge = resultType === 'success' ? '<span class="badge bg-success">OK</span>' :
                     (resultType === 'duplicate' ? '<span class="badge bg-warning text-dark">{$_lblDup}</span>' :
                     '<span class="badge bg-danger">{$_lblErr}</span>');

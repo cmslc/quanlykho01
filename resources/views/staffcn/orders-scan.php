@@ -339,7 +339,7 @@ $(document).ready(function(){
             rowClass = 'table-success';
             badge = '<span class="badge bg-success">{$_lblSuccess}</span>';
         } else if (resultType === 'duplicate') {
-            rowClass = 'table-warning';
+            rowClass = '';
             badge = '<span class="badge bg-warning text-dark">{$_lblDuplicate}</span>';
         } else {
             rowClass = 'table-danger';

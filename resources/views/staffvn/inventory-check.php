@@ -275,7 +275,7 @@ $(document).ready(function(){
                     rowClass = 'table-success';
                     badge = '<span class="badge bg-success"><?= __('Khớp') ?></span>';
                 } else if (res.result_type === 'extra') {
-                    rowClass = 'table-warning';
+                    rowClass = '';
                     badge = '<span class="badge bg-warning text-dark"><?= __('Thừa') ?></span>';
                 } else if (res.error_type === 'duplicate') {
                     rowClass = 'table-secondary';
