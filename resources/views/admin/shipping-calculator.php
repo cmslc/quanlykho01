@@ -98,11 +98,11 @@ if ($filterType !== 'wholesale' && $filterCargo !== 'difficult') {
     }
 }
 
-// === WHOLESALE ORDERS (cn_warehouse) ===
+// === WHOLESALE ORDERS (all statuses) ===
 $wholesaleOrders = [];
 
 if ($filterType !== 'retail') {
-    $orderWhere = "o.product_type = 'wholesale' AND p.status = 'cn_warehouse' AND $notInShipment";
+    $orderWhere = "o.product_type = 'wholesale'";
     $orderParams = [];
     if ($filterSearch) {
         $orderWhere .= " AND (o.product_code LIKE ? OR o.order_code LIKE ?)";
@@ -117,18 +117,19 @@ if ($filterType !== 'retail') {
 
     $wholesaleOrders = $ToryHub->get_list_safe(
         "SELECT o.id, o.product_code, o.cargo_type, o.product_image, o.customer_id,
+            o.status as order_status,
+            o.weight_actual as order_weight_actual,
+            o.weight_charged as order_weight_charged,
             c.fullname as customer_name, c.customer_code,
             COUNT(p.id) as pkg_count,
-            SUM(COALESCE(p.weight_charged, 0)) as total_weight_charged,
-            SUM(COALESCE(p.weight_actual, 0)) as total_weight_actual,
             SUM(p.length_cm * p.width_cm * p.height_cm / 1000000) as total_cbm,
             COALESCE(o.domestic_cost, 0) as domestic_cost,
             o.custom_rate_kg, o.custom_rate_cbm,
             o.create_date
-        FROM `packages` p
-        JOIN `package_orders` po ON p.id = po.package_id
-        JOIN `orders` o ON po.order_id = o.id
+        FROM `orders` o
         LEFT JOIN `customers` c ON o.customer_id = c.id
+        LEFT JOIN `package_orders` po ON o.id = po.order_id
+        LEFT JOIN `packages` p ON po.package_id = p.id
         WHERE $orderWhere
         GROUP BY o.id
         ORDER BY o.create_date DESC",
@@ -158,7 +159,7 @@ if (!empty($wholesaleOrders) && $filterCargo) {
 }
 if (!empty($wholesaleOrders) && ($filterWeightMin !== null || $filterWeightMax !== null || $filterCbmMin !== null || $filterCbmMax !== null)) {
     $wholesaleOrders = array_values(array_filter($wholesaleOrders, function($o) use ($filterWeightMin, $filterWeightMax, $filterCbmMin, $filterCbmMax) {
-        $wC = $o['total_weight_charged'] ?? 0; $wA = $o['total_weight_actual'] ?? 0; $w = $wC > 0 ? $wC : $wA;
+        $wC = floatval($o['order_weight_charged'] ?? 0); $wA = floatval($o['order_weight_actual'] ?? 0); $w = $wC > 0 ? $wC : $wA;
         $c = $o['total_cbm'] ?? 0;
         if ($filterWeightMin !== null && $w < $filterWeightMin) return false;
         if ($filterWeightMax !== null && $w > $filterWeightMax) return false;
@@ -200,7 +201,7 @@ foreach ($sealedBags as $bag) {
     $allRows[] = ['type' => 'bag', 'data' => $bag, 'weight' => $w, 'cbm' => $c, 'cost' => $cost, 'pkg_count' => intval($bag['pkg_count'] ?? 0), 'cargo' => 'easy', 'rate_kg' => $rkg, 'rate_cbm' => $rcbm, 'domestic_cost' => floatval($bag['domestic_cost'] ?? 0)];
 }
 foreach ($wholesaleOrders as $order) {
-    $wC = $order['total_weight_charged'] ?? 0; $wA = $order['total_weight_actual'] ?? 0; $w = $wC > 0 ? $wC : $wA;
+    $wC = floatval($order['order_weight_charged'] ?? 0); $wA = floatval($order['order_weight_actual'] ?? 0); $w = $wC > 0 ? $wC : $wA;
     $c = $order['total_cbm'] ?? 0; $cargo = $order['cargo_type'] ?? 'easy';
     $rate = $shippingRates['road'][$cargo] ?? $shippingRates['road']['easy'];
     $rkg = $order['custom_rate_kg'] !== null ? floatval($order['custom_rate_kg']) : $rate['per_kg'];
@@ -497,6 +498,7 @@ require_once(__DIR__.'/sidebar.php');
                                             <?php else: ?>
                                             <a href="<?= base_url('admin/orders-detail&id=' . $order['id']) ?>" class="text-muted">#<?= $order['id'] ?></a>
                                             <?php endif; ?>
+                                            <div class="mt-1"><?= display_order_status($order['order_status']) ?></div>
                                             <?php if ($pkgCount > 0): ?>
                                             <div class="mt-1"><a href="#" class="btn-expand-pkgs text-muted text-decoration-none" data-order-id="<?= $order['id'] ?>"><i class="ri-archive-line"></i> <?= $pkgCount ?> <?= __('kiện') ?> <i class="ri-arrow-down-s-line expand-icon fs-14"></i></a></div>
                                             <?php endif; ?>
