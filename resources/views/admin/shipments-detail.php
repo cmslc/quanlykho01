@@ -143,39 +143,42 @@ require_once(__DIR__.'/sidebar.php');
             <!-- Package List - Full width -->
             <div class="col-12">
                 <div class="card">
+                    <?php
+                    // Group packages by mã hàng (bag_code > product_code > order_code)
+                    $colSpan = $isPreparing ? 11 : 10;
+                    $bagStatusLabels = [
+                        'sealed' => ['label' => 'Chờ vận chuyển', 'bg' => 'warning', 'icon' => 'ri-time-line'],
+                        'loading' => ['label' => 'Đang xếp xe', 'bg' => 'secondary', 'icon' => 'ri-truck-line'],
+                        'shipping' => ['label' => 'Đang vận chuyển', 'bg' => 'primary', 'icon' => 'ri-ship-line'],
+                        'arrived' => ['label' => 'Đã đến kho VN', 'bg' => 'success', 'icon' => 'ri-check-double-line'],
+                    ];
+                    $grouped = [];
+                    foreach ($packages as $pkg) {
+                        $key = $pkg['bag_code'] ?: ($pkg['product_code'] ?: ($pkg['order_code'] ?: __('Không xác định')));
+                        if (!isset($grouped[$key])) {
+                            $grouped[$key] = [
+                                'pkgs' => [],
+                                'product_name' => $pkg['product_name'] ?? '',
+                                'product_image' => $pkg['product_image'] ?? '',
+                                'create_date' => $pkg['create_date'] ?? '',
+                                'customer' => $pkg['customer_name'] ?: '',
+                                'customer_code' => $pkg['customer_code'] ?: '',
+                                'is_bag' => !empty($pkg['bag_code']),
+                                'bag_status' => $pkg['bag_status'] ?? '',
+                                'bag_weight' => $pkg['bag_weight'] ?? 0,
+                                'bag_cbm' => (($pkg['bag_length'] ?? 0) * ($pkg['bag_width'] ?? 0) * ($pkg['bag_height'] ?? 0)) / 1000000,
+                            ];
+                        }
+                        $grouped[$key]['pkgs'][] = $pkg;
+                    }
+                    ?>
                     <div class="card-header">
-                        <h5 class="card-title mb-0"><?= __('Danh sách kiện hàng') ?> (<?= count($packages) ?>)</h5>
+                        <h5 class="card-title mb-0">
+                            <?= __('Danh sách mã hàng') ?>
+                            <span class="text-muted fw-normal fs-13 ms-1">(<?= count($grouped) ?> <?= __('mã') ?> &mdash; <?= count($packages) ?> <?= __('kiện') ?>)</span>
+                        </h5>
                     </div>
                     <div class="card-body">
-                        <?php
-                        // Group packages by mã hàng (bag_code > product_code > order_code)
-                        $colSpan = $isPreparing ? 11 : 10;
-                        $bagStatusLabels = [
-                            'sealed' => ['label' => 'Chờ vận chuyển', 'bg' => 'warning', 'icon' => 'ri-time-line'],
-                            'loading' => ['label' => 'Đang xếp xe', 'bg' => 'secondary', 'icon' => 'ri-truck-line'],
-                            'shipping' => ['label' => 'Đang vận chuyển', 'bg' => 'primary', 'icon' => 'ri-ship-line'],
-                            'arrived' => ['label' => 'Đã đến kho VN', 'bg' => 'success', 'icon' => 'ri-check-double-line'],
-                        ];
-                        $grouped = [];
-                        foreach ($packages as $pkg) {
-                            $key = $pkg['bag_code'] ?: ($pkg['product_code'] ?: ($pkg['order_code'] ?: __('Không xác định')));
-                            if (!isset($grouped[$key])) {
-                                $grouped[$key] = [
-                                    'pkgs' => [],
-                                    'product_name' => $pkg['product_name'] ?? '',
-                                    'product_image' => $pkg['product_image'] ?? '',
-                                    'create_date' => $pkg['create_date'] ?? '',
-                                    'customer' => $pkg['customer_name'] ?: '',
-                                    'customer_code' => $pkg['customer_code'] ?: '',
-                                    'is_bag' => !empty($pkg['bag_code']),
-                                    'bag_status' => $pkg['bag_status'] ?? '',
-                                    'bag_weight' => $pkg['bag_weight'] ?? 0,
-                                    'bag_cbm' => (($pkg['bag_length'] ?? 0) * ($pkg['bag_width'] ?? 0) * ($pkg['bag_height'] ?? 0)) / 1000000,
-                                ];
-                            }
-                            $grouped[$key]['pkgs'][] = $pkg;
-                        }
-                        ?>
                         <div class="table-responsive">
                             <table class="table table-hover mb-0">
                                 <thead>
