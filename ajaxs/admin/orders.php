@@ -421,6 +421,40 @@ if ($request === 'edit') {
         'update_date' => gettime()
     ], "id = ?", [$id]);
 
+    // Update inline package data submitted with the form
+    $edit_packages = isset($_POST['edit_packages']) ? $_POST['edit_packages'] : [];
+    if (!empty($edit_packages)) {
+        $linked = $ToryHub->get_list_safe(
+            "SELECT p.id FROM `packages` p JOIN `package_orders` po ON p.id = po.package_id WHERE po.order_id = ?", [$id]
+        );
+        $linkedIds = array_column($linked, 'id');
+        $volume_divisor = floatval($ToryHub->site('volume_divisor') ?: 6000);
+        foreach ($edit_packages as $pkgId => $pkgData) {
+            $pkgId = intval($pkgId);
+            if (!$pkgId || !in_array($pkgId, $linkedIds)) continue;
+            $pkg_length = floatval($pkgData['length_cm'] ?? 0);
+            $pkg_width  = floatval($pkgData['width_cm']  ?? 0);
+            $pkg_height = floatval($pkgData['height_cm'] ?? 0);
+            $pkg_vol    = ($pkg_length > 0 && $pkg_width > 0 && $pkg_height > 0)
+                ? ($pkg_length * $pkg_width * $pkg_height) / $volume_divisor : 0;
+            $pkgUpdate = [
+                'length_cm'     => $pkg_length,
+                'width_cm'      => $pkg_width,
+                'height_cm'     => $pkg_height,
+                'weight_volume' => round($pkg_vol, 2),
+            ];
+            if (array_key_exists('weight_actual', $pkgData)) {
+                $pkg_w = floatval($pkgData['weight_actual']);
+                $pkgUpdate['weight_actual']  = $pkg_w;
+                $pkgUpdate['weight_charged'] = round(max($pkg_w, $pkg_vol), 2);
+            }
+            if (array_key_exists('tracking_cn', $pkgData)) {
+                $pkgUpdate['tracking_cn'] = strtoupper(trim($pkgData['tracking_cn']));
+            }
+            $ToryHub->update_safe("packages", $pkgUpdate, "id = ?", [$pkgId]);
+        }
+    }
+
     add_log($getUser['id'], 'edit_order', 'Sửa đơn hàng #' . $id);
     ob_end_clean(); echo json_encode(['status' => 'success', 'msg' => __('Cập nhật thành công')]);
     exit;
