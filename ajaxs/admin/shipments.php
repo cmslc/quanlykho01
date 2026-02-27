@@ -179,6 +179,30 @@ if ($request === 'remove_package') {
         exit;
     }
 
+    // Revert package status before removing
+    require_once(__DIR__.'/../../libs/database/packages.php');
+    $Packages = new Packages();
+    $bagRow = $ToryHub->get_row_safe(
+        "SELECT bag_id FROM `bag_packages` WHERE `package_id` = ?", [$package_id]
+    );
+    $revertTo = $bagRow ? 'packed' : 'cn_warehouse';
+    $Packages->updateStatus($package_id, $revertTo, $getUser['id'], __('Gỡ khỏi chuyến') . ' ' . $shipment['shipment_code']);
+
+    // Revert bag if all its packages are now packed
+    if ($bagRow) {
+        $bag = $ToryHub->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bagRow['bag_id']]);
+        if ($bag && $bag['status'] === 'loading') {
+            $notPacked = $ToryHub->num_rows_safe(
+                "SELECT p.id FROM `bag_packages` bp
+                 JOIN `packages` p ON bp.package_id = p.id
+                 WHERE bp.bag_id = ? AND p.status != 'packed'", [$bagRow['bag_id']]
+            );
+            if ($notPacked === 0) {
+                $ToryHub->update_safe('bags', ['status' => 'sealed', 'update_date' => gettime()], 'id = ?', [$bagRow['bag_id']]);
+            }
+        }
+    }
+
     $Shipments->removePackage($shipment_id, $package_id);
     echo json_encode(['status' => 'success', 'msg' => __('Đã gỡ kiện khỏi chuyến')]);
     exit;

@@ -143,11 +143,7 @@ require_once(__DIR__.'/sidebar.php');
             <!-- Package List - Full width -->
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0"><?= __('Danh sách kiện hàng') ?> (<?= count($packages) ?>)</h5>
-                    </div>
-                    <div class="card-body">
-                        <?php
+                    <?php
                         // Group packages by mã hàng (bag_code > product_code > order_code)
                         $colSpan = $isPreparing ? 11 : 10;
                         $bagStatusLabels = [
@@ -175,7 +171,14 @@ require_once(__DIR__.'/sidebar.php');
                             }
                             $grouped[$key]['pkgs'][] = $pkg;
                         }
-                        ?>
+                    ?>
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <?= __('Danh sách mã hàng') ?>
+                            <span class="text-muted fw-normal fs-13 ms-1">(<?= count($grouped) ?> <?= __('mã') ?> &mdash; <?= count($packages) ?> <?= __('kiện') ?>)</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0">
                                 <thead>
