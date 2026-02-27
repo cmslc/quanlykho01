@@ -311,12 +311,24 @@ require_once(__DIR__.'/sidebar.php');
                         </div>
                         <div class="col-md-2">
                             <label class="form-label mb-1 fs-12"><?= __('Khách hàng') ?></label>
-                            <select name="customer_id" class="form-select">
-                                <option value=""><?= __('Tất cả') ?></option>
-                                <?php foreach ($customers as $c): ?>
-                                <option value="<?= $c['id'] ?>" <?= $filterCustomer == $c['id'] ? 'selected' : '' ?>><?= htmlspecialchars($c['fullname']) ?> (<?= $c['customer_code'] ?>)</option>
-                                <?php endforeach; ?>
-                            </select>
+                            <input type="hidden" name="customer_id" id="filter-customer-id" value="<?= htmlspecialchars($filterCustomer) ?>">
+                            <div class="input-group position-relative">
+                                <input type="text" class="form-control" id="filter-customer-search"
+                                    placeholder="<?= __('Tất cả') ?>"
+                                    autocomplete="off"
+                                    value="<?php
+                                        if ($filterCustomer) {
+                                            foreach ($customers as $c) {
+                                                if ($c['id'] == $filterCustomer) {
+                                                    echo htmlspecialchars($c['fullname'] . ' (' . $c['customer_code'] . ')');
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    ?>">
+                                <button type="button" class="btn btn-outline-secondary btn-sm px-2" id="btn-clear-filter-customer" title="<?= __('Xóa lọc') ?>" style="<?= $filterCustomer ? '' : 'display:none;' ?>"><i class="ri-close-line"></i></button>
+                                <div id="filter-customer-dropdown" class="position-absolute top-100 start-0 bg-white border rounded shadow-sm" style="z-index:1055;max-height:200px;overflow-y:auto;display:none;min-width:220px;"></div>
+                            </div>
                         </div>
                         <div class="col-md-1">
                             <label class="form-label mb-1 fs-12"><?= __('Loại') ?></label>
@@ -598,6 +610,64 @@ function fnum(val, dec) {
     return parts[1] ? parts.join(',') : parts[0];
 }
 $(function(){
+    // ===== Filter customer autocomplete =====
+    var filterCustomerList = <?= json_encode(array_values(array_map(function($c) {
+        return ['id' => $c['id'], 'label' => $c['fullname'] . ' (' . $c['customer_code'] . ')'];
+    }, $customers)), JSON_UNESCAPED_UNICODE) ?>;
+
+    function renderFilterCustomerDropdown(q) {
+        var $dd = $('#filter-customer-dropdown');
+        q = q.trim().toLowerCase();
+        var results = q === '' ? filterCustomerList : filterCustomerList.filter(function(c){
+            return c.label.toLowerCase().indexOf(q) !== -1;
+        });
+        if (!results.length) {
+            $dd.html('<div class="px-3 py-2 text-muted small"><?= __('Không tìm thấy') ?></div>').show();
+            return;
+        }
+        var html = '<div class="filter-cust-option px-3 py-2 border-bottom" data-id="" style="cursor:pointer;font-style:italic;" ><?= __('Tất cả') ?></div>';
+        results.slice(0, 50).forEach(function(c){
+            html += '<div class="filter-cust-option px-3 py-2 border-bottom" data-id="' + c.id + '" data-label="' + $('<span>').text(c.label).html() + '" style="cursor:pointer;">'
+                + $('<span>').text(c.label).html() + '</div>';
+        });
+        $dd.html(html).show();
+    }
+
+    function selectFilterCustomer(id, label) {
+        $('#filter-customer-id').val(id);
+        $('#filter-customer-search').val(label);
+        $('#filter-customer-dropdown').hide();
+        $('#btn-clear-filter-customer').toggle(!!id);
+    }
+
+    $('#filter-customer-search').on('input', function(){
+        renderFilterCustomerDropdown($(this).val());
+        $('#filter-customer-id').val('');
+        $('#btn-clear-filter-customer').hide();
+    }).on('focus', function(){
+        renderFilterCustomerDropdown($(this).val());
+    });
+
+    $(document).on('click', '#filter-customer-dropdown .filter-cust-option', function(){
+        var id = $(this).data('id');
+        var label = id ? $(this).data('label') : '';
+        selectFilterCustomer(id, label);
+        // Auto-submit filter form
+        $(this).closest('form').submit();
+    });
+
+    $('#btn-clear-filter-customer').on('click', function(){
+        selectFilterCustomer('', '');
+        $(this).closest('form').submit();
+    });
+
+    $(document).on('click', function(e){
+        if (!$(e.target).closest('#filter-customer-search, #filter-customer-dropdown, #btn-clear-filter-customer').length) {
+            $('#filter-customer-dropdown').hide();
+        }
+    });
+    // ===== End filter customer autocomplete =====
+
     var csrfToken = '<?= (new Csrf())->get_token_value() ?>';
     var pkgAjaxUrl = '<?= base_url('ajaxs/admin/packages.php') ?>';
     var calcAjaxUrl = '<?= base_url('ajaxs/admin/shipping-calculator.php') ?>';
