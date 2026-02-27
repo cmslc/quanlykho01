@@ -357,10 +357,14 @@ require_once(__DIR__.'/sidebar.php');
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <?php if ($wCharged > 0): ?>
+                                            <?php
+                                            $orderWeightActual = floatval($order['weight_actual'] ?? 0);
+                                            if ($wCharged > 0): ?>
                                                 <?= fnum($wCharged, 1) ?> kg
                                             <?php elseif ($wActual > 0): ?>
                                                 <?= fnum($wActual, 1) ?> kg
+                                            <?php elseif (!$isRetail && $orderWeightActual > 0): ?>
+                                                <?= fnum($orderWeightActual, 1) ?> kg
                                             <?php else: ?>
                                                 <span class="text-muted">-</span>
                                             <?php endif; ?>

@@ -189,13 +189,13 @@ require_once(__DIR__.'/sidebar.php');
                                             <?php if ($isRetail): ?>
                                             <td><?= htmlspecialchars($pkg['tracking_cn'] ?: '-') ?></td>
                                             <?php endif; ?>
-                                            <td><?= $pkg['weight_actual'] ? $pkg['weight_actual'] . ' kg' : '-' ?></td>
+                                            <td><?= $pkg['weight_actual'] ? $pkg['weight_actual'] . ' kg' : '<span class="text-muted">N/A</span>' ?></td>
                                             <td>
                                                 <?php if ($pkg['length_cm'] > 0 || $pkg['width_cm'] > 0 || $pkg['height_cm'] > 0): ?>
                                                 <?= $pkg['length_cm'] ?>x<?= $pkg['width_cm'] ?>x<?= $pkg['height_cm'] ?> cm
-                                                <?php else: ?>-<?php endif; ?>
+                                                <?php else: ?><span class="text-muted">N/A</span><?php endif; ?>
                                             </td>
-                                            <td><?= $pkgVolume > 0 ? floatval(number_format($pkgVolume, 4, '.', '')) : '-' ?></td>
+                                            <td><?= $pkgVolume > 0 ? floatval(number_format($pkgVolume, 4, '.', '')) : '<span class="text-muted">N/A</span>' ?></td>
                                             <td><?= display_package_status($pkg['status']) ?></td>
                                         </tr>
                                         <?php endforeach; ?>
@@ -266,7 +266,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <?php endif; ?>
                                     <tr>
                                         <td class="text-muted"><?= __('Số khối') ?></td>
-                                        <td class="fw-bold"><?= $totalCbm > 0 ? floatval(number_format($totalCbm, 3, '.', '')) . ' m³' : '-' ?></td>
+                                        <td class="fw-bold"><?= $totalCbm > 0 ? floatval(number_format($totalCbm, 3, '.', '')) . ' m³' : '<span class="text-muted fw-normal">N/A</span>' ?></td>
                                     </tr>
                                     <tr><td class="text-muted"><?= __('Ngày tạo') ?></td><td><?= $order['create_date'] ?></td></tr>
                                     <tr><td class="text-muted"><?= __('Cập nhật') ?></td><td><?= $order['update_date'] ?></td></tr>
