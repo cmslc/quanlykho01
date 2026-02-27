@@ -976,52 +976,8 @@ $(function(){
 
     // ===== Export Excel =====
     $('#btn-export-excel').on('click', function(){
-        var rows = [];
-        rows.push(['<?= __('Mã hàng') ?>', '<?= __('Loại') ?>', '<?= __('Khách hàng') ?>', '<?= __('Số kiện') ?>', '<?= __('Cân nặng (kg)') ?>', '<?= __('Số khối (m³)') ?>', '<?= __('Trạng thái') ?>']);
-
-        <?php foreach ($sealedBags as $bag):
-            $bagW = floatval($bag['bag_weight'] ?? 0); $pkgWC = floatval($bag['pkg_weight_charged'] ?? 0); $pkgWA = floatval($bag['pkg_weight_actual'] ?? 0);
-            $w = $bagW > 0 ? $bagW : ($pkgWC > 0 ? $pkgWC : $pkgWA);
-            $bc = floatval($bag['bag_cbm'] ?? 0); $pc = floatval($bag['pkg_cbm'] ?? 0); $c = $bc > 0 ? $bc : $pc;
-            $bCusts = $bagCustomerMap[$bag['bag_id']] ?? [];
-            $custName = count($bCusts) == 1 ? array_values($bCusts)[0] : (count($bCusts) > 1 ? count($bCusts) . ' khách' : '');
-        ?>
-        rows.push([<?= json_encode($bag['bag_code']) ?>, '<?= __('Mã bao') ?>', <?= json_encode($custName) ?>, <?= intval($bag['pkg_count']) ?>, <?= round($w, 2) ?>, <?= round($c, 4) ?>, '<?= __('Đã đóng bao') ?>']);
-        <?php endforeach; ?>
-
-        <?php foreach ($wholesaleOrders as $order):
-            $wC = $order['total_weight_charged'] ?? 0; $wA = $order['total_weight_actual'] ?? 0; $w = $wC > 0 ? $wC : $wA;
-            $c = $order['total_cbm'] ?? 0;
-        ?>
-        rows.push([<?= json_encode($order['product_code'] ?? '#' . $order['id']) ?>, '<?= __('Mã hàng') ?>', <?= json_encode($order['customer_name'] ?? '') ?>, <?= intval($order['pkg_count']) ?>, <?= round($w, 2) ?>, <?= round($c, 4) ?>, '<?= __('Đã về kho TQ') ?>']);
-        <?php endforeach; ?>
-
-        function xlsEsc(v) {
-            if (v === null || v === undefined) return '';
-            return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-        }
-        var xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-            + '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n'
-            + '<Styles><Style ss:ID="H"><Font ss:Bold="1"/></Style></Styles>\n'
-            + '<Worksheet ss:Name="Sheet1"><Table>\n';
-        rows.forEach(function(row, ri){
-            xml += '<Row>';
-            row.forEach(function(cell){
-                var t = (typeof cell === 'number') ? 'Number' : 'String';
-                var s = (ri === 0) ? ' ss:StyleID="H"' : '';
-                xml += '<Cell' + s + '><Data ss:Type="' + t + '">' + xlsEsc(cell) + '</Data></Cell>';
-            });
-            xml += '</Row>\n';
-        });
-        xml += '</Table></Worksheet></Workbook>';
-
-        var blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = '<?= __('hang-cho-xep-xe') ?>_' + new Date().toISOString().slice(0,10) + '.xls';
-        a.click();
-        URL.revokeObjectURL(url);
+        var params = new URLSearchParams(window.location.search);
+        window.location.href = '<?= base_url('ajaxs/staffcn/shipments-pending-export.php') ?>?' + params.toString();
     });
 
     // ===== View Images (Bootstrap Carousel) =====
