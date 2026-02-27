@@ -515,7 +515,7 @@ require_once(__DIR__.'/sidebar.php');
                                             <?php else: ?><span class="text-muted">-</span><?php endif; ?>
                                         </td>
                                         <td class="align-middle"><?= !empty($orderCargoType) ? display_cargo_type($orderCargoType) : '<span class="text-muted">-</span>' ?></td>
-                                        <td class="align-middle"><?php if ($order['customer_id']): ?><a href="<?= base_url('staffcn/customers-detail&id=' . $order['customer_id']) ?>" class="fw-bold"><?= htmlspecialchars($order['customer_name'] ?? '') ?></a><?php else: ?><span class="text-muted">-</span><?php endif; ?></td>
+                                        <td class="align-middle"><?php if ($order['customer_id']): ?><span class="fw-bold"><?= htmlspecialchars($order['customer_name'] ?? '') ?></span><?php else: ?><span class="text-muted">-</span><?php endif; ?></td>
                                         <td class="align-middle">
                                             <div><?= $weight > 0 ? fnum($weight, 1) . ' kg' : '<span class="text-danger"><i class="ri-alert-line"></i> 0 kg</span>' ?></div>
                                             <div><?= $cbm > 0 ? fnum($cbm, 2) . ' m&sup3;' : '<span class="text-danger"><i class="ri-alert-line"></i> 0 m&sup3;</span>' ?></div>
