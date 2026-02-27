@@ -55,6 +55,7 @@ class Orders extends DB
             'shipping'     => 'shipping',
             'vn_warehouse' => 'vn_warehouse',
             'delivered'    => 'delivered',
+            'cancelled'    => 'cn_warehouse',
         ];
 
         if (!isset($orderToPkg[$new_status])) return;
@@ -75,6 +76,10 @@ class Orders extends DB
         foreach ($links as $link) {
             $pkg = $this->get_row_safe("SELECT * FROM `packages` WHERE `id` = ?", [$link['package_id']]);
             if (!$pkg || $pkg['status'] === $pkg_status) continue;
+
+            // Khi cancel đơn: chỉ revert kiện chưa lên xe (cn_warehouse, packed)
+            // Kiện đang loading/shipping/vn_warehouse/delivered giữ nguyên
+            if ($new_status === 'cancelled' && !in_array($pkg['status'], ['cn_warehouse', 'packed'])) continue;
 
             $updateData = ['status' => $pkg_status, 'update_date' => gettime()];
             if (isset($dateFields[$pkg_status]) && empty($pkg[$dateFields[$pkg_status]])) {

@@ -357,10 +357,10 @@ if ($request === 'delete') {
         exit;
     }
 
-    // Revert all packages back to cn_warehouse
+    // Revert all packages back to cn_warehouse (regardless of status)
     $Packages = new Packages();
     $bagPackages = $ToryHub->get_list_safe(
-        "SELECT bp.package_id FROM `bag_packages` bp JOIN `packages` p ON bp.package_id = p.id WHERE bp.bag_id = ? AND p.status IN ('packed', 'cn_warehouse')",
+        "SELECT bp.package_id FROM `bag_packages` bp WHERE bp.bag_id = ?",
         [$bag_id]
     );
     foreach ($bagPackages as $bp) {
