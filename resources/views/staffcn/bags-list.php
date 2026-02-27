@@ -206,7 +206,7 @@ require_once(__DIR__.'/sidebar.php');
 <script>
 $(function(){
     var csrfToken = '<?= (new Csrf())->get_token_value() ?>';
-    var ajaxUrl = '<?= base_url('ajaxs/admin/bags.php') ?>';
+    var ajaxUrl = '<?= base_url('ajaxs/staffcn/bags.php') ?>';
 
     // Seal bag
     $(document).on('click', '.btn-seal-bag', function(){

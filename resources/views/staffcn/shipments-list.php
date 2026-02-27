@@ -267,7 +267,7 @@ require_once(__DIR__.'/sidebar.php');
 <script>
 $(function(){
     var csrfToken = '<?= (new Csrf())->get_token_value() ?>';
-    var ajaxUrl = '<?= base_url('ajaxs/admin/shipments.php') ?>';
+    var ajaxUrl = '<?= base_url('ajaxs/staffcn/shipments.php') ?>';
 
     // Create shipment
     $('#btn-create-shipment').on('click', function(){

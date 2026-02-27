@@ -473,8 +473,8 @@ function fnum(val, dec) {
 }
 $(function(){
     var csrfToken = '<?= (new Csrf())->get_token_value() ?>';
-    var pkgAjaxUrl = '<?= base_url('ajaxs/admin/packages.php') ?>';
-    var shipmentAjaxUrl = '<?= base_url('ajaxs/admin/shipments.php') ?>';
+    var pkgAjaxUrl = '<?= base_url('ajaxs/staffcn/packages.php') ?>';
+    var shipmentAjaxUrl = '<?= base_url('ajaxs/staffcn/shipments.php') ?>';
     var expandedOrders = {};
 
     // ===== Summary =====
