@@ -43,7 +43,8 @@ require_once(__DIR__.'/sidebar.php');
             <div class="col-12">
                 <div class="page-title-box d-sm-flex align-items-center justify-content-between">
                     <h4 class="mb-sm-0"><?= htmlspecialchars($page_title) ?></h4>
-                    <div>
+                    <div class="d-flex gap-2">
+                        <a href="<?= base_url('staffcn/orders-edit&id=' . $order['id']) ?>" class="btn btn-sm btn-primary"><i class="ri-pencil-line me-1"></i><?= __('Sửa') ?></a>
                         <a href="<?= base_url($isRetail ? 'staffcn/orders-retail' : 'staffcn/orders-list') ?>" class="btn btn-sm btn-secondary"><i class="ri-arrow-left-line"></i> <?= __('Quay lại') ?></a>
                     </div>
                 </div>

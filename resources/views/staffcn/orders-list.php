@@ -407,7 +407,11 @@ require_once(__DIR__.'/sidebar.php');
                                             <br><small class="text-muted"><?= date('d/m/Y H:i', strtotime($order['update_date'])) ?></small>
                                         </td>
                                         <td>
-                                            <a href="<?= base_url('staffcn/orders-detail&id=' . $order['id']) ?>" class="btn btn-sm btn-info"><i class="ri-eye-line me-1"></i><?= __('Xem') ?></a>
+                                            <div class="d-flex gap-1">
+                                                <a href="<?= base_url('staffcn/orders-detail&id=' . $order['id']) ?>" class="btn btn-sm btn-info"><i class="ri-eye-line me-1"></i><?= __('Xem') ?></a>
+                                                <a href="<?= base_url('staffcn/orders-edit&id=' . $order['id']) ?>" class="btn btn-sm btn-primary"><i class="ri-pencil-line me-1"></i><?= __('Sửa') ?></a>
+                                                <button type="button" class="btn btn-sm btn-danger btn-delete-order" data-id="<?= $order['id'] ?>" data-code="<?= htmlspecialchars($order['order_code'] ?: '#' . $order['id']) ?>"><i class="ri-delete-bin-line me-1"></i><?= __('Xóa') ?></button>
+                                            </div>
                                         </td>
                                     </tr>
                                     <?php endforeach; ?>
@@ -493,7 +497,7 @@ function fnum(val, dec) {
 }
 $(function(){
     var csrfToken = '<?= (new Csrf())->get_token_value() ?>';
-    var pkgAjaxUrl = '<?= base_url('ajaxs/admin/packages.php') ?>';
+    var pkgAjaxUrl = '<?= base_url('ajaxs/staffcn/packages.php') ?>';
     var expandedOrders = {};
 
     function updateSelectedSummary(){
@@ -795,7 +799,7 @@ $(function(){
             btn.prop('disabled', true).html('<i class="ri-loader-4-line ri-spin me-1"></i>');
             var requests = [];
             if (orderIds.length > 0) {
-                requests.push($.post('<?= base_url('ajaxs/admin/orders-status.php') ?>', {
+                requests.push($.post('<?= base_url('ajaxs/staffcn/orders-status.php') ?>', {
                     request_name: 'bulk_update_status',
                     order_ids: orderIds.join(','),
                     new_status: newStatus,
@@ -860,6 +864,35 @@ $(function(){
         galleryCarousel = new bootstrap.Carousel($('#imageCarousel')[0], { interval: false, touch: true, keyboard: true });
         updateGalleryCounter();
         new bootstrap.Modal($('#imageGalleryModal')[0]).show();
+    });
+
+    // Delete order
+    $(document).on('click', '.btn-delete-order', function(){
+        var id = $(this).data('id');
+        var code = $(this).data('code');
+        Swal.fire({
+            title: '<?= __('Xóa đơn hàng?') ?>',
+            html: '<?= __('Xóa mã hàng') ?> <strong>' + code + '</strong>?<br><small class="text-muted"><?= __('Thao tác này không thể hoàn tác') ?></small>',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: '<?= __('Xóa') ?>',
+            cancelButtonText: '<?= __('Hủy') ?>'
+        }).then(function(result){
+            if (result.isConfirmed) {
+                $.post('<?= base_url('ajaxs/staffcn/orders.php') ?>', {
+                    request_name: 'delete',
+                    order_id: id,
+                    csrf_token: csrfToken
+                }, function(res){
+                    if (res.status === 'success') {
+                        Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
+                    } else {
+                        Swal.fire({icon: 'error', title: 'Error', text: res.msg});
+                    }
+                }, 'json');
+            }
+        });
     });
 });
 </script>
