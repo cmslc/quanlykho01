@@ -107,12 +107,13 @@ require_once(__DIR__.'/sidebar.php');
                                         <th><?= __('Số khối (m³)') ?></th>
                                         <th><?= __('Người tạo') ?></th>
                                         <th><?= __('Ngày tạo') ?></th>
+                                        <th><?= __('Ảnh') ?></th>
                                         <th><?= __('Hành động') ?></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php if (empty($bags)): ?>
-                                    <tr><td colspan="8" class="text-center text-muted py-4"><?= __('Chưa có bao hàng nào') ?></td></tr>
+                                    <tr><td colspan="9" class="text-center text-muted py-4"><?= __('Chưa có bao hàng nào') ?></td></tr>
                                     <?php endif; ?>
                                     <?php $rowNum = $offset; foreach ($bags as $bag):
                                         $sl = $bagStatusLabels[$bag['status']] ?? $bagStatusLabels['open'];
@@ -132,6 +133,22 @@ require_once(__DIR__.'/sidebar.php');
                                         <td class="align-middle"><?= floatval($bag['weight_volume']) ?></td>
                                         <td class="align-middle"><?= htmlspecialchars($bag['creator_name'] ?? '') ?></td>
                                         <td class="align-middle"><?= date('d/m/Y H:i', strtotime($bag['create_date'])) ?></td>
+                                        <td class="align-middle text-center">
+                                            <?php if (!empty($bag['images'])):
+                                                $bagImgArr = array_filter(array_map('trim', explode(',', $bag['images'])));
+                                                $bagImgUrls = array_map('get_upload_url', $bagImgArr);
+                                                $imgCount = count($bagImgArr);
+                                            ?>
+                                            <a href="#" class="btn-view-images position-relative d-inline-block" data-images="<?= htmlspecialchars(json_encode(array_values($bagImgUrls))) ?>" onclick="event.stopPropagation();">
+                                                <img src="<?= $bagImgUrls[0] ?>" class="rounded" style="width:40px;height:40px;object-fit:cover;">
+                                                <?php if ($imgCount > 1): ?>
+                                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="font-size:10px;"><?= $imgCount ?></span>
+                                                <?php endif; ?>
+                                            </a>
+                                            <?php else: ?>
+                                            <span class="text-muted">-</span>
+                                            <?php endif; ?>
+                                        </td>
                                         <td class="align-middle">
                                             <div class="d-flex gap-1">
                                                 <a href="<?= base_url('admin/bags-packing&id=' . $bag['id']) ?>" class="btn btn-sm btn-primary" onclick="event.stopPropagation();"><i class="ri-pencil-line me-1"></i><?= __('Sửa') ?></a>
@@ -146,7 +163,7 @@ require_once(__DIR__.'/sidebar.php');
                                         </td>
                                     </tr>
                                     <tr class="bag-detail-row d-none" id="bag-detail-<?= $bag['id'] ?>">
-                                        <td colspan="8" class="p-0">
+                                        <td colspan="9" class="p-0">
                                             <div class="px-4 py-2 bg-light">
                                                 <div class="bag-packages-content">
                                                     <div class="text-center py-2 text-muted"><i class="ri-loader-4-line ri-spin fs-20"></i> <?= __('Đang tải...') ?></div>
@@ -203,10 +220,64 @@ require_once(__DIR__.'/sidebar.php');
 
 <?php require_once(__DIR__.'/footer.php'); ?>
 
+<div class="modal fade" id="imageGalleryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark border-0">
+            <div class="modal-header border-0 py-2">
+                <span class="text-white-50 fs-12" id="gallery-counter"></span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="imageCarousel" class="carousel slide" data-bs-touch="true">
+                    <div class="carousel-inner" id="carousel-items"></div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#imageCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#imageCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 $(function(){
     var csrfToken = '<?= (new Csrf())->get_token_value() ?>';
     var ajaxUrl = '<?= base_url('ajaxs/admin/bags.php') ?>';
+
+    // Image gallery
+    var galleryCarousel = null;
+    var galleryTotal = 0;
+    function updateGalleryCounter() {
+        var idx = $('#imageCarousel .carousel-item.active').index();
+        $('#gallery-counter').text((idx + 1) + ' / ' + galleryTotal);
+        if (galleryTotal <= 1) {
+            $('#imageCarousel .carousel-control-prev, #imageCarousel .carousel-control-next').addClass('d-none');
+        } else {
+            $('#imageCarousel .carousel-control-prev, #imageCarousel .carousel-control-next').removeClass('d-none');
+        }
+    }
+    $('#imageCarousel').on('slid.bs.carousel', updateGalleryCounter);
+    $(document).on('click', '.btn-view-images', function(e){
+        e.preventDefault();
+        var images = $(this).data('images');
+        if (!images || !images.length) return;
+        galleryTotal = images.length;
+        var html = '';
+        images.forEach(function(url, i){
+            html += '<div class="carousel-item' + (i === 0 ? ' active' : '') + '">'
+                + '<div class="d-flex align-items-center justify-content-center" style="min-height:300px;">'
+                + '<img src="' + url + '" class="d-block" style="max-width:100%;max-height:75vh;object-fit:contain;">'
+                + '</div></div>';
+        });
+        $('#carousel-items').html(html);
+        if (galleryCarousel) galleryCarousel.dispose();
+        galleryCarousel = new bootstrap.Carousel($('#imageCarousel')[0], { interval: false, touch: true, keyboard: true });
+        updateGalleryCounter();
+        new bootstrap.Modal($('#imageGalleryModal')[0]).show();
+    });
 
     // Seal bag
     $(document).on('click', '.btn-seal-bag', function(){
