@@ -728,9 +728,11 @@ $(function(){
                 var statusLabels = {
                     'cn_warehouse': '<?= __('Đã về kho Trung Quốc') ?>',
                     'packed': '<?= __('Đã đóng bao') ?>',
+                    'loading': '<?= __('Đang xếp xe') ?>',
                     'shipping': '<?= __('Đang vận chuyển') ?>',
                     'vn_warehouse': '<?= __('Đã về kho Việt Nam') ?>',
-                    'delivered': '<?= __('Đã giao hàng') ?>'
+                    'delivered': '<?= __('Đã giao hàng') ?>',
+                    'cancelled': '<?= __('Đã hủy') ?>'
                 };
                 var html = '<table class="table table-sm table-borderless mb-0">';
                 html += '<thead><tr>';
