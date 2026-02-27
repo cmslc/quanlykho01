@@ -111,6 +111,38 @@ require_once(__DIR__.'/sidebar.php');
                             </div>
                         </div>
                     </div>
+                    <?php
+                    $orderDims = array_map('floatval', array_pad(explode('x', $order['dimensions'] ?? ''), 3, 0));
+                    $orderL = $orderDims[0]; $orderW = $orderDims[1]; $orderH = $orderDims[2];
+                    $orderCbm = ($orderL > 0 && $orderW > 0 && $orderH > 0) ? $orderL * $orderW * $orderH / 1000000 : 0;
+                    ?>
+                    <div class="row wholesale-only">
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label class="form-label"><?= __('Dài') ?> (cm)</label>
+                                <input type="number" class="form-control order-dim" name="length_cm" value="<?= $orderL ?>" step="0.1" min="0">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label class="form-label"><?= __('Rộng') ?> (cm)</label>
+                                <input type="number" class="form-control order-dim" name="width_cm" value="<?= $orderW ?>" step="0.1" min="0">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label class="form-label"><?= __('Cao') ?> (cm)</label>
+                                <input type="number" class="form-control order-dim" name="height_cm" value="<?= $orderH ?>" step="0.1" min="0">
+                            </div>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <div class="mb-3 w-100" id="order-volume-display" style="<?= $orderCbm > 0 ? '' : 'display:none;' ?>">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <span class="text-muted"><?= __('Số khối') ?>:</span> <strong id="order-volume-value"><?= $orderCbm > 0 ? number_format($orderCbm, 4, '.', '') : 0 ?></strong> m³
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label"><?= __('Ảnh sản phẩm') ?></label>
                         <input type="file" class="form-control" name="product_images[]" id="product_image_input" accept="image/*" multiple>
@@ -551,6 +583,20 @@ $('#form-edit-order').on('submit', function(e){
             }
         }
     });
+});
+
+// Auto-calculate order-level volume (CBM)
+$('.order-dim').on('input', function(){
+    var l = parseFloat($('[name="length_cm"]').val()) || 0;
+    var w = parseFloat($('[name="width_cm"]').val()) || 0;
+    var h = parseFloat($('[name="height_cm"]').val()) || 0;
+    if (l > 0 && w > 0 && h > 0) {
+        var vol = (l * w * h) / 1000000;
+        $('#order-volume-value').text(parseFloat(vol.toFixed(4)));
+        $('#order-volume-display').show();
+    } else {
+        $('#order-volume-display').hide();
+    }
 });
 
 // Auto-calculate volume (CBM)

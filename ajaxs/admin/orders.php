@@ -396,6 +396,12 @@ if ($request === 'edit') {
     $cargo_type = in_array(input_post('cargo_type'), ['easy', 'difficult']) ? input_post('cargo_type') : null;
 
     $edit_weight_actual = floatval(input_post('weight_actual'));
+    $edit_length_cm = floatval(input_post('length_cm'));
+    $edit_width_cm = floatval(input_post('width_cm'));
+    $edit_height_cm = floatval(input_post('height_cm'));
+    $edit_weight_volume = calculate_volume_weight($edit_length_cm, $edit_width_cm, $edit_height_cm);
+    $edit_weight_charged = calculate_charged_weight($edit_weight_actual, $edit_weight_volume);
+    $edit_dimensions = ($edit_length_cm > 0 || $edit_width_cm > 0 || $edit_height_cm > 0) ? $edit_length_cm . 'x' . $edit_width_cm . 'x' . $edit_height_cm : '';
     $ToryHub->update_safe("orders", [
         'customer_id' => $customer_id,
         'order_type' => 'shipping',
@@ -406,6 +412,9 @@ if ($request === 'edit') {
         'product_name' => trim(input_post('product_name')),
         'product_image' => $product_image,
         'weight_actual' => $edit_weight_actual,
+        'weight_volume' => $edit_weight_volume,
+        'weight_charged' => $edit_weight_charged,
+        'dimensions' => $edit_dimensions,
         'note' => trim(input_post('note')),
         'note_internal' => trim(input_post('note_internal')),
         'updated_by' => $getUser['id'],
