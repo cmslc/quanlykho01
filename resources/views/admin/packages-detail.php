@@ -10,7 +10,7 @@ if (!$package) { redirect(base_url('admin/packages-list')); }
 $Packages = new Packages();
 $linked_orders = $Packages->getOrdersByPackage($id);
 $status_history = $ToryHub->get_list_safe(
-    "SELECT h.*, u.username as changed_by_name FROM `package_status_history` h
+    "SELECT h.*, u.fullname as changed_by_name FROM `package_status_history` h
      LEFT JOIN `users` u ON h.changed_by = u.id
      WHERE h.package_id = ? ORDER BY h.create_date DESC", [$id]
 );

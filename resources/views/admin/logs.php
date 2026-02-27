@@ -3,7 +3,7 @@ require_once(__DIR__.'/../../../models/is_admin.php');
 
 $page_title = __('Nhật ký hệ thống');
 
-$logs = $ToryHub->get_list_safe("SELECT l.*, u.username FROM `logs` l LEFT JOIN `users` u ON l.user_id = u.id ORDER BY l.create_date DESC LIMIT 200", []);
+$logs = $ToryHub->get_list_safe("SELECT l.*, u.fullname as username FROM `logs` l LEFT JOIN `users` u ON l.user_id = u.id ORDER BY l.create_date DESC LIMIT 200", []);
 
 require_once(__DIR__.'/header.php');
 require_once(__DIR__.'/sidebar.php');

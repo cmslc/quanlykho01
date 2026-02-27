@@ -31,7 +31,7 @@ if (!$isRetail && !empty($order['product_code'])) {
 }
 
 // Status history
-$history = $ToryHub->get_list_safe("SELECT h.*, u.username FROM `order_status_history` h
+$history = $ToryHub->get_list_safe("SELECT h.*, u.fullname as username FROM `order_status_history` h
     LEFT JOIN `users` u ON h.changed_by = u.id
     WHERE h.order_id = ? ORDER BY h.create_date ASC", [$id]);
 
