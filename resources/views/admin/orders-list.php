@@ -383,13 +383,15 @@ require_once(__DIR__.'/sidebar.php');
                                             <?= display_order_status($order['status']) ?>
                                             <?php
                                             $opkgMap = $pkgStatusMap[$order['id']] ?? [];
-                                            if (count($opkgMap) > 1):
+                                            if (!empty($opkgMap)):
                                                 $opkgLabels = [
                                                     'cn_warehouse' => ['label' => 'Đã về kho Trung Quốc', 'bg' => 'info'],
                                                     'packed'       => ['label' => 'Đã đóng bao', 'bg' => 'dark'],
+                                                    'loading'      => ['label' => 'Đang xếp xe', 'bg' => 'warning'],
                                                     'shipping'     => ['label' => 'Đang vận chuyển', 'bg' => 'primary'],
                                                     'vn_warehouse' => ['label' => 'Đã về kho Việt Nam', 'bg' => 'success'],
                                                     'delivered'    => ['label' => 'Đã giao hàng', 'bg' => 'success'],
+                                                    'cancelled'    => ['label' => 'Đã hủy', 'bg' => 'danger'],
                                                 ];
                                             ?>
                                             <div class="mt-1">
