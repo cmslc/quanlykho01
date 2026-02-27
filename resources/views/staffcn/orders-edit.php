@@ -145,126 +145,85 @@ require_once(__DIR__.'/sidebar.php');
                 </div>
                 <div class="card-body">
                     <?php if (!empty($packages)): ?>
-                    <?php if (count($packages) > 3): ?>
-                    <div class="mb-2">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-toggle-group">
-                            <i class="ri-stack-line me-1"></i><?= __('Nhóm kiện giống nhau') ?>
-                        </button>
-                    </div>
-                    <?php endif; ?>
-
-                    <!-- Full view (default) -->
-                    <div class="table-responsive" id="pkg-view-full">
-                        <table id="tbl-packages-edit" class="table table-bordered table-sm mb-0">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm mb-0">
                             <thead class="table-light">
                                 <tr>
                                     <th><?= __('Mã kiện') ?></th>
                                     <?php if ($productType === 'retail'): ?>
                                     <th><?= __('Mã vận đơn') ?></th>
                                     <?php endif; ?>
-                                    <th><?= __('Cân nặng') ?></th>
-                                    <th><?= __('Kích thước') ?></th>
+                                    <th><?= __('Cân nặng (kg)') ?></th>
+                                    <th><?= __('Kích thước (cm)') ?></th>
                                     <th><?= __('Số khối (m³)') ?></th>
                                     <th><?= __('Trạng thái') ?></th>
                                     <th class="text-center"><?= __('Thao tác') ?></th>
                                 </tr>
                             </thead>
+                            <?php
+                            $pkgGroups = []; $gIdx = 0;
+                            foreach ($packages as $pkg) {
+                                $gKey = floatval($pkg['weight_actual']).'|'.floatval($pkg['length_cm']).'|'.floatval($pkg['width_cm']).'|'.floatval($pkg['height_cm']);
+                                if (!isset($pkgGroups[$gKey])) $pkgGroups[$gKey] = ['gid' => 'g'.$gIdx++, 'pkgs' => []];
+                                $pkgGroups[$gKey]['pkgs'][] = $pkg;
+                            }
+                            ?>
                             <tbody>
-                                <?php foreach ($packages as $pkg): ?>
-                                <?php
-                                    $pkgVolume = ($pkg['length_cm'] * $pkg['width_cm'] * $pkg['height_cm']) / 1000000;
+                                <?php foreach ($pkgGroups as $grp):
+                                    $gpkgs  = $grp['pkgs'];
+                                    $gid    = $grp['gid'];
+                                    $first  = $gpkgs[0];
+                                    $gCount = count($gpkgs);
+                                    $allIds = array_column($gpkgs, 'id');
+                                    $pkgVolume = ($first['length_cm'] * $first['width_cm'] * $first['height_cm']) / 1000000;
+                                    $uniqueStatuses = array_unique(array_column($gpkgs, 'status'));
                                 ?>
                                 <tr>
-                                    <td><strong><?= htmlspecialchars($pkg['package_code'] ?? '') ?></strong></td>
+                                    <td>
+                                        <?php if ($gCount > 1): ?>
+                                        <strong><?= htmlspecialchars($gpkgs[0]['package_code']) ?> ~ <?= htmlspecialchars($gpkgs[$gCount-1]['package_code']) ?></strong>
+                                        <span class="badge bg-primary-subtle text-primary ms-1"><?= $gCount ?> <?= __('kiện') ?></span>
+                                        <?php else: ?>
+                                        <strong><?= htmlspecialchars($first['package_code'] ?? '') ?></strong>
+                                        <?php endif; ?>
+                                        <?php foreach (array_slice($gpkgs, 1) as $sp): ?>
+                                        <input type="hidden" class="grp-sync-w" data-gid="<?= $gid ?>" name="edit_packages[<?= $sp['id'] ?>][weight_actual]" value="<?= floatval($sp['weight_actual']) ?>">
+                                        <input type="hidden" class="grp-sync-l" data-gid="<?= $gid ?>" name="edit_packages[<?= $sp['id'] ?>][length_cm]"    value="<?= floatval($sp['length_cm']) ?>">
+                                        <input type="hidden" class="grp-sync-r" data-gid="<?= $gid ?>" name="edit_packages[<?= $sp['id'] ?>][width_cm]"     value="<?= floatval($sp['width_cm']) ?>">
+                                        <input type="hidden" class="grp-sync-h" data-gid="<?= $gid ?>" name="edit_packages[<?= $sp['id'] ?>][height_cm]"    value="<?= floatval($sp['height_cm']) ?>">
+                                        <?php endforeach; ?>
+                                    </td>
                                     <?php if ($productType === 'retail'): ?>
-                                    <td><?= htmlspecialchars($pkg['tracking_cn'] ?: '-') ?></td>
+                                    <td>
+                                        <?php foreach ($gpkgs as $p): ?>
+                                        <input type="text" class="form-control form-control-sm <?= $gCount > 1 ? 'mb-1' : '' ?>" name="edit_packages[<?= $p['id'] ?>][tracking_cn]" value="<?= htmlspecialchars($p['tracking_cn'] ?? '') ?>" style="min-width:120px;text-transform:uppercase"<?= $gCount > 1 ? ' title="' . htmlspecialchars($p['package_code'] ?? '') . '"' : '' ?>>
+                                        <?php endforeach; ?>
+                                    </td>
                                     <?php endif; ?>
-                                    <td><?= floatval($pkg['weight_actual']) > 0 ? fnum($pkg['weight_actual'], 2) . ' kg' : '<span class="text-muted">N/A</span>' ?></td>
                                     <td>
-                                        <?php if ($pkg['length_cm'] > 0 || $pkg['width_cm'] > 0 || $pkg['height_cm'] > 0): ?>
-                                        <?= $pkg['length_cm'] ?>x<?= $pkg['width_cm'] ?>x<?= $pkg['height_cm'] ?> cm
-                                        <?php else: ?><span class="text-muted">N/A</span><?php endif; ?>
+                                        <input type="number" class="form-control form-control-sm pkg-w-input grp-master-w" name="edit_packages[<?= $first['id'] ?>][weight_actual]" value="<?= floatval($first['weight_actual']) ?>" step="0.01" min="0" style="width:80px" data-gid="<?= $gid ?>">
                                     </td>
-                                    <td><?= $pkgVolume > 0 ? floatval(number_format($pkgVolume, 4, '.', '')) : '<span class="text-muted">N/A</span>' ?></td>
-                                    <td><?= display_package_status($pkg['status'] ?? 'cn_warehouse') ?></td>
-                                    <td class="text-center">
-                                        <button type="button" class="btn btn-sm btn-soft-primary btn-edit-pkg"
-                                            data-id="<?= $pkg['id'] ?>"
-                                            data-tracking="<?= htmlspecialchars($pkg['tracking_cn'] ?? '') ?>"
-                                            data-weight="<?= $pkg['weight_actual'] ?>"
-                                            data-length="<?= $pkg['length_cm'] ?>"
-                                            data-width="<?= $pkg['width_cm'] ?>"
-                                            data-height="<?= $pkg['height_cm'] ?>"
-                                            data-note="<?= htmlspecialchars($pkg['note'] ?? '') ?>"
-                                            title="<?= __('Sửa') ?>"><i class="ri-pencil-line"></i> <?= __('Sửa') ?></button>
-                                        <button type="button" class="btn btn-sm btn-soft-danger btn-delete-pkg"
-                                            data-id="<?= $pkg['id'] ?>"
-                                            data-code="<?= htmlspecialchars($pkg['package_code'] ?? '') ?>"
-                                            title="<?= __('Xóa') ?>"><i class="ri-delete-bin-line"></i> <?= __('Xóa') ?></button>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Grouped view (hidden by default) -->
-                    <?php
-                    // Group packages by weight+dimensions+status
-                    $grouped = [];
-                    foreach ($packages as $pkg) {
-                        $key = floatval($pkg['weight_actual']) . '|' . floatval($pkg['length_cm']) . '|' . floatval($pkg['width_cm']) . '|' . floatval($pkg['height_cm']) . '|' . $pkg['status'];
-                        if (!isset($grouped[$key])) {
-                            $grouped[$key] = ['sample' => $pkg, 'count' => 0, 'ids' => [], 'codes' => []];
-                        }
-                        $grouped[$key]['count']++;
-                        $grouped[$key]['ids'][] = $pkg['id'];
-                        $grouped[$key]['codes'][] = $pkg['package_code'];
-                    }
-                    ?>
-                    <div class="table-responsive" id="pkg-view-grouped" style="display:none;">
-                        <table class="table table-bordered table-sm mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th><?= __('Số lượng') ?></th>
-                                    <th><?= __('Cân nặng') ?></th>
-                                    <th><?= __('Kích thước') ?></th>
-                                    <th><?= __('Số khối (m³)') ?></th>
-                                    <th><?= __('Trạng thái') ?></th>
-                                    <th><?= __('Mã kiện') ?></th>
-                                    <th class="text-center"><?= __('Thao tác') ?></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($grouped as $g):
-                                    $s = $g['sample'];
-                                    $gVol = ($s['length_cm'] * $s['width_cm'] * $s['height_cm']) / 1000000;
-                                ?>
-                                <tr>
-                                    <td><strong class="fs-5"><?= $g['count'] ?></strong> <?= __('kiện') ?></td>
-                                    <td><?= floatval($s['weight_actual']) > 0 ? fnum($s['weight_actual'], 2) . ' kg' : '<span class="text-muted">N/A</span>' ?></td>
                                     <td>
-                                        <?php if ($s['length_cm'] > 0 || $s['width_cm'] > 0 || $s['height_cm'] > 0): ?>
-                                        <?= $s['length_cm'] ?>x<?= $s['width_cm'] ?>x<?= $s['height_cm'] ?> cm
-                                        <?php else: ?><span class="text-muted">N/A</span><?php endif; ?>
+                                        <div class="d-flex gap-1">
+                                            <input type="number" class="form-control form-control-sm pkg-dim-input grp-master-l" name="edit_packages[<?= $first['id'] ?>][length_cm]" value="<?= floatval($first['length_cm']) ?>" step="0.1" min="0" placeholder="D" style="width:58px" data-gid="<?= $gid ?>" title="<?= __('Dài') ?>">
+                                            <input type="number" class="form-control form-control-sm pkg-dim-input grp-master-r" name="edit_packages[<?= $first['id'] ?>][width_cm]"  value="<?= floatval($first['width_cm']) ?>"  step="0.1" min="0" placeholder="R" style="width:58px" data-gid="<?= $gid ?>" title="<?= __('Rộng') ?>">
+                                            <input type="number" class="form-control form-control-sm pkg-dim-input grp-master-h" name="edit_packages[<?= $first['id'] ?>][height_cm]" value="<?= floatval($first['height_cm']) ?>" step="0.1" min="0" placeholder="C" style="width:58px" data-gid="<?= $gid ?>" title="<?= __('Cao') ?>">
+                                        </div>
                                     </td>
-                                    <td><?= $gVol > 0 ? floatval(number_format($gVol, 4, '.', '')) : '<span class="text-muted">N/A</span>' ?></td>
-                                    <td><?= display_package_status($s['status'] ?? 'cn_warehouse') ?></td>
-                                    <td><small class="text-muted"><?= implode(', ', array_slice($g['codes'], 0, 3)) ?><?= $g['count'] > 3 ? '...' : '' ?></small></td>
+                                    <td class="pkg-cbm-cell text-nowrap">
+                                        <?= $pkgVolume > 0 ? number_format($pkgVolume, 4, '.', '') : '<span class="text-muted">-</span>' ?>
+                                    </td>
+                                    <td>
+                                        <?php foreach ($uniqueStatuses as $st): ?>
+                                        <?= display_package_status($st) ?><?= count($uniqueStatuses) > 1 ? '<br>' : '' ?>
+                                        <?php endforeach; ?>
+                                    </td>
                                     <td class="text-center">
-                                        <button type="button" class="btn btn-sm btn-soft-primary btn-edit-pkg"
-                                            data-id="<?= $s['id'] ?>"
-                                            data-tracking="<?= htmlspecialchars($s['tracking_cn'] ?? '') ?>"
-                                            data-weight="<?= $s['weight_actual'] ?>"
-                                            data-length="<?= $s['length_cm'] ?>"
-                                            data-width="<?= $s['width_cm'] ?>"
-                                            data-height="<?= $s['height_cm'] ?>"
-                                            data-note="<?= htmlspecialchars($s['note'] ?? '') ?>"
-                                            title="<?= __('Sửa') ?>"><i class="ri-pencil-line"></i> <?= __('Sửa') ?></button>
-                                        <button type="button" class="btn btn-sm btn-soft-danger btn-delete-group"
-                                            data-ids="<?= implode(',', $g['ids']) ?>"
-                                            data-count="<?= $g['count'] ?>"
-                                            title="<?= __('Xóa nhóm') ?>"><i class="ri-delete-bin-line"></i> <?= __('Xóa') ?> <?= $g['count'] > 1 ? '(' . $g['count'] . ')' : '' ?></button>
+                                        <?php if ($gCount === 1): ?>
+                                        <button type="button" class="btn btn-sm btn-soft-danger btn-delete-pkg" data-id="<?= $first['id'] ?>" data-code="<?= htmlspecialchars($first['package_code'] ?? '') ?>" title="<?= __('Xóa') ?>"><i class="ri-delete-bin-line"></i></button>
+                                        <?php else: ?>
+                                        <button type="button" class="btn btn-sm btn-soft-danger btn-delete-group" data-ids="<?= implode(',', $allIds) ?>" data-count="<?= $gCount ?>" title="<?= __('Xóa nhóm') ?>"><i class="ri-delete-bin-line"></i> <?= $gCount ?></button>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
@@ -368,117 +327,73 @@ require_once(__DIR__.'/sidebar.php');
     </div>
 </div>
 
-<!-- Modal Sửa kiện -->
-<div class="modal fade" id="modalEditPackage" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="ri-pencil-line me-1"></i><?= __('Sửa kiện hàng') ?></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="edit-pkg-id">
-                <?php if ($productType === 'retail'): ?>
-                <div class="mb-3">
-                    <label class="form-label"><?= __('Mã vận đơn') ?></label>
-                    <input type="text" class="form-control" id="edit-pkg-tracking" style="text-transform:uppercase">
-                </div>
-                <?php endif; ?>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label"><?= __('Cân nặng (kg)') ?></label>
-                        <input type="number" class="form-control" id="edit-pkg-weight" step="0.01" min="0">
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label"><?= __('Dài (cm)') ?></label>
-                        <input type="number" class="form-control edit-pkg-dim" id="edit-pkg-length" step="0.1" min="0">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label"><?= __('Rộng (cm)') ?></label>
-                        <input type="number" class="form-control edit-pkg-dim" id="edit-pkg-width" step="0.1" min="0">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label"><?= __('Cao (cm)') ?></label>
-                        <input type="number" class="form-control edit-pkg-dim" id="edit-pkg-height" step="0.1" min="0">
-                    </div>
-                </div>
-                <div class="mb-3" id="edit-pkg-volume-display" style="display:none;">
-                    <div class="p-2 bg-light rounded text-center">
-                        <span class="text-muted"><?= __('Số khối') ?>:</span> <strong id="edit-pkg-volume-value">0</strong> m³
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label"><?= __('Ghi chú') ?></label>
-                    <textarea class="form-control" id="edit-pkg-note" rows="2"></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?= __('Đóng') ?></button>
-                <button type="button" class="btn btn-primary" id="btn-save-package"><i class="ri-save-line me-1"></i><?= __('Lưu') ?></button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <?php require_once(__DIR__.'/footer.php'); ?>
 
 <script>
-// Toggle grouped/full view
-var isGrouped = false;
-$('#btn-toggle-group').on('click', function(){
-    isGrouped = !isGrouped;
-    if(isGrouped){
-        $('#pkg-view-full').hide();
-        $('#pkg-view-grouped').show();
-        $(this).html('<i class="ri-list-unordered me-1"></i><?= __('Hiện chi tiết từng kiện') ?>').removeClass('btn-outline-secondary').addClass('btn-outline-primary');
+// Mutual exclusivity: order-level weight vs package weights
+function toggleWeightExclusive() {
+    var orderW = parseFloat($('input[name="weight_actual"]').val()) || 0;
+    var hasPkgW = false;
+    $('.pkg-w-input').each(function(){ if ((parseFloat($(this).val()) || 0) > 0) hasPkgW = true; });
+
+    if (orderW > 0) {
+        $('.pkg-w-input').prop('readonly', true).css({opacity: 0.5, pointerEvents: 'none', background: '#f8f9fa'});
+        $('input[name="weight_actual"]').prop('readonly', false).css({opacity: 1, pointerEvents: '', background: ''});
+    } else if (hasPkgW) {
+        $('input[name="weight_actual"]').prop('readonly', true).css({opacity: 0.5, pointerEvents: 'none', background: '#f8f9fa'});
+        $('.pkg-w-input').prop('readonly', false).css({opacity: 1, pointerEvents: '', background: ''});
     } else {
-        $('#pkg-view-grouped').hide();
-        $('#pkg-view-full').show();
-        $(this).html('<i class="ri-stack-line me-1"></i><?= __('Nhóm kiện giống nhau') ?>').removeClass('btn-outline-primary').addClass('btn-outline-secondary');
+        $('.pkg-w-input').prop('readonly', false).css({opacity: 1, pointerEvents: '', background: ''});
+        $('input[name="weight_actual"]').prop('readonly', false).css({opacity: 1, pointerEvents: '', background: ''});
+    }
+}
+$('input[name="weight_actual"]').on('input change', toggleWeightExclusive);
+$(document).on('input change', '.pkg-w-input', toggleWeightExclusive);
+toggleWeightExclusive();
+
+// Sync hidden inputs for grouped packages
+$(document).on('input', '.grp-master-w', function(){ $('.grp-sync-w[data-gid="' + $(this).data('gid') + '"]').val($(this).val()); });
+$(document).on('input', '.grp-master-l', function(){ $('.grp-sync-l[data-gid="' + $(this).data('gid') + '"]').val($(this).val()); });
+$(document).on('input', '.grp-master-r', function(){ $('.grp-sync-r[data-gid="' + $(this).data('gid') + '"]').val($(this).val()); });
+$(document).on('input', '.grp-master-h', function(){ $('.grp-sync-h[data-gid="' + $(this).data('gid') + '"]').val($(this).val()); });
+
+// Auto-calculate CBM inline per row
+$(document).on('input', '.pkg-dim-input', function(){
+    var $row = $(this).closest('tr');
+    var l = parseFloat($row.find('[name$="[length_cm]"]').val()) || 0;
+    var w = parseFloat($row.find('[name$="[width_cm]"]').val()) || 0;
+    var h = parseFloat($row.find('[name$="[height_cm]"]').val()) || 0;
+    var $cell = $row.find('.pkg-cbm-cell');
+    if (l > 0 && w > 0 && h > 0) {
+        $cell.text(parseFloat(((l * w * h) / 1000000).toFixed(4)));
+    } else {
+        $cell.html('<span class="text-muted">-</span>');
     }
 });
 
-// Delete group of packages
+// Delete group
 $(document).on('click', '.btn-delete-group', function(){
     var ids = $(this).data('ids').toString().split(',');
     var count = $(this).data('count');
     Swal.fire({
         title: '<?= __('Xóa') ?> ' + count + ' <?= __('kiện hàng') ?>?',
-        icon: 'warning',
-        showCancelButton: true,
+        icon: 'warning', showCancelButton: true,
         confirmButtonColor: '#d33',
-        confirmButtonText: '<?= __('Xóa tất cả') ?> ' + count + ' <?= __('kiện') ?>',
+        confirmButtonText: '<?= __('Xóa tất cả') ?>',
         cancelButtonText: '<?= __('Hủy') ?>'
-    }).then(function(result){
-        if(result.isConfirmed){
-            var deleted = 0, total = ids.length;
-            Swal.fire({title: '<?= __('Đang xóa...') ?>', text: '0/' + total, allowOutsideClick: false, didOpen: function(){ Swal.showLoading(); }});
-            function deleteNext(i){
-                if(i >= total){
-                    Swal.fire({icon: 'success', title: '<?= __('Đã xóa') ?> ' + deleted + ' <?= __('kiện') ?>', timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
-                    return;
-                }
-                $.post('<?= base_url('ajaxs/staffcn/packages.php') ?>', {
-                    request_name: 'delete', id: ids[i], csrf_token: '<?= $csrf->get_token_value() ?>'
-                }, function(){ deleted++; Swal.update({text: deleted + '/' + total}); deleteNext(i+1); }, 'json').fail(function(){ deleteNext(i+1); });
+    }).then(function(r){
+        if (!r.isConfirmed) return;
+        var deleted = 0;
+        Swal.fire({title: '<?= __('Đang xóa...') ?>', text: '0/' + count, allowOutsideClick: false, didOpen: function(){ Swal.showLoading(); }});
+        function next(i){
+            if (i >= ids.length){
+                Swal.fire({icon: 'success', title: '<?= __('Đã xóa') ?> ' + deleted + ' <?= __('kiện') ?>', timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
+                return;
             }
-            deleteNext(0);
+            $.post('<?= base_url('ajaxs/staffcn/packages.php') ?>', {request_name:'delete', id: ids[i], csrf_token:'<?= $csrf->get_token_value() ?>'}, function(){ deleted++; Swal.update({text: deleted+'/'+count}); next(i+1); }, 'json').fail(function(){ next(i+1); });
         }
+        next(0);
     });
-});
-
-// DataTables pagination for packages
-$(document).ready(function(){
-    if($('#tbl-packages-edit tbody tr').length > 0){
-        $('#tbl-packages-edit').DataTable({
-            pageLength: 10,
-            ordering: false,
-            responsive: true,
-            language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json' }
-        });
-    }
 });
 
 // Toggle retail/wholesale mode
@@ -553,7 +468,7 @@ $('#form-edit-order').on('submit', function(e){
     });
 });
 
-// Auto-calculate volume (CBM)
+// Auto-calculate volume (CBM) for "Tạo kiện" modal
 $('.pkg-dim, #pkg-qty').on('input', function(){
     var l = parseFloat($('#pkg-length').val()) || 0;
     var w = parseFloat($('#pkg-width').val()) || 0;
@@ -565,62 +480,6 @@ $('.pkg-dim, #pkg-qty').on('input', function(){
         $('#pkg-volume-display').show();
     } else {
         $('#pkg-volume-display').hide();
-    }
-});
-
-// Edit package - open modal
-$(document).on('click', '.btn-edit-pkg', function(){
-    var btn = $(this);
-    $('#edit-pkg-id').val(btn.data('id'));
-    $('#edit-pkg-tracking').val(btn.data('tracking'));
-    $('#edit-pkg-weight').val(btn.data('weight') || '');
-    $('#edit-pkg-length').val(btn.data('length') || '');
-    $('#edit-pkg-width').val(btn.data('width') || '');
-    $('#edit-pkg-height').val(btn.data('height') || '');
-    $('#edit-pkg-note').val(btn.data('note'));
-    // Trigger volume calc
-    $('.edit-pkg-dim').trigger('input');
-    new bootstrap.Modal(document.getElementById('modalEditPackage')).show();
-});
-
-// Edit package - save
-$('#btn-save-package').on('click', function(){
-    var btn = $(this).prop('disabled', true).html('<i class="ri-loader-4-line ri-spin me-1"></i><?= __('Đang lưu...') ?>');
-    var postData = {
-        request_name: 'edit',
-        id: $('#edit-pkg-id').val(),
-        tracking_cn: $('#edit-pkg-tracking').val() || '',
-        weight_actual: $('#edit-pkg-weight').val() || 0,
-        length_cm: $('#edit-pkg-length').val() || 0,
-        width_cm: $('#edit-pkg-width').val() || 0,
-        height_cm: $('#edit-pkg-height').val() || 0,
-        note: $('#edit-pkg-note').val(),
-        csrf_token: '<?= $csrf->get_token_value() ?>'
-    };
-    $.post('<?= base_url('ajaxs/staffcn/packages.php') ?>', postData, function(res){
-        if(res.status == 'success'){
-            Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
-        } else {
-            Swal.fire({icon: 'error', title: 'Error', text: res.msg});
-            btn.prop('disabled', false).html('<i class="ri-save-line me-1"></i><?= __('Lưu') ?>');
-        }
-    }, 'json').fail(function(){
-        Swal.fire({icon: 'error', text: '<?= __('Lỗi kết nối') ?>'});
-        btn.prop('disabled', false).html('<i class="ri-save-line me-1"></i><?= __('Lưu') ?>');
-    });
-});
-
-// Edit package - volume calc
-$('.edit-pkg-dim').on('input', function(){
-    var l = parseFloat($('#edit-pkg-length').val()) || 0;
-    var w = parseFloat($('#edit-pkg-width').val()) || 0;
-    var h = parseFloat($('#edit-pkg-height').val()) || 0;
-    if (l > 0 && w > 0 && h > 0) {
-        var vol = (l * w * h) / 1000000;
-        $('#edit-pkg-volume-value').text(parseFloat(vol.toFixed(4)));
-        $('#edit-pkg-volume-display').show();
-    } else {
-        $('#edit-pkg-volume-display').hide();
     }
 });
 
