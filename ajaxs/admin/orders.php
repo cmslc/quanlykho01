@@ -223,7 +223,8 @@ if ($request === 'add') {
         $volume_divisor = floatval($ToryHub->site('volume_divisor') ?: 6000);
         foreach ($packages as $pkg) {
             $pkg_qty = max(1, intval($pkg['qty'] ?? 1));
-            $pkg_weight = floatval($pkg['weight'] ?? 0);
+            $pkg_total_weight = floatval($pkg['total_weight'] ?? $pkg['weight'] ?? 0);
+            $pkg_weight = $pkg_qty > 0 ? $pkg_total_weight / $pkg_qty : 0;
             $pkg_length = floatval($pkg['length_cm'] ?? 0);
             $pkg_width = floatval($pkg['width_cm'] ?? 0);
             $pkg_height = floatval($pkg['height_cm'] ?? 0);
