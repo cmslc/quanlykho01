@@ -213,7 +213,7 @@ if ($request === 'add') {
         'create_date' => gettime()
     ]);
 
-    add_log('add_order', 'Tạo đơn hàng: ' . $orderCode);
+    add_log($getUser['id'], 'add_order', 'Tạo đơn hàng: ' . $orderCode);
 
     // Create packages from form
     $packages = isset($_POST['packages']) ? $_POST['packages'] : [];
@@ -412,7 +412,7 @@ if ($request === 'edit') {
         'update_date' => gettime()
     ], "id = ?", [$id]);
 
-    add_log('edit_order', 'Sửa đơn hàng #' . $id);
+    add_log($getUser['id'], 'edit_order', 'Sửa đơn hàng #' . $id);
     ob_end_clean(); echo json_encode(['status' => 'success', 'msg' => __('Cập nhật thành công')]);
     exit;
 }
@@ -459,7 +459,7 @@ if ($request === 'delete') {
         $ToryHub->tru_safe("customers", "total_orders", 1, "id = ?", [$order['customer_id']]);
     }
 
-    add_log('delete_order', 'Xóa đơn hàng: ' . $order['order_code']);
+    add_log($getUser['id'], 'delete_order', 'Xóa đơn hàng: ' . $order['order_code']);
     ob_end_clean(); echo json_encode(['status' => 'success', 'msg' => __('Xóa thành công')]);
     exit;
 }

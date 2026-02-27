@@ -142,4 +142,4 @@ foreach ($orders as $row) {
 
 echo '</Table></Worksheet></Workbook>';
 
-add_log('export', 'Xuất danh sách hàng (' . count($orders) . ' đơn)');
+add_log($getUser['id'], 'export', 'Xuất danh sách hàng (' . count($orders) . ' đơn)');

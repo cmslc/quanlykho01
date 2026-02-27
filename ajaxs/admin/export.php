@@ -66,7 +66,7 @@ if ($type === 'revenue') {
         ]);
     }
 
-    add_log('export', 'Xuất báo cáo doanh thu: ' . $dateFrom . ' → ' . $dateTo);
+    add_log($getUser['id'], 'export', 'Xuất báo cáo doanh thu: ' . $dateFrom . ' → ' . $dateTo);
 }
 
 // ======== ORDERS EXPORT ========
@@ -98,7 +98,7 @@ elseif ($type === 'orders') {
         ]);
     }
 
-    add_log('export', 'Xuất danh sách đơn hàng: ' . $dateFrom . ' → ' . $dateTo);
+    add_log($getUser['id'], 'export', 'Xuất danh sách đơn hàng: ' . $dateFrom . ' → ' . $dateTo);
 }
 
 // ======== CUSTOMERS EXPORT ========
@@ -119,7 +119,7 @@ elseif ($type === 'customers') {
         ]);
     }
 
-    add_log('export', 'Xuất danh sách khách hàng');
+    add_log($getUser['id'], 'export', 'Xuất danh sách khách hàng');
 }
 
 // ======== TRANSACTIONS EXPORT ========
@@ -142,7 +142,7 @@ elseif ($type === 'transactions') {
         ]);
     }
 
-    add_log('export', 'Xuất giao dịch: ' . $dateFrom . ' → ' . $dateTo);
+    add_log($getUser['id'], 'export', 'Xuất giao dịch: ' . $dateFrom . ' → ' . $dateTo);
 }
 
 echo '</Table></Worksheet></Workbook>';

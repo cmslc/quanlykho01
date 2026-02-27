@@ -37,7 +37,7 @@ if ($request === 'create') {
     $shipment_id = $Shipments->createShipment($data);
     if ($shipment_id) {
         $shipment = $ToryHub->get_row_safe("SELECT * FROM `shipments` WHERE `id` = ?", [$shipment_id]);
-        add_log('create_shipment', 'Tạo chuyến xe: ' . $shipment['shipment_code']);
+        add_log($getUser['id'], 'create_shipment', 'Tạo chuyến xe: ' . $shipment['shipment_code']);
         echo json_encode([
             'status' => 'success',
             'msg' => __('Tạo chuyến xe thành công'),
@@ -71,7 +71,7 @@ if ($request === 'edit') {
     ];
 
     $ToryHub->update_safe('shipments', $data, "`id` = ?", [$id]);
-    add_log('edit_shipment', 'Sửa chuyến xe: ' . $shipment['shipment_code']);
+    add_log($getUser['id'], 'edit_shipment', 'Sửa chuyến xe: ' . $shipment['shipment_code']);
     echo json_encode(['status' => 'success', 'msg' => __('Cập nhật chuyến xe thành công')]);
     exit;
 }
@@ -131,7 +131,7 @@ if ($request === 'delete') {
     $ToryHub->remove_safe('shipment_packages', "`shipment_id` = ?", [$id]);
     $ToryHub->remove_safe('shipments', "`id` = ?", [$id]);
 
-    add_log('delete_shipment', 'Xóa chuyến xe: ' . $shipment['shipment_code']);
+    add_log($getUser['id'], 'delete_shipment', 'Xóa chuyến xe: ' . $shipment['shipment_code']);
     echo json_encode(['status' => 'success', 'msg' => __('Đã xóa chuyến xe')]);
     exit;
 }
@@ -157,7 +157,7 @@ if ($request === 'add_packages') {
     }
 
     $result = $Shipments->addPackages($shipment_id, $package_ids, $getUser['id']);
-    add_log('add_to_shipment', 'Thêm ' . $result['added'] . ' kiện vào chuyến ' . $shipment['shipment_code']);
+    add_log($getUser['id'], 'add_to_shipment', 'Thêm ' . $result['added'] . ' kiện vào chuyến ' . $shipment['shipment_code']);
 
     echo json_encode([
         'status' => 'success',
@@ -227,7 +227,7 @@ if ($request === 'update_status') {
 
     $result = $Shipments->updateStatus($id, $new_status, $getUser['id']);
     if ($result) {
-        add_log('update_shipment_status', 'Cập nhật chuyến ' . $shipment['shipment_code'] . ' → ' . $new_status);
+        add_log($getUser['id'], 'update_shipment_status', 'Cập nhật chuyến ' . $shipment['shipment_code'] . ' → ' . $new_status);
         echo json_encode(['status' => 'success', 'msg' => __('Cập nhật trạng thái chuyến xe thành công')]);
     } else {
         echo json_encode(['status' => 'error', 'msg' => __('Lỗi cập nhật trạng thái')]);

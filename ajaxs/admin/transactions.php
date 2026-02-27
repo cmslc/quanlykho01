@@ -105,7 +105,7 @@ if ($request === 'add') {
         $ToryHub->commit();
 
         $typeLabel = ['deposit' => 'Nạp tiền', 'payment' => 'Thanh toán', 'refund' => 'Hoàn tiền', 'adjustment' => 'Điều chỉnh'];
-        add_log('add_transaction', $typeLabel[$type] . ' ' . format_vnd($amount) . ' cho ' . $customer['customer_code']);
+        add_log($getUser['id'], 'add_transaction', $typeLabel[$type] . ' ' . format_vnd($amount) . ' cho ' . $customer['customer_code']);
 
         // Telegram notification for deposits
         if ($type === 'deposit') {

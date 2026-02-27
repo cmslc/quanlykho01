@@ -52,7 +52,7 @@ if ($request === 'bulk_update_status') {
 
         $result = $Orders->updateStatus($oid, $new_status, $getUser['id'], $note ?: __('Cập nhật hàng loạt'));
         if ($result) {
-            add_log('update_order_status', 'Đổi trạng thái đơn ' . $order['order_code'] . ': ' . $order['status'] . ' → ' . $new_status);
+            add_log($getUser['id'], 'update_order_status', 'Đổi trạng thái đơn ' . $order['order_code'] . ': ' . $order['status'] . ' → ' . $new_status);
             $success++;
         }
     }
@@ -91,7 +91,7 @@ $Orders = new Orders();
 $result = $Orders->updateStatus($order_id, $new_status, $getUser['id'], $note);
 
 if ($result) {
-    add_log('update_order_status', 'Đổi trạng thái đơn ' . $order['order_code'] . ': ' . $order['status'] . ' → ' . $new_status);
+    add_log($getUser['id'], 'update_order_status', 'Đổi trạng thái đơn ' . $order['order_code'] . ': ' . $order['status'] . ' → ' . $new_status);
 
     // Telegram notification
     require_once(__DIR__.'/../../libs/telegram.php');

@@ -44,7 +44,7 @@ if ($request === 'add') {
 
     $package_id = $Packages->createPackage($data, $order_ids);
     if ($package_id) {
-        add_log('add_package', 'Tạo kiện #' . $package_id);
+        add_log($getUser['id'], 'add_package', 'Tạo kiện #' . $package_id);
         echo json_encode(['status' => 'success', 'msg' => __('Tạo kiện hàng thành công'), 'package_id' => $package_id]);
     } else {
         echo json_encode(['status' => 'error', 'msg' => __('Lỗi tạo kiện hàng')]);
@@ -84,7 +84,7 @@ if ($request === 'edit') {
         $Orders->recalculateFeesFromPackages($ord['id']);
     }
 
-    add_log('edit_package', 'Sửa kiện ' . $pkg['package_code']);
+    add_log($getUser['id'], 'edit_package', 'Sửa kiện ' . $pkg['package_code']);
     echo json_encode(['status' => 'success', 'msg' => __('Cập nhật kiện hàng thành công')]);
     exit;
 }
@@ -102,7 +102,7 @@ if ($request === 'delete') {
     $ToryHub->remove_safe('package_orders', "`package_id` = ?", [$id]);
     $ToryHub->remove_safe('packages', "`id` = ?", [$id]);
 
-    add_log('delete_package', 'Xóa kiện ' . $pkg['package_code']);
+    add_log($getUser['id'], 'delete_package', 'Xóa kiện ' . $pkg['package_code']);
     echo json_encode(['status' => 'success', 'msg' => __('Xóa kiện hàng thành công')]);
     exit;
 }
@@ -207,7 +207,7 @@ if ($request === 'merge') {
     ];
     $new_id = $Packages->mergePackages($source_ids, $data, $getUser['id']);
     if ($new_id) {
-        add_log('merge_packages', 'Gộp kiện ' . implode(',', $source_ids) . ' → ' . $new_id);
+        add_log($getUser['id'], 'merge_packages', 'Gộp kiện ' . implode(',', $source_ids) . ' → ' . $new_id);
         echo json_encode(['status' => 'success', 'msg' => __('Gộp kiện thành công'), 'package_id' => $new_id]);
     } else {
         echo json_encode(['status' => 'error', 'msg' => __('Lỗi gộp kiện')]);
@@ -225,7 +225,7 @@ if ($request === 'split') {
     }
     $new_ids = $Packages->splitPackage($source_id, $splits, $getUser['id']);
     if ($new_ids) {
-        add_log('split_package', 'Tách kiện ' . $source_id . ' → ' . implode(',', $new_ids));
+        add_log($getUser['id'], 'split_package', 'Tách kiện ' . $source_id . ' → ' . implode(',', $new_ids));
         echo json_encode(['status' => 'success', 'msg' => __('Tách kiện thành công'), 'package_ids' => $new_ids]);
     } else {
         echo json_encode(['status' => 'error', 'msg' => __('Lỗi tách kiện')]);

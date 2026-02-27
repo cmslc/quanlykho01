@@ -65,7 +65,7 @@ if ($request === 'create') {
     }
 
     $bagId = $ToryHub->insert_id();
-    add_log('create_bag', 'Tạo bao hàng: ' . $bag_code);
+    add_log($getUser['id'], 'create_bag', 'Tạo bao hàng: ' . $bag_code);
 
     echo json_encode([
         'status' => 'success',
@@ -272,7 +272,7 @@ if ($request === 'seal') {
         'update_date' => gettime()
     ], "id = ?", [$bag_id]);
 
-    add_log('seal_bag', 'Đóng bao: ' . $bag['bag_code'] . ' (' . $bag['total_packages'] . ' kiện)');
+    add_log($getUser['id'], 'seal_bag', 'Đóng bao: ' . $bag['bag_code'] . ' (' . $bag['total_packages'] . ' kiện)');
 
     echo json_encode(['status' => 'success', 'msg' => __('Đã đóng bao thành công')]);
     exit;
@@ -302,7 +302,7 @@ if ($request === 'unseal') {
         'update_date' => gettime()
     ], "id = ?", [$bag_id]);
 
-    add_log('unseal_bag', 'Mở lại bao: ' . $bag['bag_code']);
+    add_log($getUser['id'], 'unseal_bag', 'Mở lại bao: ' . $bag['bag_code']);
 
     echo json_encode(['status' => 'success', 'msg' => __('Đã mở lại bao thành công')]);
     exit;
@@ -337,7 +337,7 @@ if ($request === 'ship') {
         $Packages->updateStatus($bp['package_id'], 'shipping', $getUser['id'], __('Xuất vận chuyển bao') . ' ' . $bag['bag_code']);
     }
 
-    add_log('ship_bag', 'Xuất vận chuyển bao: ' . $bag['bag_code']);
+    add_log($getUser['id'], 'ship_bag', 'Xuất vận chuyển bao: ' . $bag['bag_code']);
 
     echo json_encode(['status' => 'success', 'msg' => __('Xuất vận chuyển thành công') . ' (' . count($bagPackages) . ' ' . __('kiện') . ')']);
     exit;
@@ -378,7 +378,7 @@ if ($request === 'delete') {
     $ToryHub->remove_safe("bag_packages", "bag_id = ?", [$bag_id]);
     $ToryHub->remove_safe("bags", "id = ?", [$bag_id]);
 
-    add_log('delete_bag', 'Xóa bao hàng: ' . $bag['bag_code']);
+    add_log($getUser['id'], 'delete_bag', 'Xóa bao hàng: ' . $bag['bag_code']);
 
     echo json_encode(['status' => 'success', 'msg' => __('Đã xóa bao hàng')]);
     exit;

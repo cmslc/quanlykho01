@@ -63,7 +63,7 @@ if ($request === 'update_settings') {
         }
     }
 
-    add_log('update_settings', 'Cập nhật cài đặt hệ thống');
+    add_log($getUser['id'], 'update_settings', 'Cập nhật cài đặt hệ thống');
     echo json_encode(['status' => 'success', 'msg' => __('Cập nhật thành công')]);
     exit;
 }
@@ -151,7 +151,7 @@ if ($request === 'upload_logo') {
         }
     }
 
-    add_log('update_brand', 'Cập nhật thương hiệu');
+    add_log($getUser['id'], 'update_brand', 'Cập nhật thương hiệu');
     echo json_encode(['status' => 'success', 'msg' => __('Cập nhật thành công')]);
     exit;
 }
@@ -164,7 +164,7 @@ if ($request === 'delete_logo') {
         $ToryHub->update_safe("settings", ['value' => ''], "name = ?", ['site_logo']);
     }
 
-    add_log('delete_logo', 'Xóa logo');
+    add_log($getUser['id'], 'delete_logo', 'Xóa logo');
     echo json_encode(['status' => 'success', 'msg' => __('Đã xóa logo')]);
     exit;
 }

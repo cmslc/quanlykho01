@@ -83,7 +83,7 @@ if ($request === 'add') {
     $customerCode = generate_customer_code($newId);
     $ToryHub->update_safe("customers", ['customer_code' => $customerCode], "id = ?", [$newId]);
 
-    add_log('add_customer', 'Thêm khách hàng: ' . $customerCode . ' - ' . $fullname);
+    add_log($getUser['id'], 'add_customer', 'Thêm khách hàng: ' . $customerCode . ' - ' . $fullname);
     echo json_encode([
         'status' => 'success',
         'msg' => __('Thêm khách hàng thành công'),
@@ -150,7 +150,7 @@ if ($request === 'edit') {
         'update_date' => gettime()
     ], "id = ?", [$id]);
 
-    add_log('edit_customer', 'Sửa khách hàng: ' . $customer['customer_code']);
+    add_log($getUser['id'], 'edit_customer', 'Sửa khách hàng: ' . $customer['customer_code']);
     echo json_encode(['status' => 'success', 'msg' => __('Cập nhật thành công')]);
     exit;
 }
@@ -172,7 +172,7 @@ if ($request === 'delete') {
     }
 
     $ToryHub->remove_safe("customers", "id = ?", [$id]);
-    add_log('delete_customer', 'Xóa khách hàng: ' . $customer['customer_code'] . ' - ' . $customer['fullname']);
+    add_log($getUser['id'], 'delete_customer', 'Xóa khách hàng: ' . $customer['customer_code'] . ' - ' . $customer['fullname']);
     echo json_encode(['status' => 'success', 'msg' => __('Xóa thành công')]);
     exit;
 }
