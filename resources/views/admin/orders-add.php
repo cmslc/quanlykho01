@@ -89,16 +89,22 @@ require_once(__DIR__.'/sidebar.php');
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-6 wholesale-only">
+                        <div class="col-md-4 wholesale-only">
                             <div class="mb-3">
                                 <label class="form-label"><?= __('Mã hàng') ?></label>
                                 <input type="text" class="form-control" name="product_code" placeholder="<?= __('Nhập mã hàng') ?>">
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><?= __('Tên sản phẩm') ?></label>
                                 <input type="text" class="form-control" name="product_name">
+                            </div>
+                        </div>
+                        <div class="col-md-4 wholesale-only">
+                            <div class="mb-3">
+                                <label class="form-label"><?= __('Tổng cân nặng mã hàng') ?> (kg)</label>
+                                <input type="number" class="form-control" name="weight_actual" value="0" step="0.01" min="0">
                             </div>
                         </div>
                     </div>
