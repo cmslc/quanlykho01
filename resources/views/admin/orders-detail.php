@@ -266,7 +266,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <?php endif; ?>
                                     <tr>
                                         <td class="text-muted"><?= __('Số khối') ?></td>
-                                        <td class="fw-bold"><?= $totalCbm > 0 ? number_format($totalCbm, 3) . ' m³' : '-' ?></td>
+                                        <td class="fw-bold"><?= $totalCbm > 0 ? floatval(number_format($totalCbm, 3, '.', '')) . ' m³' : '-' ?></td>
                                     </tr>
                                     <tr><td class="text-muted"><?= __('Ngày tạo') ?></td><td><?= $order['create_date'] ?></td></tr>
                                     <tr><td class="text-muted"><?= __('Cập nhật') ?></td><td><?= $order['update_date'] ?></td></tr>
