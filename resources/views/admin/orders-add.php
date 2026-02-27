@@ -387,6 +387,7 @@ $('#btn-add-package').on('click', function(){
         + '</div></div>';
     $('#packages-container').append(html);
     updatePackageButtons();
+    toggleWeightExclusive();
 });
 
 $(document).on('click', '.btn-remove-package', function(){
@@ -423,6 +424,30 @@ function calcPackageSummary() {
 
 $(document).on('input change', '.pkg-calc', calcPackageSummary);
 calcPackageSummary();
+
+// Hai cách nhập cân nặng: tổng mã hàng vs cân/kiện — loại trừ lẫn nhau
+function toggleWeightExclusive(source) {
+    var totalW = parseFloat($('input[name="weight_actual"]').val()) || 0;
+    var hasPkgW = false;
+    $('[name$="[weight]"]').each(function(){ if ((parseFloat($(this).val()) || 0) > 0) hasPkgW = true; });
+
+    if (source === 'total' || (!source && totalW > 0)) {
+        // Tổng cân nặng đã nhập → disable Cân nặng/kiện
+        $('[name$="[weight]"]').prop('disabled', totalW > 0).closest('.mb-2').css('opacity', totalW > 0 ? 0.5 : 1);
+        $('input[name="weight_actual"]').prop('disabled', false).closest('.mb-3').css('opacity', 1);
+    } else if (source === 'pkg' || (!source && hasPkgW)) {
+        // Cân nặng/kiện đã nhập → disable Tổng cân nặng
+        $('input[name="weight_actual"]').prop('disabled', hasPkgW).closest('.mb-3').css('opacity', hasPkgW ? 0.5 : 1);
+        $('[name$="[weight]"]').prop('disabled', false).closest('.mb-2').css('opacity', 1);
+    } else {
+        // Cả hai trống → bật lại hết
+        $('[name$="[weight]"]').prop('disabled', false).closest('.mb-2').css('opacity', 1);
+        $('input[name="weight_actual"]').prop('disabled', false).closest('.mb-3').css('opacity', 1);
+    }
+}
+$('input[name="weight_actual"]').on('input change', function(){ toggleWeightExclusive('total'); });
+$(document).on('input change', '[name$="[weight]"]', function(){ toggleWeightExclusive('pkg'); });
+toggleWeightExclusive();
 
 // Toggle retail/wholesale mode
 function toggleProductType() {
