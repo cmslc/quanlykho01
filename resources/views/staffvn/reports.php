@@ -162,7 +162,7 @@ require_once(__DIR__.'/sidebar.php');
                                 <small class="text-muted"><?= $codStats['cod_count'] ?> <?= __('giao dịch') ?></small>
                             </div>
                             <div class="avatar-sm flex-shrink-0">
-                                <span class="avatar-title bg-warning-subtle text-warning rounded-circle fs-3"><i class="ri-money-dollar-circle-line"></i></span>
+                                <span class="avatar-title bg-warning text-dark rounded-circle fs-3"><i class="ri-money-dollar-circle-line"></i></span>
                             </div>
                         </div>
                     </div>

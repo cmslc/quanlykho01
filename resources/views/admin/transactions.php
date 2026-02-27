@@ -99,7 +99,7 @@ require_once(__DIR__.'/sidebar.php');
                                 <h4 class="fs-22 fw-semibold mt-4 mb-0 text-warning"><?= format_vnd($totalRefund['total']) ?></h4>
                             </div>
                             <div class="avatar-sm flex-shrink-0">
-                                <span class="avatar-title bg-warning-subtle rounded fs-3"><i class="ri-refund-2-line text-warning"></i></span>
+                                <span class="avatar-title bg-warning rounded fs-3"><i class="ri-refund-2-line text-dark"></i></span>
                             </div>
                         </div>
                     </div>

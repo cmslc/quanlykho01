@@ -72,7 +72,7 @@ require_once(__DIR__.'/sidebar.php');
                         <div class="d-flex align-items-end justify-content-between mt-4">
                             <div><h4 class="fs-22 fw-semibold mb-4"><?= $shipping_orders ?></h4></div>
                             <div class="avatar-sm flex-shrink-0">
-                                <span class="avatar-title bg-warning-subtle rounded fs-3"><i class="ri-truck-line text-warning"></i></span>
+                                <span class="avatar-title bg-warning rounded fs-3"><i class="ri-truck-line text-dark"></i></span>
                             </div>
                         </div>
                     </div>

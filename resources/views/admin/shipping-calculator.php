@@ -372,7 +372,7 @@ require_once(__DIR__.'/sidebar.php');
                         </div>
                     </div>
                     <?php if ($warnRows > 0): ?>
-                    <div class="mt-2"><span class="badge bg-warning-subtle text-warning"><i class="ri-alert-line me-1"></i><?= $warnRows ?> <?= __('dòng thiếu dữ liệu cân nặng hoặc số khối') ?></span></div>
+                    <div class="mt-2"><span class="badge bg-warning text-dark"><i class="ri-alert-line me-1"></i><?= $warnRows ?> <?= __('dòng thiếu dữ liệu cân nặng hoặc số khối') ?></span></div>
                     <?php endif; ?>
                 </form>
             </div>

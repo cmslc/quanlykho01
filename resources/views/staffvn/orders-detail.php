@@ -131,8 +131,8 @@ require_once(__DIR__.'/sidebar.php');
 
                 <!-- Extra Items -->
                 <div class="card d-none" id="card-extras">
-                    <div class="card-header bg-warning-subtle">
-                        <h5 class="card-title mb-0 text-warning"><i class="ri-error-warning-line me-1"></i><?= __('Hàng thừa') ?> (<span id="extra-count">0</span>)</h5>
+                    <div class="card-header bg-warning">
+                        <h5 class="card-title mb-0 text-dark"><i class="ri-error-warning-line me-1"></i><?= __('Hàng thừa') ?> (<span id="extra-count">0</span>)</h5>
                     </div>
                     <div class="card-body p-0">
                         <ul class="list-group list-group-flush" id="extra-list"></ul>
