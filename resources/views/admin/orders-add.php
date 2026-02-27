@@ -417,12 +417,14 @@ function calcPackageSummary() {
         totalWeight += w * qty;
         totalCbm += qty * cbm;
     });
+    var orderW = parseFloat($('input[name="weight_actual"]').val()) || 0;
     $('#sum-pkg-count').text(totalCount);
-    $('#sum-pkg-weight').text(totalWeight.toFixed(2) + ' kg');
+    $('#sum-pkg-weight').text((orderW > 0 ? orderW : totalWeight).toFixed(2) + ' kg');
     $('#sum-pkg-cbm').text(totalCbm > 0 ? parseFloat(totalCbm.toFixed(4)) + ' m³' : '0 m³');
 }
 
 $(document).on('input change', '.pkg-calc', calcPackageSummary);
+$('input[name="weight_actual"]').on('input change', calcPackageSummary);
 calcPackageSummary();
 
 // Hai cách nhập cân nặng: tổng mã hàng vs cân/kiện — loại trừ lẫn nhau
