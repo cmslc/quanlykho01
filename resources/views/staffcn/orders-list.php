@@ -293,7 +293,10 @@ require_once(__DIR__.'/sidebar.php');
                                         <?php $pkgCount = $pw['total_packages'] ?? 0; ?>
                                         <?php
                                         if (!$isRetail) {
-                                            $displayWeight = $orderWeightCharged > 0 ? $orderWeightCharged : ($orderWeightActual > 0 ? $orderWeightActual : 0);
+                                            $displayWeight = $orderWeightCharged > 0 ? $orderWeightCharged
+                                                : ($orderWeightActual > 0 ? $orderWeightActual
+                                                : ($wCharged > 0 ? $wCharged
+                                                : $wActual));
                                         } else {
                                             $displayWeight = $wCharged > 0 ? $wCharged : ($wActual > 0 ? $wActual : 0);
                                         }
