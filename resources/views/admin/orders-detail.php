@@ -189,7 +189,7 @@ require_once(__DIR__.'/sidebar.php');
                                             <?php if ($isRetail): ?>
                                             <td><?= htmlspecialchars($pkg['tracking_cn'] ?: '-') ?></td>
                                             <?php endif; ?>
-                                            <td><?= $pkg['weight_actual'] ? $pkg['weight_actual'] . ' kg' : '<span class="text-muted">N/A</span>' ?></td>
+                                            <td><?= floatval($pkg['weight_actual']) > 0 ? fnum($pkg['weight_actual'], 2) . ' kg' : '<span class="text-muted">N/A</span>' ?></td>
                                             <td>
                                                 <?php if ($pkg['length_cm'] > 0 || $pkg['width_cm'] > 0 || $pkg['height_cm'] > 0): ?>
                                                 <?= $pkg['length_cm'] ?>x<?= $pkg['width_cm'] ?>x<?= $pkg['height_cm'] ?> cm
