@@ -468,12 +468,19 @@ var customerList = <?= json_encode(array_values(array_map(function($c) {
 
 function renderCustomerDropdown(q) {
     var $dd = $('#customer-dropdown');
-    q = q.trim().toLowerCase();
+    var rawQ = q.trim();
+    q = rawQ.toLowerCase();
     var results = q === '' ? customerList : customerList.filter(function(c){
         return c.label.toLowerCase().indexOf(q) !== -1;
     });
     if (!results.length) {
-        $dd.html('<div class="px-3 py-2 text-muted small"><?= __('Không tìm thấy khách hàng') ?></div>').show();
+        var createHtml = rawQ
+            ? '<div class="customer-option-create px-3 py-2 d-flex align-items-center gap-2" data-name="' + $('<span>').text(rawQ).html() + '" style="cursor:pointer;">'
+                + '<i class="ri-user-add-line text-success"></i>'
+                + '<span><?= __('Tạo khách hàng') ?>: <strong>' + $('<span>').text(rawQ).html() + '</strong></span>'
+                + '</div>'
+            : '<div class="px-3 py-2 text-muted small"><?= __('Không tìm thấy khách hàng') ?></div>';
+        $dd.html(createHtml).show();
         return;
     }
     var html = '';
@@ -532,6 +539,14 @@ $('#customer-search').on('input', function(){
 
 $(document).on('mousedown', '#customer-dropdown .customer-option', function(){
     selectCustomer($(this).data('id'), $(this).data('label'));
+});
+
+$(document).on('mousedown', '#customer-dropdown .customer-option-create', function(){
+    var name = $(this).data('name');
+    $('#customer-dropdown').hide();
+    $('#modalAddCustomer [name="fullname"]').val(name);
+    new bootstrap.Modal($('#modalAddCustomer')[0]).show();
+    setTimeout(function(){ $('#modalAddCustomer [name="phone"]').focus(); }, 300);
 });
 
 $('#btn-clear-customer').on('click', clearCustomer);
