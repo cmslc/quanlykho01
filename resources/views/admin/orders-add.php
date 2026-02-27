@@ -55,14 +55,24 @@ require_once(__DIR__.'/sidebar.php');
                         <div class="col-md-4 wholesale-only">
                             <div class="mb-3">
                                 <label class="form-label"><?= __('Khách hàng') ?> <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <select class="form-select" name="customer_id" id="select-customer">
-                                        <option value=""><?= __('-- Chọn khách hàng --') ?></option>
-                                        <?php foreach ($customers as $c): ?>
-                                        <option value="<?= $c['id'] ?>" <?= $preselect_customer == $c['id'] ? 'selected' : '' ?>><?= htmlspecialchars($c['customer_code'] . ' - ' . $c['fullname']) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
+                                <input type="hidden" name="customer_id" id="select-customer" value="<?= htmlspecialchars($preselect_customer) ?>">
+                                <div class="input-group position-relative">
+                                    <input type="text" class="form-control" id="customer-search"
+                                        placeholder="<?= __('Nhập mã hoặc tên khách hàng...') ?>"
+                                        autocomplete="off"
+                                        value="<?php
+                                            if ($preselect_customer) {
+                                                foreach ($customers as $c) {
+                                                    if ($c['id'] == $preselect_customer) {
+                                                        echo htmlspecialchars($c['customer_code'] . ' - ' . $c['fullname']);
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        ?>">
+                                    <button type="button" class="btn btn-outline-secondary" id="btn-clear-customer" title="<?= __('Xóa chọn') ?>" style="display:none;"><i class="ri-close-line"></i></button>
                                     <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAddCustomer" title="<?= __('Tạo khách hàng mới') ?>"><i class="ri-user-add-line"></i></button>
+                                    <div id="customer-dropdown" class="position-absolute top-100 start-0 w-100 bg-white border rounded shadow-sm" style="z-index:1055;max-height:220px;overflow-y:auto;display:none;"></div>
                                 </div>
                             </div>
                         </div>
@@ -414,12 +424,10 @@ function toggleProductType() {
     if(isRetail){
         $('.wholesale-only').hide();
         $('.retail-scan-card').show();
-        $('#select-customer').prop('required', false);
         $('#retail-scan-input').focus();
     } else {
         $('.wholesale-only').show();
         $('.retail-scan-card').hide();
-        $('#select-customer').prop('required', true);
         calcPackageSummary();
     }
 }
@@ -453,6 +461,88 @@ $(document).on('click', '.btn-remove-img', function(){
     $(input).trigger('change');
 });
 
+// ===== Customer autocomplete =====
+var customerList = <?= json_encode(array_values(array_map(function($c) {
+    return ['id' => $c['id'], 'label' => $c['customer_code'] . ' - ' . $c['fullname']];
+}, $customers)), JSON_UNESCAPED_UNICODE) ?>;
+
+function renderCustomerDropdown(q) {
+    var $dd = $('#customer-dropdown');
+    q = q.trim().toLowerCase();
+    var results = q === '' ? customerList : customerList.filter(function(c){
+        return c.label.toLowerCase().indexOf(q) !== -1;
+    });
+    if (!results.length) {
+        $dd.html('<div class="px-3 py-2 text-muted small"><?= __('Không tìm thấy khách hàng') ?></div>').show();
+        return;
+    }
+    var html = '';
+    results.slice(0, 50).forEach(function(c){
+        html += '<div class="customer-option px-3 py-2 border-bottom" data-id="' + c.id + '" data-label="' + $('<span>').text(c.label).html() + '" style="cursor:pointer;">'
+            + $('<span>').text(c.label).html()
+            + '</div>';
+    });
+    $dd.html(html).show();
+}
+
+function selectCustomer(id, label) {
+    $('#select-customer').val(id);
+    $('#customer-search').val(label);
+    $('#customer-dropdown').hide();
+    $('#btn-clear-customer').show();
+}
+
+function clearCustomer() {
+    $('#select-customer').val('');
+    $('#customer-search').val('').focus();
+    $('#customer-dropdown').hide();
+    $('#btn-clear-customer').hide();
+}
+
+$('#customer-search').on('input', function(){
+    var val = $(this).val();
+    if (!val) { clearCustomer(); return; }
+    renderCustomerDropdown(val);
+    $('#select-customer').val('');
+    $('#btn-clear-customer').hide();
+}).on('focus', function(){
+    if (!$('#select-customer').val()) renderCustomerDropdown($(this).val());
+}).on('keydown', function(e){
+    var $items = $('#customer-dropdown .customer-option:visible');
+    if (!$items.length) return;
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        var $active = $items.filter('.active');
+        var $next = $active.length ? $active.removeClass('active').next() : $items.first();
+        $next.addClass('active bg-primary text-white');
+        $next[0] && $next[0].scrollIntoView({block:'nearest'});
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        var $active = $items.filter('.active');
+        var $prev = $active.length ? $active.removeClass('active').prev() : $items.last();
+        $prev.addClass('active bg-primary text-white');
+        $prev[0] && $prev[0].scrollIntoView({block:'nearest'});
+    } else if (e.key === 'Enter') {
+        var $active = $items.filter('.active');
+        if ($active.length) { e.preventDefault(); selectCustomer($active.data('id'), $active.data('label')); }
+    } else if (e.key === 'Escape') {
+        $('#customer-dropdown').hide();
+    }
+});
+
+$(document).on('mousedown', '#customer-dropdown .customer-option', function(){
+    selectCustomer($(this).data('id'), $(this).data('label'));
+});
+
+$('#btn-clear-customer').on('click', clearCustomer);
+
+$(document).on('mousedown', function(e){
+    if (!$(e.target).closest('.input-group').length) $('#customer-dropdown').hide();
+});
+
+// Init clear button if preselected
+if ($('#select-customer').val()) $('#btn-clear-customer').show();
+
 // Quick add customer
 $('#form-quick-customer').on('submit', function(e){
     e.preventDefault();
@@ -465,11 +555,10 @@ $('#form-quick-customer').on('submit', function(e){
         dataType: 'json',
         success: function(res){
             if(res.status == 'success'){
-                // Add new option to dropdown and select it
                 var label = res.customer_code + ' - ' + res.fullname;
-                var $sel = $('#select-customer');
-                $sel.append('<option value="' + res.customer_id + '">' + $('<span>').text(label).html() + '</option>');
-                $sel.val(res.customer_id);
+                // Add to customerList and select
+                customerList.unshift({id: res.customer_id, label: label});
+                selectCustomer(res.customer_id, label);
                 // Close modal and reset form
                 $('#modalAddCustomer').modal('hide');
                 $('#form-quick-customer')[0].reset();
