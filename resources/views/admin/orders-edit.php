@@ -179,7 +179,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <?php if ($productType === 'retail'): ?>
                                     <td><?= htmlspecialchars($pkg['tracking_cn'] ?: '-') ?></td>
                                     <?php endif; ?>
-                                    <td><?= $pkg['weight_actual'] ? $pkg['weight_actual'] . ' kg' : '<span class="text-muted">N/A</span>' ?></td>
+                                    <td><?= floatval($pkg['weight_actual']) > 0 ? fnum($pkg['weight_actual'], 2) . ' kg' : '<span class="text-muted">N/A</span>' ?></td>
                                     <td>
                                         <?php if ($pkg['length_cm'] > 0 || $pkg['width_cm'] > 0 || $pkg['height_cm'] > 0): ?>
                                         <?= $pkg['length_cm'] ?>x<?= $pkg['width_cm'] ?>x<?= $pkg['height_cm'] ?> cm
@@ -242,7 +242,7 @@ require_once(__DIR__.'/sidebar.php');
                                 ?>
                                 <tr>
                                     <td><strong class="fs-5"><?= $g['count'] ?></strong> <?= __('kiện') ?></td>
-                                    <td><?= $s['weight_actual'] ? $s['weight_actual'] . ' kg' : '<span class="text-muted">N/A</span>' ?></td>
+                                    <td><?= floatval($s['weight_actual']) > 0 ? fnum($s['weight_actual'], 2) . ' kg' : '<span class="text-muted">N/A</span>' ?></td>
                                     <td>
                                         <?php if ($s['length_cm'] > 0 || $s['width_cm'] > 0 || $s['height_cm'] > 0): ?>
                                         <?= $s['length_cm'] ?>x<?= $s['width_cm'] ?>x<?= $s['height_cm'] ?> cm
