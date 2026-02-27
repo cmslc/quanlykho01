@@ -10,7 +10,7 @@ require_once(__DIR__.'/../../libs/lang.php');
 require_once(__DIR__.'/../../libs/helper.php');
 require_once(__DIR__.'/../../libs/session.php');
 require_once(__DIR__.'/../../libs/role.php');
-require_once(__DIR__.'/../../models/is_admin.php');
+require_once(__DIR__.'/../../models/is_staffcn.php');
 require_once(__DIR__.'/../../vendor/autoload.php');
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -94,7 +94,6 @@ $spreadsheet = new Spreadsheet();
 $sheet       = $spreadsheet->getActiveSheet();
 $sheet->setTitle('Danh sách hàng');
 
-// Column definitions: [letter, width]
 $cols = [
     'A' => 6,   // STT
     'B' => 14,  // Loại hàng
@@ -115,7 +114,6 @@ foreach ($cols as $col => $width) {
     $sheet->getColumnDimension($col)->setWidth($width);
 }
 
-// Header row
 $headers = ['STT', 'Loại hàng', 'Mã hàng', 'Mã vận đơn TQ', 'Khách hàng', 'Mã khách hàng', 'Sản phẩm', 'Cân tính phí (kg)', 'Trạng thái', 'Ghi chú khách hàng', 'Ghi chú nội bộ', 'Ngày nhập', 'Cập nhật', 'Ảnh SP'];
 $sheet->fromArray($headers, null, 'A1');
 

@@ -132,24 +132,6 @@ if ($isRetailPage && !empty($orderIds)) {
     }
 }
 
-// All orders for export (no pagination)
-$ordersAll = $ToryHub->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code
-    FROM `orders` o LEFT JOIN `customers` c ON o.customer_id = c.id
-    WHERE $where ORDER BY o.create_date DESC", $params);
-$trackingMapAll = [];
-$weightMapAll = [];
-if (!empty($ordersAll)) {
-    $allIds = array_column($ordersAll, 'id');
-    $ph = implode(',', array_fill(0, count($allIds), '?'));
-    $pkgsAll = $ToryHub->get_list_safe(
-        "SELECT po.order_id, p.tracking_cn, p.weight_charged FROM `package_orders` po
-         JOIN `packages` p ON po.package_id = p.id
-         WHERE po.order_id IN ($ph)", $allIds);
-    foreach ($pkgsAll as $pkg) {
-        if ($pkg['tracking_cn']) $trackingMapAll[$pkg['order_id']][] = $pkg['tracking_cn'];
-        $weightMapAll[$pkg['order_id']] = ($weightMapAll[$pkg['order_id']] ?? 0) + floatval($pkg['weight_charged']);
-    }
-}
 
 $customers = $ToryHub->get_list_safe("SELECT `id`, `customer_code`, `fullname` FROM `customers` ORDER BY `fullname` ASC", []);
 
@@ -1007,58 +989,9 @@ $(function(){
 
     // Export Excel
     $('#btn-export-excel').on('click', function(){
-        var statusMap = {
-            'cn_warehouse': '<?= __('Đã về kho Trung Quốc') ?>',
-            'packed': '<?= __('Đã đóng bao') ?>',
-            'loading': '<?= __('Đang xếp xe') ?>',
-            'shipping': '<?= __('Đang vận chuyển') ?>',
-            'vn_warehouse': '<?= __('Đã về kho Việt Nam') ?>',
-            'delivered': '<?= __('Đã giao hàng') ?>',
-            'cancelled': '<?= __('Đã hủy') ?>'
-        };
-        var rows = [['STT', '<?= __('Mã đơn') ?>', '<?= __('Khách hàng') ?>', '<?= __('Mã khách hàng') ?>', '<?= __('Sản phẩm') ?>', '<?= __('Mã sản phẩm') ?>', '<?= __('Mã vận đơn TQ') ?>', '<?= __('Cân tính phí (kg)') ?>', '<?= __('Trạng thái') ?>', '<?= __('Ghi chú') ?>', '<?= __('Ngày nhập') ?>']];
-        <?php $oStt = 0; foreach ($ordersAll as $o): $oStt++;
-            $oTracking = isset($trackingMapAll[$o['id']]) ? implode(', ', $trackingMapAll[$o['id']]) : '';
-            $oWeight = $weightMapAll[$o['id']] ?? 0;
-        ?>
-        rows.push([
-            <?= $oStt ?>,
-            <?= json_encode($o['order_code'] ?? '') ?>,
-            <?= json_encode($o['customer_name'] ?? '') ?>,
-            <?= json_encode($o['customer_code'] ?? '') ?>,
-            <?= json_encode($o['product_name'] ?? '') ?>,
-            <?= json_encode($o['product_code'] ?? '') ?>,
-            <?= json_encode($oTracking) ?>,
-            <?= floatval($oWeight) ?>,
-            statusMap[<?= json_encode($o['status']) ?>] || <?= json_encode($o['status']) ?>,
-            <?= json_encode($o['note'] ?? '') ?>,
-            <?= json_encode(date('d/m/Y H:i', strtotime($o['create_date']))) ?>
-        ]);
-        <?php endforeach; ?>
-        function xlsEsc(v) {
-            if (v === null || v === undefined) return '';
-            return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-        }
-        var xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-            + '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n'
-            + '<Styles><Style ss:ID="H"><Font ss:Bold="1"/></Style></Styles>\n'
-            + '<Worksheet ss:Name="Sheet1"><Table>\n';
-        rows.forEach(function(row, ri){
-            xml += '<Row>';
-            row.forEach(function(cell){
-                var t = (typeof cell === 'number') ? 'Number' : 'String';
-                var s = (ri === 0) ? ' ss:StyleID="H"' : '';
-                xml += '<Cell' + s + '><Data ss:Type="' + t + '">' + xlsEsc(cell) + '</Data></Cell>';
-            });
-            xml += '</Row>\n';
-        });
-        xml += '</Table></Worksheet></Workbook>';
-        var blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = '<?= $isRetailPage ? __('danh-sach-hang-le') : __('danh-sach-hang-lo') ?>_' + new Date().toISOString().slice(0,10) + '.xls';
-        a.click();
-        URL.revokeObjectURL(a.href);
+        var params = new URLSearchParams(window.location.search);
+        params.set('product_type', '<?= $_productTypeFilter ?>');
+        window.location.href = '<?= base_url('ajaxs/staffcn/orders-export.php') ?>?' + params.toString();
     });
 
 });

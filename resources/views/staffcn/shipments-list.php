@@ -43,20 +43,6 @@ $shipments = $ToryHub->get_list_safe("SELECT s.*, u.fullname as creator_name,
     FROM `shipments` s LEFT JOIN `users` u ON s.created_by = u.id
     WHERE $where ORDER BY s.create_date DESC LIMIT $perPage OFFSET $offset", $params);
 
-// All shipments for export (no pagination)
-$shipmentsAll = $ToryHub->get_list_safe("SELECT s.*, u.fullname as creator_name,
-    (SELECT COUNT(DISTINCT b.id) FROM `shipment_packages` sp2
-     JOIN `bag_packages` bp2 ON sp2.package_id = bp2.package_id
-     JOIN `bags` b ON bp2.bag_id = b.id
-     WHERE sp2.shipment_id = s.id) as cnt_bags,
-    (SELECT COUNT(DISTINCT o2.id) FROM `shipment_packages` sp3
-     JOIN `package_orders` po3 ON sp3.package_id = po3.package_id
-     JOIN `orders` o2 ON po3.order_id = o2.id
-     WHERE sp3.shipment_id = s.id
-     AND o2.product_type = 'wholesale'
-     AND sp3.package_id NOT IN (SELECT bp3.package_id FROM `bag_packages` bp3)) as cnt_wholesale
-    FROM `shipments` s LEFT JOIN `users` u ON s.created_by = u.id
-    WHERE $where ORDER BY s.create_date DESC", $params);
 
 $statuses = ['preparing', 'in_transit', 'arrived', 'completed'];
 $statusLabels = [
@@ -304,54 +290,8 @@ $(function(){
 
     // Export Excel
     $('#btn-export-excel').on('click', function(){
-        var statusMap = {
-            'preparing': '<?= __('Đang chuẩn bị') ?>',
-            'in_transit': '<?= __('Đang vận chuyển') ?>',
-            'arrived': '<?= __('Đã đến') ?>',
-            'completed': '<?= __('Hoàn thành') ?>'
-        };
-        var rows = [['<?= __('Mã chuyến') ?>', '<?= __('Biển số') ?>', '<?= __('Tài xế') ?>', '<?= __('Tuyến đường') ?>', '<?= __('Số kiện') ?>', '<?= __('Tổng cân (kg)') ?>', '<?= __('Tổng khối (m³)') ?>', '<?= __('Trạng thái') ?>', '<?= __('Ngày tạo') ?>', '<?= __('Ngày xuất phát') ?>', '<?= __('Ngày đến') ?>']];
-        <?php foreach ($shipmentsAll as $s): ?>
-        rows.push([
-            <?= json_encode($s['shipment_code']) ?>,
-            <?= json_encode($s['truck_plate'] ?? '') ?>,
-            <?= json_encode($s['driver_name'] ?? '') ?>,
-            <?= json_encode($s['route'] ?? '') ?>,
-            <?= intval($s['total_packages']) ?>,
-            <?= floatval($s['total_weight']) ?>,
-            <?= floatval($s['total_cbm']) ?>,
-            statusMap[<?= json_encode($s['status']) ?>] || <?= json_encode($s['status']) ?>,
-            <?= json_encode(date('d/m/Y H:i', strtotime($s['create_date']))) ?>,
-            <?= json_encode($s['departed_date'] ? date('d/m/Y', strtotime($s['departed_date'])) : '') ?>,
-            <?= json_encode($s['arrived_date'] ? date('d/m/Y', strtotime($s['arrived_date'])) : '') ?>
-        ]);
-        <?php endforeach; ?>
-
-        function xlsEsc(v) {
-            if (v === null || v === undefined) return '';
-            return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-        }
-        var xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-            + '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n'
-            + '<Styles><Style ss:ID="H"><Font ss:Bold="1"/></Style></Styles>\n'
-            + '<Worksheet ss:Name="Sheet1"><Table>\n';
-        rows.forEach(function(row, ri){
-            xml += '<Row>';
-            row.forEach(function(cell){
-                var t = (typeof cell === 'number') ? 'Number' : 'String';
-                var s = (ri === 0) ? ' ss:StyleID="H"' : '';
-                xml += '<Cell' + s + '><Data ss:Type="' + t + '">' + xlsEsc(cell) + '</Data></Cell>';
-            });
-            xml += '</Row>\n';
-        });
-        xml += '</Table></Worksheet></Workbook>';
-
-        var blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = '<?= __('danh-sach-chuyen-xe') ?>_' + new Date().toISOString().slice(0,10) + '.xls';
-        a.click();
-        URL.revokeObjectURL(a.href);
+        var params = new URLSearchParams(window.location.search);
+        window.location.href = '<?= base_url('ajaxs/staffcn/shipments-list-export.php') ?>?' + params.toString();
     });
 
     // Delete shipment
