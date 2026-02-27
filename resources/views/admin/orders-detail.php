@@ -179,24 +179,55 @@ require_once(__DIR__.'/sidebar.php');
                                             <th><?= __('Trạng thái') ?></th>
                                         </tr>
                                     </thead>
+                                    <?php
+                                    $pkgGroups = []; $gIdx = 0;
+                                    foreach ($order_packages as $pkg) {
+                                        $gKey = floatval($pkg['weight_actual']).'|'.floatval($pkg['length_cm']).'|'.floatval($pkg['width_cm']).'|'.floatval($pkg['height_cm']);
+                                        if (!isset($pkgGroups[$gKey])) $pkgGroups[$gKey] = ['pkgs' => []];
+                                        $pkgGroups[$gKey]['pkgs'][] = $pkg;
+                                    }
+                                    ?>
                                     <tbody>
-                                        <?php foreach ($order_packages as $pkg): ?>
-                                        <?php
-                                            $pkgVolume = ($pkg['length_cm'] * $pkg['width_cm'] * $pkg['height_cm']) / 1000000;
+                                        <?php foreach ($pkgGroups as $grp):
+                                            $gpkgs   = $grp['pkgs'];
+                                            $first   = $gpkgs[0];
+                                            $gCount  = count($gpkgs);
+                                            $pkgVolume = ($first['length_cm'] * $first['width_cm'] * $first['height_cm']) / 1000000;
+                                            $uniqueStatuses = array_unique(array_column($gpkgs, 'status'));
                                         ?>
                                         <tr>
-                                            <td><a href="<?= base_url('admin/packages-detail&id='.$pkg['id']) ?>"><strong><?= $pkg['package_code'] ?></strong></a></td>
-                                            <?php if ($isRetail): ?>
-                                            <td><?= htmlspecialchars($pkg['tracking_cn'] ?: '-') ?></td>
-                                            <?php endif; ?>
-                                            <td><?= floatval($pkg['weight_actual']) > 0 ? fnum($pkg['weight_actual'], 2) . ' kg' : '<span class="text-muted">N/A</span>' ?></td>
                                             <td>
-                                                <?php if ($pkg['length_cm'] > 0 || $pkg['width_cm'] > 0 || $pkg['height_cm'] > 0): ?>
-                                                <?= $pkg['length_cm'] ?>x<?= $pkg['width_cm'] ?>x<?= $pkg['height_cm'] ?> cm
+                                                <?php if ($gCount === 1): ?>
+                                                <a href="<?= base_url('admin/packages-detail&id='.$first['id']) ?>"><strong><?= htmlspecialchars($first['package_code']) ?></strong></a>
+                                                <?php else: ?>
+                                                <strong><?= htmlspecialchars($gpkgs[0]['package_code']) ?> ~ <?= htmlspecialchars($gpkgs[$gCount-1]['package_code']) ?></strong>
+                                                <span class="badge bg-primary-subtle text-primary ms-1"><?= $gCount ?> <?= __('kiện') ?></span>
+                                                <div class="mt-1">
+                                                    <?php foreach ($gpkgs as $p): ?>
+                                                    <a href="<?= base_url('admin/packages-detail&id='.$p['id']) ?>" class="badge bg-light text-dark border me-1 mb-1 text-decoration-none"><?= htmlspecialchars($p['package_code']) ?></a>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                                <?php endif; ?>
+                                            </td>
+                                            <?php if ($isRetail): ?>
+                                            <td>
+                                                <?php foreach ($gpkgs as $p): ?>
+                                                <div><?= htmlspecialchars($p['tracking_cn'] ?: '-') ?></div>
+                                                <?php endforeach; ?>
+                                            </td>
+                                            <?php endif; ?>
+                                            <td><?= floatval($first['weight_actual']) > 0 ? fnum($first['weight_actual'], 2) . ' kg' : '<span class="text-muted">N/A</span>' ?></td>
+                                            <td>
+                                                <?php if ($first['length_cm'] > 0 || $first['width_cm'] > 0 || $first['height_cm'] > 0): ?>
+                                                <?= $first['length_cm'] ?>x<?= $first['width_cm'] ?>x<?= $first['height_cm'] ?> cm
                                                 <?php else: ?><span class="text-muted">N/A</span><?php endif; ?>
                                             </td>
                                             <td><?= $pkgVolume > 0 ? floatval(number_format($pkgVolume, 4, '.', '')) : '<span class="text-muted">N/A</span>' ?></td>
-                                            <td><?= display_package_status($pkg['status']) ?></td>
+                                            <td>
+                                                <?php foreach ($uniqueStatuses as $st): ?>
+                                                <?= display_package_status($st) ?><?= count($uniqueStatuses) > 1 ? '<br>' : '' ?>
+                                                <?php endforeach; ?>
+                                            </td>
                                         </tr>
                                         <?php endforeach; ?>
                                     </tbody>
