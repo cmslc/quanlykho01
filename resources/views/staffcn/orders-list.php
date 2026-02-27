@@ -146,7 +146,6 @@ require_once(__DIR__.'/sidebar.php');
                 <div class="page-title-box d-sm-flex align-items-center justify-content-between">
                     <h4 class="mb-sm-0"><?= $page_title ?></h4>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-success" id="btn-export-excel"><i class="ri-file-excel-2-line me-1"></i><?= __('Xuất Excel') ?></button>
                         <a href="<?= base_url('staffcn/orders-add&product_type=' . $_productTypeFilter) ?>" class="btn btn-primary">
                             <i class="ri-add-line"></i> <?= __('Nhập kho') ?>
                         </a>
@@ -249,6 +248,7 @@ require_once(__DIR__.'/sidebar.php');
                                 <?php endforeach; ?>
                             </select>
                             <button class="btn btn-primary" id="btn-bulk-apply"><?= __('Áp dụng') ?></button>
+                            <button class="btn btn-success" id="btn-export-excel"><i class="ri-file-excel-2-line me-1"></i><?= __('Xuất Excel') ?></button>
                         </div>
                     </div>
                     <div id="selected-summary" class="card-body border-bottom py-2 d-none">
