@@ -70,12 +70,13 @@ $weightMap   = [];
 if (!empty($orderIds)) {
     $ph  = implode(',', array_fill(0, count($orderIds), '?'));
     $pkgs = $ToryHub->get_list_safe(
-        "SELECT po.order_id, p.tracking_cn, p.weight_charged FROM `package_orders` po
+        "SELECT po.order_id, p.tracking_cn, p.weight_charged, p.weight_actual FROM `package_orders` po
          JOIN `packages` p ON po.package_id = p.id
          WHERE po.order_id IN ($ph)", $orderIds);
     foreach ($pkgs as $pkg) {
         if ($pkg['tracking_cn']) $trackingMap[$pkg['order_id']][] = $pkg['tracking_cn'];
-        $weightMap[$pkg['order_id']] = ($weightMap[$pkg['order_id']] ?? 0) + floatval($pkg['weight_charged']);
+        $weightMap[$pkg['order_id']]['charged'] = ($weightMap[$pkg['order_id']]['charged'] ?? 0) + floatval($pkg['weight_charged']);
+        $weightMap[$pkg['order_id']]['actual']  = ($weightMap[$pkg['order_id']]['actual']  ?? 0) + floatval($pkg['weight_actual']);
     }
 }
 
@@ -134,9 +135,18 @@ $imgCols     = ['N', 'O', 'P', 'Q', 'R'];
 
 $row = 2;
 foreach ($orders as $stt => $order) {
-    $trackings   = isset($trackingMap[$order['id']]) ? implode(', ', $trackingMap[$order['id']]) : '';
-    $totalWeight = $weightMap[$order['id']] ?? '';
-    $productType = ($order['product_type'] ?? 'retail') === 'retail' ? 'Hàng lẻ' : 'Hàng lô';
+    $trackings = isset($trackingMap[$order['id']]) ? implode(', ', $trackingMap[$order['id']]) : '';
+    $wCharged  = $weightMap[$order['id']]['charged'] ?? 0;
+    $wActual   = $weightMap[$order['id']]['actual']  ?? 0;
+    $isRetail  = ($order['product_type'] ?? 'retail') === 'retail';
+    $productType = $isRetail ? 'Hàng lẻ' : 'Hàng lô';
+    if ($isRetail) {
+        $displayWeight = $wCharged > 0 ? $wCharged : ($wActual > 0 ? $wActual : '');
+    } else {
+        $oWC = floatval($order['weight_charged'] ?? 0);
+        $oWA = floatval($order['weight_actual']  ?? 0);
+        $displayWeight = $oWC > 0 ? $oWC : ($oWA > 0 ? $oWA : ($wCharged > 0 ? $wCharged : ($wActual > 0 ? $wActual : '')));
+    }
 
     $sheet->setCellValue('A' . $row, $stt + 1);
     $sheet->setCellValue('B' . $row, $productType);
@@ -145,7 +155,7 @@ foreach ($orders as $stt => $order) {
     $sheet->setCellValue('E' . $row, $order['customer_name'] ?? '');
     $sheet->setCellValue('F' . $row, $order['customer_code'] ?? '');
     $sheet->setCellValue('G' . $row, $order['product_name'] ?? '');
-    $sheet->setCellValue('H' . $row, $totalWeight !== '' ? floatval($totalWeight) : '');
+    $sheet->setCellValue('H' . $row, $displayWeight !== '' ? floatval($displayWeight) : '');
     $sheet->setCellValue('I' . $row, $statusLabel[$order['status']] ?? $order['status']);
     $sheet->setCellValue('J' . $row, $order['note'] ?? '');
     $sheet->setCellValue('K' . $row, $order['note_internal'] ?? '');
