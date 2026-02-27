@@ -19,7 +19,7 @@ $sidebarMenu = [
         'children' => [
             ['label' => __('Hàng lẻ'),   'url' => base_url('admin/orders-retail'), 'active' => ['orders-retail']],
             ['label' => __('Hàng lô'),   'url' => base_url('admin/orders-list'),   'active' => ['orders-list', 'orders-detail']],
-            ['label' => __('Tạo đơn mới'), 'url' => base_url('admin/orders-add'),  'active' => ['orders-add']],
+            ['label' => __('Nhập kho'), 'url' => base_url('admin/orders-add'),  'active' => ['orders-add']],
         ],
     ],
     [
