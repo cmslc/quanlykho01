@@ -288,10 +288,18 @@ require_once(__DIR__.'/sidebar.php');
                                         $wActual = $pw['total_weight_actual'] ?? 0;
                                         $cbm = $pw['total_cbm'] ?? 0;
                                         $orderWeightActual = floatval($order['weight_actual'] ?? 0);
+                                        $orderWeightCharged = floatval($order['weight_charged'] ?? 0);
                                     ?>
                                     <tr>
                                         <?php $pkgCount = $pw['total_packages'] ?? 0; ?>
-                                        <td><input type="checkbox" class="form-check-input order-check" value="<?= $order['id'] ?>" data-weight="<?= $wCharged > 0 ? $wCharged : (!$isRetail && $orderWeightActual > 0 ? $orderWeightActual : ($wActual > 0 ? $wActual : 0)) ?>" data-cbm="<?= $cbm ?>" data-cargo="<?= htmlspecialchars($order['cargo_type'] ?? '') ?>" data-pkg-count="<?= $pkgCount ?>"></td>
+                                        <?php
+                                        if (!$isRetail) {
+                                            $displayWeight = $orderWeightCharged > 0 ? $orderWeightCharged : ($orderWeightActual > 0 ? $orderWeightActual : 0);
+                                        } else {
+                                            $displayWeight = $wCharged > 0 ? $wCharged : ($wActual > 0 ? $wActual : 0);
+                                        }
+                                        ?>
+                                        <td><input type="checkbox" class="form-check-input order-check" value="<?= $order['id'] ?>" data-weight="<?= $displayWeight ?>" data-cbm="<?= $cbm ?>" data-cargo="<?= htmlspecialchars($order['cargo_type'] ?? '') ?>" data-pkg-count="<?= $pkgCount ?>"></td>
                                         <td>
                                             <?php if ($isRetail): ?>
                                                 <?php if (!empty($orderTrackings)): ?>
@@ -359,12 +367,8 @@ require_once(__DIR__.'/sidebar.php');
                                         </td>
                                         <td>
                                             <?php
-                                            if ($wCharged > 0): ?>
-                                                <?= fnum($wCharged, 1) ?> kg
-                                            <?php elseif (!$isRetail && $orderWeightActual > 0): ?>
-                                                <?= fnum($orderWeightActual, 1) ?> kg
-                                            <?php elseif ($wActual > 0): ?>
-                                                <?= fnum($wActual, 1) ?> kg
+                                            if ($displayWeight > 0): ?>
+                                                <?= fnum($displayWeight, 1) ?> kg
                                             <?php else: ?>
                                                 <span class="text-muted">-</span>
                                             <?php endif; ?>
