@@ -32,12 +32,6 @@ $sidebarMenu = [
         ],
     ],
     [
-        'label' => __('Quét mã nhập kho'),
-        'icon'  => 'ri-qr-scan-2-line',
-        'url'   => base_url('staffcn/orders-scan'),
-        'active' => ['orders-scan'],
-    ],
-    [
         'label' => __('Vận chuyển'),
         'icon'  => 'ri-truck-line',
         'active' => ['shipments-pending', 'shipments-list', 'shipments-detail'],
