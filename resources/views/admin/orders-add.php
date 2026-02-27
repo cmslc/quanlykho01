@@ -155,8 +155,8 @@ require_once(__DIR__.'/sidebar.php');
                                 </div>
                                 <div class="col-md-3">
                                     <div class="mb-2">
-                                        <label class="form-label"><?= __('Tổng cân nặng') ?> (kg)</label>
-                                        <input type="number" class="form-control pkg-calc" name="packages[0][total_weight]" value="0" step="0.01" min="0">
+                                        <label class="form-label"><?= __('Cân nặng/kiện') ?> (kg)</label>
+                                        <input type="number" class="form-control pkg-calc" name="packages[0][weight]" value="0" step="0.01" min="0">
                                     </div>
                                 </div>
                                 <div class="col-md-2">
@@ -374,7 +374,7 @@ $('#btn-add-package').on('click', function(){
         + '</div>'
         + '<div class="row">'
         + '<div class="col-md-3"><div class="mb-2"><label class="form-label"><?= __('Số kiện') ?></label><input type="number" class="form-control pkg-calc" name="packages[' + i + '][qty]" value="1" min="1"></div></div>'
-        + '<div class="col-md-3"><div class="mb-2"><label class="form-label"><?= __('Tổng cân nặng') ?> (kg)</label><input type="number" class="form-control pkg-calc" name="packages[' + i + '][total_weight]" value="0" step="0.01" min="0"></div></div>'
+        + '<div class="col-md-3"><div class="mb-2"><label class="form-label"><?= __('Cân nặng/kiện') ?> (kg)</label><input type="number" class="form-control pkg-calc" name="packages[' + i + '][weight]" value="0" step="0.01" min="0"></div></div>'
         + '<div class="col-md-2"><div class="mb-2"><label class="form-label"><?= __('Dài') ?> (cm)</label><input type="number" class="form-control pkg-calc" name="packages[' + i + '][length_cm]" value="0" step="0.1" min="0"></div></div>'
         + '<div class="col-md-2"><div class="mb-2"><label class="form-label"><?= __('Rộng') ?> (cm)</label><input type="number" class="form-control pkg-calc" name="packages[' + i + '][width_cm]" value="0" step="0.1" min="0"></div></div>'
         + '<div class="col-md-2"><div class="mb-2"><label class="form-label"><?= __('Cao') ?> (cm)</label><input type="number" class="form-control pkg-calc" name="packages[' + i + '][height_cm]" value="0" step="0.1" min="0"></div></div>'
@@ -401,13 +401,13 @@ function calcPackageSummary() {
     var totalCount = 0, totalWeight = 0, totalCbm = 0;
     $('.package-item').each(function(){
         var qty = parseInt($(this).find('[name$="[qty]"]').val()) || 1;
-        var tw = parseFloat($(this).find('[name$="[total_weight]"]').val()) || 0;
+        var w = parseFloat($(this).find('[name$="[weight]"]').val()) || 0;
         var l = parseFloat($(this).find('[name$="[length_cm]"]').val()) || 0;
         var r = parseFloat($(this).find('[name$="[width_cm]"]').val()) || 0;
         var h = parseFloat($(this).find('[name$="[height_cm]"]').val()) || 0;
         var cbm = (l * r * h) / 1000000;
         totalCount += qty;
-        totalWeight += tw;
+        totalWeight += w * qty;
         totalCbm += qty * cbm;
     });
     $('#sum-pkg-count').text(totalCount);
