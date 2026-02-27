@@ -202,11 +202,6 @@ require_once(__DIR__.'/sidebar.php');
                                                 <?php else: ?>
                                                 <strong><?= htmlspecialchars($gpkgs[0]['package_code']) ?> ~ <?= htmlspecialchars($gpkgs[$gCount-1]['package_code']) ?></strong>
                                                 <span class="badge bg-primary-subtle text-primary ms-1"><?= $gCount ?> <?= __('kiện') ?></span>
-                                                <div class="mt-1">
-                                                    <?php foreach ($gpkgs as $p): ?>
-                                                    <a href="<?= base_url('admin/packages-detail&id='.$p['id']) ?>" class="badge bg-light text-dark border me-1 mb-1 text-decoration-none"><?= htmlspecialchars($p['package_code']) ?></a>
-                                                    <?php endforeach; ?>
-                                                </div>
                                                 <?php endif; ?>
                                             </td>
                                             <?php if ($isRetail): ?>
