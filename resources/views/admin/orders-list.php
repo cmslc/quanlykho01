@@ -380,7 +380,6 @@ require_once(__DIR__.'/sidebar.php');
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <?= display_order_status($order['status']) ?>
                                             <?php
                                             $opkgMap = $pkgStatusMap[$order['id']] ?? [];
                                             if (!empty($opkgMap)):
