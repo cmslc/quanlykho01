@@ -541,12 +541,13 @@ $(document).on('mousedown', '#customer-dropdown .customer-option', function(){
     selectCustomer($(this).data('id'), $(this).data('label'));
 });
 
-$(document).on('mousedown', '#customer-dropdown .customer-option-create', function(){
+$(document).on('mousedown', '#customer-dropdown .customer-option-create', function(e){
+    e.preventDefault();
     var name = $(this).data('name');
     $('#customer-dropdown').hide();
     $('#modalAddCustomer [name="fullname"]').val(name);
-    new bootstrap.Modal($('#modalAddCustomer')[0]).show();
-    setTimeout(function(){ $('#modalAddCustomer [name="phone"]').focus(); }, 300);
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalAddCustomer')).show();
+    setTimeout(function(){ $('#modalAddCustomer [name="phone"]').focus(); }, 350);
 });
 
 $('#btn-clear-customer').on('click', clearCustomer);
@@ -575,7 +576,7 @@ $('#form-quick-customer').on('submit', function(e){
                 customerList.unshift({id: res.customer_id, label: label});
                 selectCustomer(res.customer_id, label);
                 // Close modal and reset form
-                $('#modalAddCustomer').modal('hide');
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('modalAddCustomer')).hide();
                 $('#form-quick-customer')[0].reset();
                 $('#modal-alert-box').html('');
                 Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false});
