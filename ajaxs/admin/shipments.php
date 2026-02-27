@@ -89,6 +89,45 @@ if ($request === 'delete') {
         exit;
     }
 
+    // Revert package statuses before deleting
+    require_once(__DIR__.'/../../libs/database/packages.php');
+    $Packages = new Packages();
+
+    $pkgs = $ToryHub->get_list_safe(
+        "SELECT sp.package_id, p.status FROM `shipment_packages` sp
+         JOIN `packages` p ON sp.package_id = p.id
+         WHERE sp.shipment_id = ?", [$id]
+    );
+
+    $affectedBagIds = [];
+    foreach ($pkgs as $p) {
+        $bagRow = $ToryHub->get_row_safe(
+            "SELECT bag_id FROM `bag_packages` WHERE `package_id` = ?", [$p['package_id']]
+        );
+        $revertTo = $bagRow ? 'packed' : 'cn_warehouse';
+        $Packages->updateStatus(
+            $p['package_id'], $revertTo, $getUser['id'],
+            __('Xóa chuyến') . ' ' . $shipment['shipment_code']
+        );
+        if ($bagRow) {
+            $affectedBagIds[$bagRow['bag_id']] = true;
+        }
+    }
+
+    // Revert bag: nếu tất cả kiện trong bao đã về 'packed' thì bao về 'sealed'
+    foreach (array_keys($affectedBagIds) as $bagId) {
+        $bag = $ToryHub->get_row_safe("SELECT * FROM `bags` WHERE `id` = ?", [$bagId]);
+        if (!$bag || $bag['status'] !== 'loading') continue;
+        $notPacked = $ToryHub->num_rows_safe(
+            "SELECT p.id FROM `bag_packages` bp
+             JOIN `packages` p ON bp.package_id = p.id
+             WHERE bp.bag_id = ? AND p.status != 'packed'", [$bagId]
+        );
+        if ($notPacked === 0) {
+            $ToryHub->update_safe('bags', ['status' => 'sealed', 'update_date' => gettime()], 'id = ?', [$bagId]);
+        }
+    }
+
     $ToryHub->remove_safe('shipment_packages', "`shipment_id` = ?", [$id]);
     $ToryHub->remove_safe('shipments', "`id` = ?", [$id]);
 
