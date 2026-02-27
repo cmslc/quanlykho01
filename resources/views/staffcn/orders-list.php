@@ -398,7 +398,7 @@ require_once(__DIR__.'/sidebar.php');
                                                     'cancelled'    => ['label' => 'Đã hủy', 'bg' => 'danger'],
                                                 ];
                                             ?>
-                                            <div class="mt-1">
+                                            <div class="mt-1 d-flex flex-column align-items-start gap-1">
                                                 <?php foreach ($opkgLabels as $st => $cfg):
                                                     if ($st === 'packed' && !$isRetail) continue;
                                                     $cnt = $opkgMap[$st] ?? 0;

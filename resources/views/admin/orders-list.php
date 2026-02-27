@@ -322,7 +322,7 @@ require_once(__DIR__.'/sidebar.php');
                                                 <?php endif; ?>
                                             <?php endif; ?>
                                             <?php if ($pkgCount > 0): ?>
-                                            <div class="mt-1"><a href="#" class="btn-expand-pkgs text-muted text-decoration-none" data-order-id="<?= $order['id'] ?>"><i class="ri-archive-line"></i> <?= $pkgCount ?> <?= __('kiện') ?> <i class="ri-arrow-down-s-line expand-icon fs-14"></i></a></div>
+                                            <div class="mt-1 d-flex flex-column align-items-start gap-1"><a href="#" class="btn-expand-pkgs text-muted text-decoration-none" data-order-id="<?= $order['id'] ?>"><i class="ri-archive-line"></i> <?= $pkgCount ?> <?= __('kiện') ?> <i class="ri-arrow-down-s-line expand-icon fs-14"></i></a></div>
                                             <?php endif; ?>
                                         </td>
                                         <?php if ($isRetailPage): ?>
@@ -348,7 +348,7 @@ require_once(__DIR__.'/sidebar.php');
                                         <td>
                                             <strong><?= htmlspecialchars(mb_strimwidth($order['product_name'] ?? '', 0, 30, '...')) ?></strong>
                                             <?php if (!$isRetail && !empty($order['cargo_type'])): ?>
-                                            <div class="mt-1"><?= display_cargo_type($order['cargo_type']) ?></div>
+                                            <div class="mt-1 d-flex flex-column align-items-start gap-1"><?= display_cargo_type($order['cargo_type']) ?></div>
                                             <?php endif; ?>
                                         </td>
                                         <td class="text-center">
@@ -393,7 +393,7 @@ require_once(__DIR__.'/sidebar.php');
                                                     'cancelled'    => ['label' => 'Đã hủy', 'bg' => 'danger'],
                                                 ];
                                             ?>
-                                            <div class="mt-1">
+                                            <div class="mt-1 d-flex flex-column align-items-start gap-1">
                                                 <?php foreach ($opkgLabels as $st => $cfg):
                                                     if ($st === 'packed' && !$isRetail) continue;
                                                     $cnt = $opkgMap[$st] ?? 0;
