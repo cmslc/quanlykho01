@@ -15,10 +15,20 @@ $sidebarMenu = [
     [
         'label' => __('Kho hàng'),
         'icon'  => 'ri-inbox-archive-line',
-        'active' => ['orders-list', 'orders-retail', 'orders-detail'],
+        'active' => ['orders-list', 'orders-retail', 'orders-detail', 'orders-add'],
         'children' => [
             ['label' => __('Hàng lẻ'),  'url' => base_url('staffcn/orders-retail'), 'active' => ['orders-retail']],
             ['label' => __('Hàng lô'),  'url' => base_url('staffcn/orders-list'),   'active' => ['orders-list', 'orders-detail']],
+            ['label' => __('Nhập kho'), 'url' => base_url('staffcn/orders-add'),    'active' => ['orders-add']],
+        ],
+    ],
+    [
+        'label' => __('Bao hàng lẻ'),
+        'icon'  => 'ri-archive-drawer-line',
+        'active' => ['bags-list', 'bags-packing'],
+        'children' => [
+            ['label' => __('Danh sách bao'), 'url' => base_url('staffcn/bags-list'),    'active' => ['bags-list']],
+            ['label' => __('Đóng bao mới'),  'url' => base_url('staffcn/bags-packing'), 'active' => ['bags-packing']],
         ],
     ],
     [
@@ -26,6 +36,15 @@ $sidebarMenu = [
         'icon'  => 'ri-qr-scan-2-line',
         'url'   => base_url('staffcn/orders-scan'),
         'active' => ['orders-scan'],
+    ],
+    [
+        'label' => __('Vận chuyển'),
+        'icon'  => 'ri-truck-line',
+        'active' => ['shipments-pending', 'shipments-list', 'shipments-detail'],
+        'children' => [
+            ['label' => __('Hàng chờ xếp xe'),   'url' => base_url('staffcn/shipments-pending'), 'active' => ['shipments-pending']],
+            ['label' => __('Danh sách chuyến xe'), 'url' => base_url('staffcn/shipments-list'),   'active' => ['shipments-list', 'shipments-detail']],
+        ],
     ],
 ];
 

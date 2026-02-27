@@ -144,6 +144,9 @@ require_once(__DIR__.'/sidebar.php');
             <div class="col-12">
                 <div class="page-title-box d-sm-flex align-items-center justify-content-between">
                     <h4 class="mb-sm-0"><?= $page_title ?></h4>
+                    <a href="<?= base_url('staffcn/orders-add&product_type=' . $_productTypeFilter) ?>" class="btn btn-primary">
+                        <i class="ri-add-line"></i> <?= __('Nhập kho') ?>
+                    </a>
                 </div>
             </div>
         </div>
