@@ -255,7 +255,14 @@ require_once(__DIR__.'/sidebar.php');
                                             <?php endif; ?>
                                         </td>
                                         <?php if ($isPreparing): ?>
-                                        <td></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-danger btn-remove-group"
+                                                data-ids="<?= htmlspecialchars(json_encode(array_column($pkgList, 'id'))) ?>"
+                                                data-label="<?= htmlspecialchars($maHang) ?>"
+                                                title="<?= __('Xóa mã hàng khỏi chuyến') ?>">
+                                                <i class="ri-delete-bin-line"></i>
+                                            </button>
+                                        </td>
                                         <?php endif; ?>
                                     </tr>
                                     <!-- Expand row -->
@@ -466,6 +473,33 @@ $(function(){
         });
     });
 
+
+    // Remove entire group (all packages in a mã hàng)
+    $(document).on('click', '.btn-remove-group', function(){
+        var ids = $(this).data('ids');
+        var label = $(this).data('label');
+        Swal.fire({
+            title: '<?= __('Xóa mã hàng khỏi chuyến?') ?>',
+            html: '<strong>' + $('<span>').text(label).html() + '</strong><br><small class="text-muted">' + ids.length + ' <?= __('kiện') ?></small>',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: '<?= __('Xóa') ?>',
+            cancelButtonText: '<?= __('Hủy') ?>'
+        }).then(function(result){
+            if (!result.isConfirmed) return;
+            var done = 0;
+            var failed = 0;
+            ids.forEach(function(pkgId){
+                $.post(ajaxUrl, {request_name: 'remove_package', shipment_id: shipmentId, package_id: pkgId, csrf_token: csrfToken}, function(res){
+                    if (res.status === 'success') done++; else failed++;
+                    if (done + failed === ids.length) {
+                        location.reload();
+                    }
+                }, 'json').fail(function(){ failed++; if (done + failed === ids.length) location.reload(); });
+            });
+        });
+    });
 
     // Complete
     $('#btn-complete').on('click', function(){
