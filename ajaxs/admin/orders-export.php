@@ -94,7 +94,6 @@ $spreadsheet = new Spreadsheet();
 $sheet       = $spreadsheet->getActiveSheet();
 $sheet->setTitle('Danh sách hàng');
 
-// Column definitions: [letter, width]
 $cols = [
     'A' => 6,   // STT
     'B' => 14,  // Loại hàng
@@ -109,14 +108,14 @@ $cols = [
     'K' => 28,  // Ghi chú nội bộ
     'L' => 18,  // Ngày nhập
     'M' => 18,  // Cập nhật
-    'N' => 16,  // Ảnh SP
+    'N' => 16,  // Ảnh 1
 ];
 foreach ($cols as $col => $width) {
     $sheet->getColumnDimension($col)->setWidth($width);
 }
 
-// Header row
-$headers = ['STT', 'Loại hàng', 'Mã hàng', 'Mã vận đơn TQ', 'Khách hàng', 'Mã khách hàng', 'Sản phẩm', 'Cân tính phí (kg)', 'Trạng thái', 'Ghi chú khách hàng', 'Ghi chú nội bộ', 'Ngày nhập', 'Cập nhật', 'Ảnh SP'];
+// Header row (image columns added after data loop)
+$headers = ['STT', 'Loại hàng', 'Mã hàng', 'Mã vận đơn TQ', 'Khách hàng', 'Mã khách hàng', 'Sản phẩm', 'Cân tính phí (kg)', 'Trạng thái', 'Ghi chú khách hàng', 'Ghi chú nội bộ', 'Ngày nhập', 'Cập nhật'];
 $sheet->fromArray($headers, null, 'A1');
 
 $headerStyle = [
@@ -125,12 +124,13 @@ $headerStyle = [
     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
     'borders'   => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN, 'color' => ['rgb' => 'B8CCE4']]],
 ];
-$sheet->getStyle('A1:N1')->applyFromArray($headerStyle);
+$sheet->getStyle('A1:M1')->applyFromArray($headerStyle);
 $sheet->getRowDimension(1)->setRowHeight(22);
 
 $imgPx       = 80;
 $rowHeightPt = $imgPx + 10;
 $projectRoot = realpath(__DIR__ . '/../../');
+$imgCols     = ['N', 'O', 'P', 'Q', 'R'];
 
 $row = 2;
 foreach ($orders as $stt => $order) {
@@ -155,16 +155,22 @@ foreach ($orders as $stt => $order) {
     $sheet->getStyle('A' . $row . ':M' . $row)->getAlignment()
         ->setVertical(Alignment::VERTICAL_CENTER)->setWrapText(false);
 
-    // Embed product image
+    // Embed all product images (up to 5 columns)
     if (!empty($order['product_image'])) {
         $imgPaths = array_values(array_filter(array_map('trim', explode(',', $order['product_image']))));
         if (!empty($imgPaths)) {
-            $imgFile = $projectRoot . DIRECTORY_SEPARATOR . ltrim(str_replace('/', DIRECTORY_SEPARATOR, $imgPaths[0]), DIRECTORY_SEPARATOR);
-            if (file_exists($imgFile)) {
-                $sheet->getRowDimension($row)->setRowHeight($rowHeightPt);
+            $sheet->getRowDimension($row)->setRowHeight($rowHeightPt);
+            foreach ($imgPaths as $idx => $imgRelPath) {
+                if ($idx >= count($imgCols)) break;
+                $imgFile = $projectRoot . DIRECTORY_SEPARATOR . ltrim(str_replace('/', DIRECTORY_SEPARATOR, $imgRelPath), DIRECTORY_SEPARATOR);
+                if (!file_exists($imgFile)) continue;
+                $col = $imgCols[$idx];
+                if ($idx > 0) {
+                    $sheet->getColumnDimension($col)->setWidth(16);
+                }
                 $drawing = new Drawing();
                 $drawing->setPath($imgFile);
-                $drawing->setCoordinates('N' . $row);
+                $drawing->setCoordinates($col . $row);
                 $drawing->setHeight($imgPx);
                 $drawing->setOffsetX(4);
                 $drawing->setOffsetY(4);
@@ -174,6 +180,13 @@ foreach ($orders as $stt => $order) {
     }
 
     $row++;
+}
+
+// Add headers for image columns
+$imgColHeaders = ['Ảnh 1', 'Ảnh 2', 'Ảnh 3', 'Ảnh 4', 'Ảnh 5'];
+for ($i = 0; $i < count($imgCols); $i++) {
+    $sheet->setCellValue($imgCols[$i] . '1', $imgColHeaders[$i]);
+    $sheet->getStyle($imgCols[$i] . '1')->applyFromArray($headerStyle);
 }
 
 $sheet->freezePane('A2');
