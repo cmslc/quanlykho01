@@ -31,6 +31,23 @@ foreach ($unpaidData as $ud) {
     $unpaidMap[$ud['customer_id']] = floatval($ud['unpaid_total']);
 }
 
+// Cước vận chuyển của kiện/mã hàng đã nhập kho (cn_warehouse trở đi, chưa giao)
+$warehouseShipData = $ToryHub->get_list_safe(
+    "SELECT o.customer_id,
+        SUM(o.shipping_fee_cn + o.shipping_fee_intl) as ship_total
+     FROM `orders` o
+     WHERE o.id IN (
+         SELECT DISTINCT po.order_id FROM `package_orders` po
+         JOIN `packages` p ON po.package_id = p.id
+         WHERE p.status IN ('cn_warehouse','packed','loading','shipping','vn_warehouse')
+     ) AND o.status != 'cancelled'
+     GROUP BY o.customer_id", []
+);
+$warehouseShipMap = [];
+foreach ($warehouseShipData as $ws) {
+    $warehouseShipMap[$ws['customer_id']] = floatval($ws['ship_total']);
+}
+
 require_once(__DIR__.'/header.php');
 require_once(__DIR__.'/sidebar.php');
 ?>
@@ -63,6 +80,7 @@ require_once(__DIR__.'/sidebar.php');
                                         <th><?= __('Loại') ?></th>
                                         <th><?= __('Đơn') ?></th>
                                         <th><?= __('Kiện đang xử lý') ?></th>
+                                        <th><?= __('Cước tại kho') ?></th>
                                         <th><?= __('Đã chi tiêu') ?></th>
                                         <th><?= __('Chưa thanh toán') ?></th>
                                         <th><?= __('Số dư') ?></th>
@@ -75,6 +93,7 @@ require_once(__DIR__.'/sidebar.php');
                                         $cid = $cust['id'];
                                         $pendingPkgs = $pendingPkgMap[$cid] ?? 0;
                                         $unpaidAmount = $unpaidMap[$cid] ?? 0;
+                                        $warehouseShip = $warehouseShipMap[$cid] ?? 0;
                                     ?>
                                     <tr>
                                         <td><strong><?= htmlspecialchars($cust['customer_code']) ?></strong></td>
@@ -87,6 +106,13 @@ require_once(__DIR__.'/sidebar.php');
                                             <span class="badge bg-warning-subtle text-warning"><?= $pendingPkgs ?></span>
                                             <?php else: ?>
                                             <span class="text-muted">0</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php if ($warehouseShip > 0): ?>
+                                            <span class="text-primary fw-bold"><?= format_vnd($warehouseShip) ?></span>
+                                            <?php else: ?>
+                                            <span class="text-muted">0 ₫</span>
                                             <?php endif; ?>
                                         </td>
                                         <td class="text-success"><?= format_vnd($cust['total_spent']) ?></td>
