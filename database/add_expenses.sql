@@ -1,6 +1,6 @@
 CREATE TABLE `expenses` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `category` enum('rent','utilities','packaging','fuel','maintenance','other') NOT NULL,
+  `category` varchar(100) NOT NULL,
   `amount` decimal(15,2) NOT NULL,
   `description` text DEFAULT NULL,
   `expense_date` date NOT NULL,

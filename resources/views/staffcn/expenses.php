@@ -5,14 +5,9 @@ require_once(__DIR__.'/../../../libs/csrf.php');
 
 $page_title = __('Chi phí vận hành kho');
 
-$catLabels = [
-    'rent'        => ['label' => __('Thuê mặt bằng'),      'bg' => 'danger'],
-    'utilities'   => ['label' => __('Điện nước'),           'bg' => 'warning'],
-    'packaging'   => ['label' => __('Vật tư đóng gói'),    'bg' => 'info'],
-    'fuel'        => ['label' => __('Nhiên liệu'),         'bg' => 'dark'],
-    'maintenance' => ['label' => __('Bảo trì/sửa chữa'),  'bg' => 'secondary'],
-    'other'       => ['label' => __('Khác'),               'bg' => 'primary'],
-];
+// Lấy danh sách danh mục đã dùng từ DB
+$existingCats = $ToryHub->get_list_safe("SELECT DISTINCT category FROM `expenses` ORDER BY category ASC", []);
+$catList = array_column($existingCats, 'category');
 
 // Filters
 $filterCat = input_get('category') ?: '';
@@ -122,12 +117,11 @@ require_once(__DIR__.'/sidebar.php');
         <div class="row mb-3">
             <div class="col-12">
                 <div class="d-flex flex-wrap gap-2">
-                    <?php foreach ($catLabels as $key => $cfg): ?>
-                        <?php $val = $catSumMap[$key] ?? 0; if ($val > 0): ?>
-                        <span class="badge bg-<?= $cfg['bg'] ?>-subtle text-<?= $cfg['bg'] ?> fs-12 px-2 py-1">
-                            <?= $cfg['label'] ?>: <?= format_vnd($val) ?>
+                    <?php foreach ($catSumMap as $catName => $val): if ($val > 0): ?>
+                        <span class="badge bg-secondary-subtle text-secondary fs-12 px-2 py-1">
+                            <?= htmlspecialchars($catName) ?>: <?= format_vnd($val) ?>
                         </span>
-                        <?php endif; endforeach; ?>
+                    <?php endif; endforeach; ?>
                 </div>
             </div>
         </div>
@@ -143,8 +137,8 @@ require_once(__DIR__.'/sidebar.php');
                                 <label class="form-label"><?= __('Danh mục') ?></label>
                                 <select class="form-select" name="category">
                                     <option value=""><?= __('Tất cả') ?></option>
-                                    <?php foreach ($catLabels as $key => $cfg): ?>
-                                    <option value="<?= $key ?>" <?= $filterCat == $key ? 'selected' : '' ?>><?= $cfg['label'] ?></option>
+                                    <?php foreach ($catList as $c): ?>
+                                    <option value="<?= htmlspecialchars($c) ?>" <?= $filterCat == $c ? 'selected' : '' ?>><?= htmlspecialchars($c) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -195,10 +189,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <?php foreach ($expenses as $exp): ?>
                                     <tr>
                                         <td><?= $exp['id'] ?></td>
-                                        <td>
-                                            <?php $cat = $catLabels[$exp['category']] ?? ['label' => $exp['category'], 'bg' => 'secondary']; ?>
-                                            <span class="badge bg-<?= $cat['bg'] ?>"><?= $cat['label'] ?></span>
-                                        </td>
+                                        <td><span class="badge bg-secondary"><?= htmlspecialchars($exp['category']) ?></span></td>
                                         <td class="text-danger fw-bold"><?= format_vnd($exp['amount']) ?></td>
                                         <td><?= htmlspecialchars($exp['description'] ?? '') ?></td>
                                         <td><?= $exp['expense_date'] ?></td>
@@ -233,12 +224,12 @@ require_once(__DIR__.'/sidebar.php');
                         <div class="modal-body">
                             <div class="mb-3">
                                 <label class="form-label"><?= __('Danh mục') ?> <span class="text-danger">*</span></label>
-                                <select class="form-select" name="category" required>
-                                    <option value="" disabled selected><?= __('-- Chọn danh mục --') ?></option>
-                                    <?php foreach ($catLabels as $key => $cfg): ?>
-                                    <option value="<?= $key ?>"><?= $cfg['label'] ?></option>
+                                <input type="text" class="form-control" name="category" list="cat-suggestions" placeholder="<?= __('VD: Thuê mặt bằng, Điện nước...') ?>" required>
+                                <datalist id="cat-suggestions">
+                                    <?php foreach ($catList as $c): ?>
+                                    <option value="<?= htmlspecialchars($c) ?>">
                                     <?php endforeach; ?>
-                                </select>
+                                </datalist>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label"><?= __('Số tiền') ?> <span class="text-danger">*</span></label>

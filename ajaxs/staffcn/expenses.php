@@ -32,9 +32,8 @@ if ($request === 'add') {
     $expense_date = check_string(input_post('expense_date'));
     $description = trim(input_post('description'));
 
-    $validCategories = ['rent', 'utilities', 'packaging', 'fuel', 'maintenance', 'other'];
-    if (empty($category) || !in_array($category, $validCategories)) {
-        echo json_encode(['status' => 'error', 'msg' => __('Vui lòng chọn danh mục')]);
+    if (empty($category)) {
+        echo json_encode(['status' => 'error', 'msg' => __('Vui lòng nhập danh mục')]);
         exit();
     }
 
