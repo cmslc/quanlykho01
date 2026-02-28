@@ -396,6 +396,8 @@ require_once(__DIR__.'/sidebar.php');
                                                     'vn_warehouse' => ['label' => 'Đã về kho Việt Nam', 'bg' => 'success'],
                                                     'delivered'    => ['label' => 'Đã giao hàng', 'bg' => 'success'],
                                                     'cancelled'    => ['label' => 'Đã hủy', 'bg' => 'danger'],
+                                                    'returned'     => ['label' => 'Hoàn hàng', 'bg' => 'warning'],
+                                                    'damaged'      => ['label' => 'Hỏng hàng', 'bg' => 'danger'],
                                                 ];
                                             ?>
                                             <div class="mt-1 d-flex flex-column align-items-start gap-1">
@@ -738,7 +740,9 @@ $(function(){
                     'shipping': '<?= __('Đang vận chuyển') ?>',
                     'vn_warehouse': '<?= __('Đã về kho Việt Nam') ?>',
                     'delivered': '<?= __('Đã giao hàng') ?>',
-                    'cancelled': '<?= __('Đã hủy') ?>'
+                    'cancelled': '<?= __('Đã hủy') ?>',
+                    'returned': '<?= __('Hoàn hàng') ?>',
+                    'damaged': '<?= __('Hỏng hàng') ?>'
                 };
                 var html = '<table class="table table-sm table-borderless mb-0">';
                 html += '<thead><tr>';

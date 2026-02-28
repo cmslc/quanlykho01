@@ -138,7 +138,7 @@ if ($request === 'update_status') {
     $new_status = input_post('new_status');
     $note = trim(input_post('note'));
 
-    $valid = ['cn_warehouse', 'packed', 'loading', 'shipping', 'vn_warehouse', 'delivered'];
+    $valid = ['cn_warehouse', 'packed', 'loading', 'shipping', 'vn_warehouse', 'delivered', 'returned', 'damaged'];
     if (!in_array($new_status, $valid)) {
         echo json_encode(['status' => 'error', 'msg' => __('Trạng thái không hợp lệ')]);
         exit;
@@ -161,7 +161,7 @@ if ($request === 'bulk_update_status') {
     $new_status = input_post('new_status');
     $note = trim(input_post('note')) ?: __('Cập nhật hàng loạt');
 
-    $valid = ['cn_warehouse', 'packed', 'loading', 'shipping', 'vn_warehouse', 'delivered'];
+    $valid = ['cn_warehouse', 'packed', 'loading', 'shipping', 'vn_warehouse', 'delivered', 'returned', 'damaged'];
     if (!in_array($new_status, $valid)) {
         echo json_encode(['status' => 'error', 'msg' => __('Trạng thái không hợp lệ')]);
         exit;

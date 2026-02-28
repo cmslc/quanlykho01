@@ -21,6 +21,15 @@ $packages = $ToryHub->get_list_safe(
 
 $productType = $order['product_type'] ?? 'retail';
 
+// Kiểm tra có thể hủy không (kiện chưa lên xe)
+$canCancel = true;
+foreach ($packages as $p) {
+    if (in_array($p['status'], ['loading', 'shipping', 'vn_warehouse', 'delivered'])) {
+        $canCancel = false;
+        break;
+    }
+}
+
 require_once(__DIR__.'/header.php');
 require_once(__DIR__.'/sidebar.php');
 ?>
@@ -86,7 +95,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <option value="shipping" <?= $order['status'] === 'shipping' ? 'selected' : '' ?>><?= __('Đang vận chuyển') ?></option>
                                     <option value="vn_warehouse" <?= $order['status'] === 'vn_warehouse' ? 'selected' : '' ?>><?= __('Đã về kho Việt Nam') ?></option>
                                     <option value="delivered" <?= $order['status'] === 'delivered' ? 'selected' : '' ?>><?= __('Đã giao hàng') ?></option>
-                                    <option value="cancelled" <?= $order['status'] === 'cancelled' ? 'selected' : '' ?>><?= __('Đã hủy') ?></option>
+                                    <option value="cancelled" <?= $order['status'] === 'cancelled' ? 'selected' : '' ?> <?= (!$canCancel && $order['status'] !== 'cancelled') ? 'disabled' : '' ?>><?= __('Đã hủy') ?><?= (!$canCancel && $order['status'] !== 'cancelled') ? ' (' . __('Không khả dụng') . ')' : '' ?></option>
                                 </select>
                             </div>
                         </div>

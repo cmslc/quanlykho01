@@ -17,7 +17,8 @@ $status_history = $ToryHub->get_list_safe(
 
 $page_title = __('Chi tiết kiện') . ' ' . $package['package_code'];
 
-$pkgStatuses = ['cn_warehouse', 'shipping', 'vn_warehouse', 'delivered'];
+$pkgStatuses = ['cn_warehouse', 'packed', 'loading', 'shipping', 'vn_warehouse', 'delivered'];
+$terminalStatuses = ['returned', 'damaged'];
 $statusFlow = $pkgStatuses;
 
 require_once(__DIR__.'/header.php');
@@ -78,12 +79,16 @@ require_once(__DIR__.'/sidebar.php');
                                     <?php endforeach; ?>
                                 </select>
                             </div>
-                            <div class="col-md-5">
+                            <div class="col-md-4">
                                 <label class="form-label"><?= __('Ghi chú') ?></label>
                                 <input type="text" class="form-control" id="status-note" placeholder="<?= __('Ghi chú (không bắt buộc)') ?>">
                             </div>
-                            <div class="col-md-3">
-                                <button class="btn btn-primary w-100" id="btn-update-status"><?= __('Cập nhật') ?></button>
+                            <div class="col-md-4 d-flex gap-2">
+                                <button class="btn btn-primary flex-fill" id="btn-update-status"><?= __('Cập nhật') ?></button>
+                                <?php if (!in_array($package['status'], $terminalStatuses)): ?>
+                                <button class="btn btn-warning" id="btn-mark-returned" title="<?= __('Hoàn hàng') ?>"><i class="ri-arrow-go-back-line"></i></button>
+                                <button class="btn btn-danger" id="btn-mark-damaged" title="<?= __('Hỏng hàng') ?>"><i class="ri-alert-line"></i></button>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -332,6 +337,39 @@ $('#btn-update-status').on('click', function(){
             Swal.fire({icon: 'error', text: res.msg}); $btn.prop('disabled', false);
         }
     }, 'json').fail(function(){ $btn.prop('disabled', false); });
+});
+
+// Mark Returned / Damaged
+function markTerminalStatus(newStatus, titleText, confirmText, iconType) {
+    Swal.fire({
+        title: titleText,
+        input: 'text',
+        inputLabel: '<?= __('Lý do') ?>',
+        inputPlaceholder: '<?= __('Nhập lý do (không bắt buộc)') ?>',
+        icon: iconType,
+        showCancelButton: true,
+        confirmButtonText: confirmText,
+        cancelButtonText: '<?= __('Hủy') ?>'
+    }).then(function(result) {
+        if (!result.isConfirmed) return;
+        $.post(ajaxUrl, {
+            request_name: 'update_status', package_id: packageId,
+            new_status: newStatus, note: result.value || '',
+            [csrfName]: csrfValue
+        }, function(res){
+            if (res.status === 'success') {
+                Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function(){ location.reload(); });
+            } else {
+                Swal.fire({icon: 'error', text: res.msg});
+            }
+        }, 'json');
+    });
+}
+$('#btn-mark-returned').on('click', function(){
+    markTerminalStatus('returned', '<?= __('Đánh dấu Hoàn hàng?') ?>', '<?= __('Hoàn hàng') ?>', 'warning');
+});
+$('#btn-mark-damaged').on('click', function(){
+    markTerminalStatus('damaged', '<?= __('Đánh dấu Hỏng hàng?') ?>', '<?= __('Hỏng hàng') ?>', 'error');
 });
 
 // Edit Package

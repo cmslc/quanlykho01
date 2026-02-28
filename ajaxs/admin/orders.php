@@ -370,6 +370,21 @@ if ($request === 'edit') {
 
     $product_image = implode(',', array_merge($keptImages, $newPaths));
 
+    // Kiểm tra không thể hủy đơn khi kiện đã lên xe / về kho VN / đã giao
+    if ($status === 'cancelled' && $status !== $order['status']) {
+        $blockingPkg = $ToryHub->get_row_safe(
+            "SELECT p.package_code FROM `packages` p
+             INNER JOIN `package_orders` po ON p.id = po.package_id
+             WHERE po.order_id = ? AND p.status IN ('loading','shipping','vn_warehouse','delivered')
+             LIMIT 1", [$id]
+        );
+        if ($blockingPkg) {
+            ob_end_clean();
+            echo json_encode(['status' => 'error', 'msg' => __('Không thể hủy: kiện') . ' ' . $blockingPkg['package_code'] . ' ' . __('đã lên xe hoặc về kho VN')]);
+            exit;
+        }
+    }
+
     // Log status change
     if ($status !== $order['status']) {
         $ToryHub->insert_safe("order_status_history", [

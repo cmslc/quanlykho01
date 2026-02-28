@@ -176,7 +176,12 @@ require_once(__DIR__.'/sidebar.php');
                             <?= __('Danh sách mã hàng') ?>
                             <span class="text-muted fw-normal fs-13 ms-1">(<?= count($grouped) ?> <?= __('mã') ?> &mdash; <?= count($packages) ?> <?= __('kiện') ?>)</span>
                         </h5>
-                        <a href="<?= base_url('ajaxs/staffcn/shipments-export.php?id=' . $id) ?>" class="btn btn-success" target="_blank"><i class="ri-file-excel-2-line me-1"></i><?= __('Xuất Excel') ?></a>
+                        <div class="d-flex gap-2">
+                            <?php if ($isPreparing): ?>
+                            <a href="<?= base_url('staffcn/shipments-scan') ?>?id=<?= $id ?>" class="btn btn-primary"><i class="ri-qr-scan-2-line me-1"></i><?= __('Quét xếp hàng') ?></a>
+                            <?php endif; ?>
+                            <a href="<?= base_url('ajaxs/staffcn/shipments-export.php?id=' . $id) ?>" class="btn btn-success" target="_blank"><i class="ri-file-excel-2-line me-1"></i><?= __('Xuất Excel') ?></a>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">

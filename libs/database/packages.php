@@ -144,16 +144,26 @@ class Packages extends DB
         );
         if (empty($packages)) return;
 
-        $pkgRank = ['cn_warehouse' => 1, 'packed' => 2, 'loading' => 3, 'shipping' => 4, 'vn_warehouse' => 5, 'delivered' => 6];
-        $minRank = 999;
-        foreach ($packages as $pkg) {
-            $rank = $pkgRank[$pkg['status']] ?? 0;
-            if ($rank < $minRank) $minRank = $rank;
-        }
+        // returned/damaged là trạng thái terminal, không tham gia tính rank
+        $terminalStatuses = ['returned', 'damaged'];
+        $activePackages = array_filter($packages, function($p) use ($terminalStatuses) {
+            return !in_array($p['status'], $terminalStatuses);
+        });
 
-        $rankToStatus = [1 => 'cn_warehouse', 2 => 'packed', 3 => 'loading', 4 => 'shipping', 5 => 'vn_warehouse', 6 => 'delivered'];
-        $derivedStatus = $rankToStatus[$minRank] ?? null;
-        if (!$derivedStatus) return;
+        if (empty($activePackages)) {
+            // Tất cả kiện đều returned/damaged → đơn cancelled
+            $derivedStatus = 'cancelled';
+        } else {
+            $pkgRank = ['cn_warehouse' => 1, 'packed' => 2, 'loading' => 3, 'shipping' => 4, 'vn_warehouse' => 5, 'delivered' => 6];
+            $minRank = 999;
+            foreach ($activePackages as $pkg) {
+                $rank = $pkgRank[$pkg['status']] ?? 0;
+                if ($rank < $minRank) $minRank = $rank;
+            }
+            $rankToStatus = [1 => 'cn_warehouse', 2 => 'packed', 3 => 'loading', 4 => 'shipping', 5 => 'vn_warehouse', 6 => 'delivered'];
+            $derivedStatus = $rankToStatus[$minRank] ?? null;
+            if (!$derivedStatus) return;
+        }
 
         // Skip cancelled orders
         if ($order['status'] === 'cancelled') return;

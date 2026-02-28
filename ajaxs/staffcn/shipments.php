@@ -244,4 +244,92 @@ if ($request === 'get_preparing') {
     exit;
 }
 
+// ======== SCAN ADD TO SHIPMENT (quét mã bao hoặc mã kiện) ========
+if ($request === 'scan_add_to_shipment') {
+    $shipment_id = intval(input_post('shipment_id'));
+    $barcode = trim(input_post('barcode'));
+
+    if (!$barcode) {
+        echo json_encode(['status' => 'error', 'msg' => __('Vui lòng nhập mã quét')]);
+        exit;
+    }
+
+    $shipment = $ToryHub->get_row_safe("SELECT * FROM `shipments` WHERE `id` = ?", [$shipment_id]);
+    if (!$shipment) {
+        echo json_encode(['status' => 'error', 'msg' => __('Chuyến xe không tồn tại')]);
+        exit;
+    }
+    if ($shipment['status'] !== 'preparing') {
+        echo json_encode(['status' => 'error', 'msg' => __('Chỉ có thể thêm kiện khi chuyến đang chuẩn bị')]);
+        exit;
+    }
+
+    require_once(__DIR__.'/../../libs/database/packages.php');
+    $Packages = new Packages();
+
+    // Thử tìm theo mã bao
+    $bag = $ToryHub->get_row_safe("SELECT * FROM `bags` WHERE `bag_code` = ?", [$barcode]);
+    if ($bag) {
+        // Lấy tất cả kiện trong bao có thể xếp xe (packed hoặc cn_warehouse)
+        $bagPkgs = $ToryHub->get_list_safe(
+            "SELECT p.id FROM `bag_packages` bp
+             INNER JOIN `packages` p ON bp.package_id = p.id
+             WHERE bp.bag_id = ? AND p.status IN ('packed', 'cn_warehouse')", [$bag['id']]
+        );
+        if (empty($bagPkgs)) {
+            echo json_encode([
+                'status' => 'duplicate',
+                'msg' => __('Bao') . ' ' . $barcode . ' ' . __('không có kiện nào sẵn sàng xếp xe'),
+                'resolved_type' => 'bag',
+                'resolved_code' => $bag['bag_code']
+            ]);
+            exit;
+        }
+        $pkg_ids = array_column($bagPkgs, 'id');
+        $result = $Shipments->addPackages($shipment_id, $pkg_ids, $getUser['id']);
+        add_log($getUser['id'], 'scan_add_to_shipment', 'Quét bao ' . $barcode . ': thêm ' . $result['added'] . ' kiện vào chuyến ' . $shipment['shipment_code']);
+        echo json_encode([
+            'status' => 'success',
+            'msg' => __('Bao') . ' ' . $barcode . ': ' . __('đã thêm') . ' ' . $result['added'] . ' ' . __('kiện') . ($result['skipped'] > 0 ? ' (' . __('bỏ qua') . ' ' . $result['skipped'] . ')' : ''),
+            'added' => $result['added'],
+            'skipped' => $result['skipped'],
+            'resolved_type' => 'bag',
+            'resolved_code' => $bag['bag_code'],
+            'bag_total' => count($pkg_ids)
+        ]);
+        exit;
+    }
+
+    // Thử tìm theo mã kiện, tracking TQ, tracking QT, tracking VN
+    $pkg = $ToryHub->get_row_safe(
+        "SELECT * FROM `packages` WHERE `package_code` = ? OR `tracking_cn` = ? OR `tracking_intl` = ? OR `tracking_vn` = ? LIMIT 1",
+        [$barcode, $barcode, $barcode, $barcode]
+    );
+    if (!$pkg) {
+        echo json_encode(['status' => 'error', 'msg' => __('Không tìm thấy kiện hoặc bao với mã') . ': ' . htmlspecialchars($barcode)]);
+        exit;
+    }
+
+    $result = $Shipments->addPackages($shipment_id, [$pkg['id']], $getUser['id']);
+    if ($result['skipped'] > 0 && $result['added'] === 0) {
+        echo json_encode([
+            'status' => 'duplicate',
+            'msg' => __('Kiện') . ' ' . $pkg['package_code'] . ' ' . __('đã có trong chuyến hoặc chuyến khác'),
+            'resolved_type' => 'package',
+            'resolved_code' => $pkg['package_code']
+        ]);
+        exit;
+    }
+    add_log($getUser['id'], 'scan_add_to_shipment', 'Quét kiện ' . $pkg['package_code'] . ' vào chuyến ' . $shipment['shipment_code']);
+    echo json_encode([
+        'status' => 'success',
+        'msg' => __('Đã thêm kiện') . ' ' . $pkg['package_code'],
+        'added' => $result['added'],
+        'skipped' => $result['skipped'],
+        'resolved_type' => 'package',
+        'resolved_code' => $pkg['package_code']
+    ]);
+    exit;
+}
+
 echo json_encode(['status' => 'error', 'msg' => 'Invalid request']);

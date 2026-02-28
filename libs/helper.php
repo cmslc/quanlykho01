@@ -379,6 +379,8 @@ function display_order_status($status)
         'vn_warehouse'  => ['label' => 'Đã về kho Việt Nam',    'bg' => 'success-subtle',   'text' => 'success',   'icon' => 'ri-home-4-line'],
         'delivered'     => ['label' => 'Đã giao hàng',    'bg' => 'success-subtle',   'text' => 'success',   'icon' => 'ri-check-double-line'],
         'cancelled'     => ['label' => 'Đã hủy',          'bg' => 'danger-subtle',    'text' => 'danger',    'icon' => 'ri-close-circle-line'],
+        'returned'      => ['label' => 'Hoàn hàng',        'bg' => 'warning-subtle',   'text' => 'warning',   'icon' => 'ri-arrow-go-back-line'],
+        'damaged'       => ['label' => 'Hỏng hàng',        'bg' => 'danger-subtle',    'text' => 'danger',    'icon' => 'ri-alert-line'],
     ];
     $s = $statuses[$status] ?? ['label' => $status, 'bg' => 'secondary-subtle', 'text' => 'secondary', 'icon' => 'ri-question-line'];
     return '<span class="badge bg-' . $s['bg'] . ' text-' . $s['text'] . ' fs-12 px-2 py-1"><i class="' . $s['icon'] . ' align-middle me-1"></i>' . __($s['label']) . '</span>';
@@ -393,6 +395,8 @@ function display_package_status($status)
         'shipping'     => ['label' => 'Đang vận chuyển',   'bg' => 'primary-subtle',   'text' => 'primary',   'icon' => 'ri-ship-line'],
         'vn_warehouse' => ['label' => 'Đã về kho Việt Nam',     'bg' => 'success-subtle',   'text' => 'success',   'icon' => 'ri-home-4-line'],
         'delivered'    => ['label' => 'Đã giao hàng',     'bg' => 'success-subtle',   'text' => 'success',   'icon' => 'ri-check-double-line'],
+        'returned'     => ['label' => 'Hoàn hàng',        'bg' => 'warning-subtle',   'text' => 'warning',   'icon' => 'ri-arrow-go-back-line'],
+        'damaged'      => ['label' => 'Hỏng hàng',        'bg' => 'danger-subtle',    'text' => 'danger',    'icon' => 'ri-alert-line'],
     ];
     $s = $statuses[$status] ?? ['label' => $status, 'bg' => 'secondary-subtle', 'text' => 'secondary', 'icon' => 'ri-question-line'];
     return '<span class="badge bg-' . $s['bg'] . ' text-' . $s['text'] . ' fs-12 px-2 py-1"><i class="' . $s['icon'] . ' align-middle me-1"></i>' . __($s['label']) . '</span>';
