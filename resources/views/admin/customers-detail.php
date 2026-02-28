@@ -176,7 +176,7 @@ require_once(__DIR__.'/sidebar.php');
                             <table class="table table-hover mb-0">
                                 <thead>
                                     <tr>
-                                        <th><?= __('Mã đơn') ?></th>
+                                        <th><?= __('Mã hàng') ?></th>
                                         <th><?= __('Sản phẩm') ?></th>
                                         <th><?= __('Cước vận chuyển') ?></th>
                                         <th><?= __('Trạng thái') ?></th>
@@ -189,7 +189,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <?php else: ?>
                                     <?php foreach ($orders as $order): ?>
                                     <tr>
-                                        <td><a href="<?= base_url('admin/orders-detail&id=' . $order['id']) ?>"><strong><?= $order['order_code'] ?></strong></a></td>
+                                        <td><a href="<?= base_url('admin/orders-detail&id=' . $order['id']) ?>"><strong><?= htmlspecialchars($order['product_code'] ?? '') ?></strong></a></td>
                                         <td><?= htmlspecialchars(mb_strimwidth($order['product_name'] ?? '', 0, 40, '...')) ?></td>
                                         <td class="text-primary fw-bold"><?= format_vnd($order['ship_cost']) ?></td>
                                         <td><?= display_order_status($order['status']) ?></td>
