@@ -110,6 +110,7 @@ if ($filterType !== 'retail') {
 
     $wholesaleOrders = $ToryHub->get_list_safe(
         "SELECT o.id, o.product_code, o.product_name, o.cargo_type, o.product_image, o.customer_id,
+            o.weight_charged as order_weight_charged, o.weight_actual as order_weight_actual,
             c.fullname as customer_name, c.customer_code,
             COUNT(p.id) as pkg_count,
             SUM(COALESCE(p.weight_charged, 0)) as total_weight_charged,
@@ -287,9 +288,14 @@ require_once(__DIR__.'/sidebar.php');
 
                                     <?php // === ORDER ROWS (wholesale) === ?>
                                     <?php foreach ($wholesaleOrders as $order):
-                                        $wCharged = $order['total_weight_charged'] ?? 0;
-                                        $wActual = $order['total_weight_actual'] ?? 0;
-                                        $weight = $wCharged > 0 ? $wCharged : $wActual;
+                                        $orderWCharged = floatval($order['order_weight_charged'] ?? 0);
+                                        $orderWActual  = floatval($order['order_weight_actual'] ?? 0);
+                                        $wCharged = floatval($order['total_weight_charged'] ?? 0);
+                                        $wActual  = floatval($order['total_weight_actual'] ?? 0);
+                                        $weight = $orderWCharged > 0 ? $orderWCharged
+                                            : ($orderWActual > 0 ? $orderWActual
+                                            : ($wCharged > 0 ? $wCharged
+                                            : $wActual));
                                         $cbm = $order['total_cbm'] ?? 0;
                                         $pkgCount = $order['pkg_count'] ?? 0;
                                     ?>
