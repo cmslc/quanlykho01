@@ -10,8 +10,49 @@ if (!$customer) {
 
 $page_title = __('Chi tiết khách hàng') . ': ' . $customer['customer_code'];
 
-// Orders of this customer
-$orders = $ToryHub->get_list_safe("SELECT * FROM `orders` WHERE `customer_id` = ? ORDER BY `create_date` DESC", [$id]);
+// Shipping rates
+$shippingRates = [
+    'easy'      => ['per_kg' => floatval($ToryHub->site('shipping_road_easy_per_kg') ?: 25000), 'per_cbm' => floatval($ToryHub->site('shipping_road_easy_per_cbm') ?: 6000000)],
+    'difficult' => ['per_kg' => floatval($ToryHub->site('shipping_road_difficult_per_kg') ?: 35000), 'per_cbm' => floatval($ToryHub->site('shipping_road_difficult_per_cbm') ?: 8000000)],
+];
+
+// Orders with shipping data
+$orders = $ToryHub->get_list_safe(
+    "SELECT o.*,
+        o.weight_charged as order_weight_charged,
+        o.weight_actual as order_weight_actual,
+        o.custom_rate_kg, o.custom_rate_cbm,
+        SUM(p.weight_charged) as pkg_weight_charged,
+        SUM(p.weight_actual) as pkg_weight_actual,
+        SUM(p.length_cm * p.width_cm * p.height_cm / 1000000) as total_cbm
+     FROM `orders` o
+     LEFT JOIN `package_orders` po ON o.id = po.order_id
+     LEFT JOIN `packages` p ON po.package_id = p.id
+     WHERE o.customer_id = ?
+     GROUP BY o.id
+     ORDER BY o.create_date DESC", [$id]
+);
+
+// Calculate shipping cost per order
+$totalShipCost = 0;
+foreach ($orders as &$od) {
+    $wC = floatval($od['order_weight_charged'] ?? 0);
+    $wA = floatval($od['order_weight_actual'] ?? 0);
+    $pkgWC = floatval($od['pkg_weight_charged'] ?? 0);
+    $pkgWA = floatval($od['pkg_weight_actual'] ?? 0);
+    $w = $wC > 0 ? $wC : ($wA > 0 ? $wA : ($pkgWC > 0 ? $pkgWC : $pkgWA));
+    $cbm = floatval($od['total_cbm'] ?? 0);
+    $cargo = $od['cargo_type'] ?? 'easy';
+    $rate = $shippingRates[$cargo] ?? $shippingRates['easy'];
+    $rkg = $od['custom_rate_kg'] !== null ? floatval($od['custom_rate_kg']) : $rate['per_kg'];
+    $rcbm = $od['custom_rate_cbm'] !== null ? floatval($od['custom_rate_cbm']) : $rate['per_cbm'];
+    $od['ship_cost'] = ($od['status'] !== 'cancelled') ? max($w * $rkg, $cbm * $rcbm) : 0;
+    $totalShipCost += $od['ship_cost'];
+}
+unset($od);
+
+$totalPaid = floatval($customer['total_spent'] ?? 0);
+$totalDebt = max(0, $totalShipCost - $totalPaid);
 
 // Transactions
 $transactions = $ToryHub->get_list_safe("SELECT * FROM `transactions` WHERE `customer_id` = ? ORDER BY `create_date` DESC LIMIT 50", [$id]);
@@ -43,56 +84,56 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="card-body">
                         <div class="d-flex align-items-end justify-content-between">
                             <div>
-                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Tổng đơn hàng') ?></p>
+                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Tổng cước') ?></p>
+                                <h4 class="fs-22 fw-semibold mt-4 mb-0 text-primary"><?= format_vnd($totalShipCost) ?></h4>
+                            </div>
+                            <div class="avatar-sm flex-shrink-0">
+                                <span class="avatar-title bg-primary-subtle rounded fs-3"><i class="ri-truck-line text-primary"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card card-animate">
+                    <div class="card-body">
+                        <div class="d-flex align-items-end justify-content-between">
+                            <div>
+                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Đã thanh toán') ?></p>
+                                <h4 class="fs-22 fw-semibold mt-4 mb-0 text-success"><?= format_vnd($totalPaid) ?></h4>
+                            </div>
+                            <div class="avatar-sm flex-shrink-0">
+                                <span class="avatar-title bg-success-subtle rounded fs-3"><i class="ri-checkbox-circle-line text-success"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card card-animate">
+                    <div class="card-body">
+                        <div class="d-flex align-items-end justify-content-between">
+                            <div>
+                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Đang nợ') ?></p>
+                                <h4 class="fs-22 fw-semibold mt-4 mb-0 <?= $totalDebt > 0 ? 'text-danger' : 'text-success' ?>"><?= format_vnd($totalDebt) ?></h4>
+                            </div>
+                            <div class="avatar-sm flex-shrink-0">
+                                <span class="avatar-title bg-danger-subtle rounded fs-3"><i class="ri-error-warning-line text-danger"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card card-animate">
+                    <div class="card-body">
+                        <div class="d-flex align-items-end justify-content-between">
+                            <div>
+                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Đơn hàng') ?></p>
                                 <h4 class="fs-22 fw-semibold mt-4 mb-0"><?= $customer['total_orders'] ?></h4>
                             </div>
                             <div class="avatar-sm flex-shrink-0">
-                                <span class="avatar-title bg-primary-subtle rounded fs-3"><i class="ri-shopping-cart-2-line text-primary"></i></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6">
-                <div class="card card-animate">
-                    <div class="card-body">
-                        <div class="d-flex align-items-end justify-content-between">
-                            <div>
-                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Tổng chi tiêu') ?></p>
-                                <h4 class="fs-22 fw-semibold mt-4 mb-0"><?= format_vnd($customer['total_spent']) ?></h4>
-                            </div>
-                            <div class="avatar-sm flex-shrink-0">
-                                <span class="avatar-title bg-success-subtle rounded fs-3"><i class="ri-money-dollar-circle-line text-success"></i></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6">
-                <div class="card card-animate">
-                    <div class="card-body">
-                        <div class="d-flex align-items-end justify-content-between">
-                            <div>
-                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Công nợ') ?></p>
-                                <h4 class="fs-22 fw-semibold mt-4 mb-0 <?= $customer['balance'] < 0 ? 'text-danger' : 'text-success' ?>"><?= format_vnd($customer['balance']) ?></h4>
-                            </div>
-                            <div class="avatar-sm flex-shrink-0">
-                                <span class="avatar-title bg-warning rounded fs-3"><i class="ri-wallet-3-line text-dark"></i></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6">
-                <div class="card card-animate">
-                    <div class="card-body">
-                        <div class="d-flex align-items-end justify-content-between">
-                            <div>
-                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Loại khách hàng') ?></p>
-                                <h4 class="fs-22 fw-semibold mt-4 mb-0"><?= display_customer_type($customer['customer_type']) ?></h4>
-                            </div>
-                            <div class="avatar-sm flex-shrink-0">
-                                <span class="avatar-title bg-info-subtle rounded fs-3"><i class="ri-user-star-line text-info"></i></span>
+                                <span class="avatar-title bg-info-subtle rounded fs-3"><i class="ri-shopping-bag-line text-info"></i></span>
                             </div>
                         </div>
                     </div>
@@ -137,7 +178,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <tr>
                                         <th><?= __('Mã đơn') ?></th>
                                         <th><?= __('Sản phẩm') ?></th>
-                                        <th><?= __('Tổng tiền') ?></th>
+                                        <th><?= __('Cước vận chuyển') ?></th>
                                         <th><?= __('Trạng thái') ?></th>
                                         <th><?= __('Ngày tạo') ?></th>
                                     </tr>
@@ -150,7 +191,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <tr>
                                         <td><a href="<?= base_url('admin/orders-detail&id=' . $order['id']) ?>"><strong><?= $order['order_code'] ?></strong></a></td>
                                         <td><?= htmlspecialchars(mb_strimwidth($order['product_name'] ?? '', 0, 40, '...')) ?></td>
-                                        <td><?= format_vnd($order['grand_total']) ?></td>
+                                        <td class="text-primary fw-bold"><?= format_vnd($order['ship_cost']) ?></td>
                                         <td><?= display_order_status($order['status']) ?></td>
                                         <td><?= $order['create_date'] ?></td>
                                     </tr>
