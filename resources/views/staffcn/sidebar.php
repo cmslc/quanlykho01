@@ -46,12 +46,13 @@ if (get_user_role() === 'finance_cn') {
     $sidebarMenu[] = [
         'label' => __('Tài chính'),
         'icon'  => 'ri-money-cny-circle-line',
-        'active' => ['transactions', 'transactions-add', 'finance-summary', 'salary-list', 'salary-detail', 'shipping-calculator'],
+        'active' => ['transactions', 'transactions-add', 'finance-summary', 'salary-list', 'salary-detail', 'shipping-calculator', 'expenses'],
         'children' => [
-            ['label' => __('Tổng quan'),       'url' => base_url('staffcn/finance-summary'),     'active' => ['finance-summary']],
-            ['label' => __('Tính cước'),       'url' => base_url('staffcn/shipping-calculator'), 'active' => ['shipping-calculator']],
-            ['label' => __('Giao dịch'),       'url' => base_url('staffcn/transactions'),        'active' => ['transactions', 'transactions-add']],
-            ['label' => __('Lương Nhân Viên'), 'url' => base_url('staffcn/salary-list'),         'active' => ['salary-list', 'salary-detail']],
+            ['label' => __('Tổng quan'),         'url' => base_url('staffcn/finance-summary'),     'active' => ['finance-summary']],
+            ['label' => __('Tính cước'),         'url' => base_url('staffcn/shipping-calculator'), 'active' => ['shipping-calculator']],
+            ['label' => __('Giao dịch'),         'url' => base_url('staffcn/transactions'),        'active' => ['transactions', 'transactions-add']],
+            ['label' => __('Chi phí vận hành'),  'url' => base_url('staffcn/expenses'),            'active' => ['expenses']],
+            ['label' => __('Lương Nhân Viên'),   'url' => base_url('staffcn/salary-list'),         'active' => ['salary-list', 'salary-detail']],
         ],
     ];
 }
