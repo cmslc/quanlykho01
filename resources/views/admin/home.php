@@ -486,14 +486,17 @@ $(document).ready(function(){
     // ===== 3. Package Pipeline =====
     var packageData = <?= json_encode($packagePipelineData ?: []) ?>;
     var pkgLabels = {
+        'pending': '<?= __("Chờ xử lý") ?>',
         'cn_warehouse': '<?= __("Kho Trung Quốc") ?>',
         'packed': '<?= __("Đã đóng bao") ?>',
-        'shipping': '<?= __("Vận chuyển") ?>', 'vn_warehouse': '<?= __("Kho Việt Nam") ?>',
+        'loading': '<?= __("Đã xếp xe") ?>',
+        'shipping': '<?= __("Vận chuyển") ?>',
+        'vn_warehouse': '<?= __("Kho Việt Nam") ?>',
         'delivered': '<?= __("Đã giao") ?>'
     };
     var pkgColors = {
-        'cn_warehouse': '#f7b84b', 'packed': '#405189',
-        'shipping': '#6f42c1', 'vn_warehouse': '#0ab39c', 'delivered': '#2a9d50'
+        'pending': '#f06548', 'cn_warehouse': '#f7b84b', 'packed': '#405189',
+        'loading': '#878a99', 'shipping': '#6f42c1', 'vn_warehouse': '#0ab39c', 'delivered': '#2a9d50'
     };
 
     (function(){
