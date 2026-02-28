@@ -10,7 +10,7 @@ $csrf = new Csrf();
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title><?= htmlspecialchars($getUser['fullname'] ?? $getUser['username'] ?? 'Customer') ?> - ToryHub</title>
+    <title><?= htmlspecialchars($getUser['fullname'] ?: $getUser['username'] ?? 'Customer') ?> - ToryHub</title>
     <link rel="shortcut icon" href="<?= base_url('public/material/assets/images/favicon.ico') ?>">
     <!-- Layout config Js (MUST be first) -->
     <script src="<?= base_url('public/material/assets/js/layout.js') ?>"></script>

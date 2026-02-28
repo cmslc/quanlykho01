@@ -41,13 +41,13 @@
                     <button type="button" class="btn" data-bs-toggle="dropdown" aria-expanded="false">
                         <span class="d-flex align-items-center">
                             <span class="text-start ms-xl-2">
-                                <span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text"><?= htmlspecialchars($getUser['fullname'] ?? $getUser['username']) ?></span>
+                                <span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text"><?= htmlspecialchars($getUser['fullname'] ?: $getUser['username']) ?></span>
                                 <span class="d-none d-xl-block ms-1 fs-12 text-muted user-name-sub-text"><?= __('Nhân viên kho Việt Nam') ?></span>
                             </span>
                         </span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-end">
-                        <h6 class="dropdown-header"><?= __('Xin chào') ?>, <?= htmlspecialchars($getUser['fullname'] ?? $getUser['username']) ?>!</h6>
+                        <h6 class="dropdown-header"><?= __('Xin chào') ?>, <?= htmlspecialchars($getUser['fullname'] ?: $getUser['username']) ?>!</h6>
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="<?= base_url('staffvn/logout') ?>">
                             <i class="ri-logout-box-r-line text-muted fs-16 align-middle me-1"></i>

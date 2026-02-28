@@ -86,7 +86,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <i class="ri-user-line text-primary"></i>
                                 </span>
                             </div>
-                            <h5 class="mt-2 mb-0"><?= htmlspecialchars($getUser['fullname'] ?? $getUser['username']) ?></h5>
+                            <h5 class="mt-2 mb-0"><?= htmlspecialchars($getUser['fullname'] ?: $getUser['username']) ?></h5>
                             <small class="text-muted">@<?= htmlspecialchars($getUser['username']) ?></small>
                         </div>
 
