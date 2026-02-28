@@ -7,7 +7,7 @@ $page_title = __('Tạo giao dịch');
 $customers = $ToryHub->get_list_safe("SELECT `id`, `customer_code`, `fullname`, `balance`, `total_spent` FROM `customers` ORDER BY `fullname` ASC", []);
 $preselect_customer = input_get('customer_id') ?: '';
 $preselect_order = input_get('order_id') ?: '';
-$preselect_type = input_get('type') ?: 'deposit';
+$preselect_type = input_get('type') ?: 'payment';
 
 require_once(__DIR__.'/header.php');
 require_once(__DIR__.'/sidebar.php');
@@ -48,10 +48,8 @@ require_once(__DIR__.'/sidebar.php');
                                     <div class="mb-3">
                                         <label class="form-label"><?= __('Loại giao dịch') ?> <span class="text-danger">*</span></label>
                                         <select class="form-select" name="type" id="sel-type" required>
-                                            <option value="deposit" <?= $preselect_type == 'deposit' ? 'selected' : '' ?>><?= __('Nạp tiền') ?></option>
                                             <option value="payment" <?= $preselect_type == 'payment' ? 'selected' : '' ?>><?= __('Thanh toán') ?></option>
                                             <option value="refund" <?= $preselect_type == 'refund' ? 'selected' : '' ?>><?= __('Hoàn tiền') ?></option>
-                                            <option value="adjustment" <?= $preselect_type == 'adjustment' ? 'selected' : '' ?>><?= __('Điều chỉnh') ?></option>
                                         </select>
                                     </div>
                                 </div>
@@ -97,20 +95,12 @@ require_once(__DIR__.'/sidebar.php');
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <span class="badge bg-success"><?= __('Nạp tiền') ?></span>
-                            <p class="text-muted mb-0 mt-1"><?= __('Khách chuyển tiền vào. Đã TT tăng, nợ giảm.') ?></p>
-                        </div>
-                        <div class="mb-3">
-                            <span class="badge bg-primary"><?= __('Thanh toán') ?></span>
-                            <p class="text-muted mb-0 mt-1"><?= __('Thanh toán cước vận chuyển. Đã TT tăng, nợ giảm.') ?></p>
+                            <span class="badge bg-success"><?= __('Thanh toán') ?></span>
+                            <p class="text-muted mb-0 mt-1"><?= __('Khách thanh toán cước. Đã TT tăng, nợ giảm.') ?></p>
                         </div>
                         <div class="mb-3">
                             <span class="badge bg-warning"><?= __('Hoàn tiền') ?></span>
                             <p class="text-muted mb-0 mt-1"><?= __('Hoàn tiền khi hủy đơn/lỗi. Đã TT giảm, nợ tăng.') ?></p>
-                        </div>
-                        <div class="mb-3">
-                            <span class="badge bg-info"><?= __('Điều chỉnh') ?></span>
-                            <p class="text-muted mb-0 mt-1"><?= __('Điều chỉnh số đã thanh toán.') ?></p>
                         </div>
                     </div>
                 </div>
