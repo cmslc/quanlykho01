@@ -315,7 +315,7 @@ require_once(__DIR__.'/sidebar.php');
                                         <td class="align-middle text-center"><strong><?= $pkgCount ?></strong></td>
                                         <td class="align-middle text-end"><?= $weight > 0 ? fnum($weight, 1) . ' kg' : '<span class="text-muted">-</span>' ?></td>
                                         <td class="align-middle text-end"><?= $cbm > 0 ? fnum($cbm, 2) . ' m&sup3;' : '<span class="text-muted">-</span>' ?></td>
-                                        <td class="align-middle"><span class="badge bg-dark-subtle text-dark" style="font-size:11px;"><?= __('Đã đóng bao') ?>: <?= $pkgCount ?></span></td>
+                                        <td class="align-middle"><span class="badge bg-dark-subtle text-dark" style="font-size:12px;"><?= __('Đã đóng bao') ?>: <?= $pkgCount ?></span></td>
                                     </tr>
                                     <?php endforeach; ?>
 
@@ -394,7 +394,7 @@ require_once(__DIR__.'/sidebar.php');
                                                     $cnt = $opkgMap[$st] ?? 0;
                                                     if ($cnt > 0):
                                                 ?>
-                                                <span class="badge bg-<?= $cfg['bg'] ?>-subtle text-<?= $cfg['bg'] ?>" style="font-size:11px;"><?= __($cfg['label']) ?>: <?= $cnt ?></span>
+                                                <span class="badge bg-<?= $cfg['bg'] ?>-subtle text-<?= $cfg['bg'] ?>" style="font-size:12px;"><?= __($cfg['label']) ?>: <?= $cnt ?></span>
                                                 <?php endif; endforeach; ?>
                                             </div>
                                         </td>
