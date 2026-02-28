@@ -79,6 +79,7 @@ require_once(__DIR__.'/sidebar.php');
                                         <select class="form-select" name="role">
                                             <option value="admin" <?= $editUser['role'] == 'admin' ? 'selected' : '' ?>>Admin</option>
                                             <option value="staffcn" <?= $editUser['role'] == 'staffcn' ? 'selected' : '' ?>><?= __('Nhân viên Kho Trung Quốc') ?></option>
+                                            <option value="finance_cn" <?= $editUser['role'] == 'finance_cn' ? 'selected' : '' ?>><?= __('Tài chính Kho Trung Quốc') ?></option>
                                             <option value="staffvn" <?= $editUser['role'] == 'staffvn' ? 'selected' : '' ?>><?= __('Nhân viên Kho Việt Nam') ?></option>
                                             <option value="customer" <?= $editUser['role'] == 'customer' ? 'selected' : '' ?>><?= __('Khách hàng') ?></option>
                                         </select>

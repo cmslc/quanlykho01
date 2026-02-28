@@ -1,5 +1,6 @@
 <?php
 require_once(__DIR__.'/../../../models/is_staffcn.php');
+if (get_user_role() !== 'finance_cn') { redirect(base_url('staffcn/home')); }
 
 $page_title = __('Tổng quan tài chính');
 

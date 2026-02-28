@@ -9,6 +9,12 @@ require_once(__DIR__.'/../../libs/role.php');
 require_once(__DIR__.'/../../libs/csrf.php');
 require_once(__DIR__.'/../../models/is_staffcn.php');
 
+if (get_user_role() !== 'finance_cn') {
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['status' => 'error', 'msg' => 'Unauthorized']);
+    exit();
+}
+
 header('Content-Type: application/json; charset=utf-8');
 
 $csrf = new Csrf();

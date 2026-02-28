@@ -36,7 +36,7 @@ if (is_submit('add')) {
         exit();
     }
 
-    $allowed_roles = ['admin', 'staffcn', 'staffvn', 'customer'];
+    $allowed_roles = ['admin', 'staffcn', 'finance_cn', 'staffvn', 'customer'];
     if (empty($role) || !in_array($role, $allowed_roles)) {
         echo json_encode(['status' => 'error', 'msg' => __('Vui lòng chọn vai trò')]);
         exit();
@@ -78,7 +78,7 @@ if (is_submit('edit')) {
     $banned = intval(input_post('banned'));
     $password = input_post('password');
 
-    $allowed_roles = ['admin', 'staffcn', 'staffvn', 'customer'];
+    $allowed_roles = ['admin', 'staffcn', 'finance_cn', 'staffvn', 'customer'];
     if (empty($role) || !in_array($role, $allowed_roles)) {
         echo json_encode(['status' => 'error', 'msg' => __('Vui lòng chọn vai trò')]);
         exit();

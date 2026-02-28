@@ -41,6 +41,15 @@ function is_staffcn()
     return false;
 }
 
+function is_finance_cn()
+{
+    $user = is_logged();
+    if (!empty($user['role']) && $user['role'] == 'finance_cn') {
+        return true;
+    }
+    return false;
+}
+
 function is_staffvn()
 {
     $user = is_logged();

@@ -73,6 +73,7 @@ require_once(__DIR__.'/sidebar.php');
                                             <option value="" disabled selected><?= __('-- Chọn vai trò --') ?></option>
                                             <option value="admin">Admin</option>
                                             <option value="staffcn"><?= __('Nhân viên Kho Trung Quốc') ?></option>
+                                            <option value="finance_cn"><?= __('Tài chính Kho Trung Quốc') ?></option>
                                             <option value="staffvn"><?= __('Nhân viên Kho Việt Nam') ?></option>
                                             <option value="customer"><?= __('Khách hàng') ?></option>
                                         </select>

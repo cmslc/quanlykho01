@@ -7,7 +7,7 @@ if (!defined('IN_SITE')) {
 $ToryHub = new DB();
 
 if (isset($_COOKIE["token"])) {
-    $getUser = $ToryHub->get_row_safe("SELECT * FROM `users` WHERE `token` = ? AND `role` = 'staffcn'", [$_COOKIE['token']]);
+    $getUser = $ToryHub->get_row_safe("SELECT * FROM `users` WHERE `token` = ? AND `role` IN ('staffcn','finance_cn')", [$_COOKIE['token']]);
     if (!$getUser) {
         header("location: " . base_url('staffcn/login'));
         exit();
@@ -18,7 +18,7 @@ if (isset($_COOKIE["token"])) {
 if (!isset($_SESSION['staffcn_login'])) {
     redirect(base_url('staffcn/login'));
 } else {
-    $getUser = $ToryHub->get_row_safe("SELECT * FROM `users` WHERE `role` = 'staffcn' AND `token` = ?", [$_SESSION['staffcn_login']]);
+    $getUser = $ToryHub->get_row_safe("SELECT * FROM `users` WHERE `role` IN ('staffcn','finance_cn') AND `token` = ?", [$_SESSION['staffcn_login']]);
 
     if (!$getUser) {
         redirect(base_url('staffcn/login'));

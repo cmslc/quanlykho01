@@ -35,7 +35,7 @@ if ($blockResult) {
 }
 
 // Find user with role staffcn specifically
-$getUser = $ToryHub->get_row_safe("SELECT * FROM `users` WHERE `username` = ? AND `role` = 'staffcn'", [$username]);
+$getUser = $ToryHub->get_row_safe("SELECT * FROM `users` WHERE `username` = ? AND `role` IN ('staffcn','finance_cn')", [$username]);
 
 if (!$getUser) {
     echo json_encode(['status' => 'error', 'msg' => __('Sai tên đăng nhập hoặc mật khẩu')]);
@@ -69,7 +69,7 @@ $ToryHub->update_safe('users', [
 $_SESSION['staffcn_login'] = $token;
 setSecureCookie('token', $token);
 setSecureCookie('staffcn_token', $token);
-set_logged($getUser['username'], 'staffcn');
+set_logged($getUser['username'], $getUser['role']);
 
 // Log
 add_log($getUser['id'], 'LOGIN', 'Staff CN login successful');

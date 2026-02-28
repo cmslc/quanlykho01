@@ -1,5 +1,6 @@
 <?php
 require_once(__DIR__.'/../../../models/is_staffcn.php');
+if (get_user_role() !== 'finance_cn') { redirect(base_url('staffcn/home')); }
 require_once(__DIR__.'/../../../libs/csrf.php');
 
 $salaryId = intval(input_get('id'));

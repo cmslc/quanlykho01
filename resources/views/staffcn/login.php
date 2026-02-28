@@ -4,7 +4,7 @@ $csrf = new Csrf();
 
 // If already logged in, redirect to dashboard
 if (isset($_SESSION['staffcn_login'])) {
-    $getUser = $ToryHub->get_row_safe("SELECT * FROM `users` WHERE `role` = 'staffcn' AND `token` = ?", [$_SESSION['staffcn_login']]);
+    $getUser = $ToryHub->get_row_safe("SELECT * FROM `users` WHERE `role` IN ('staffcn','finance_cn') AND `token` = ?", [$_SESSION['staffcn_login']]);
     if ($getUser) {
         redirect(base_url('staffcn/home'));
     }
