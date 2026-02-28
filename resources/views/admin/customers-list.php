@@ -5,16 +5,43 @@ require_once(__DIR__.'/../../../libs/csrf.php');
 $page_title = __('Quản lý khách hàng');
 $customers = $ToryHub->get_list_safe("SELECT * FROM `customers` ORDER BY `id` DESC", []);
 
-// Tổng cước vận chuyển (đã TT + chưa TT) theo customer
-$totalShipData = $ToryHub->get_list_safe(
-    "SELECT customer_id, SUM(shipping_fee_cn + shipping_fee_intl) as ship_total
-     FROM `orders`
-     WHERE status != 'cancelled'
-     GROUP BY customer_id", []
+// Shipping rates
+$shippingRates = [
+    'easy'      => ['per_kg' => floatval($ToryHub->site('shipping_road_easy_per_kg') ?: 25000), 'per_cbm' => floatval($ToryHub->site('shipping_road_easy_per_cbm') ?: 6000000)],
+    'difficult' => ['per_kg' => floatval($ToryHub->site('shipping_road_difficult_per_kg') ?: 35000), 'per_cbm' => floatval($ToryHub->site('shipping_road_difficult_per_cbm') ?: 8000000)],
+];
+
+// Tổng cước vận chuyển theo customer (tính từ cân nặng × đơn giá, giống shipping-calculator)
+$orderShipData = $ToryHub->get_list_safe(
+    "SELECT o.id, o.customer_id, o.cargo_type,
+        o.weight_charged as order_weight_charged,
+        o.weight_actual as order_weight_actual,
+        o.custom_rate_kg, o.custom_rate_cbm,
+        SUM(p.weight_charged) as pkg_weight_charged,
+        SUM(p.weight_actual) as pkg_weight_actual,
+        SUM(p.length_cm * p.width_cm * p.height_cm / 1000000) as total_cbm
+     FROM `orders` o
+     LEFT JOIN `package_orders` po ON o.id = po.order_id
+     LEFT JOIN `packages` p ON po.package_id = p.id
+     WHERE o.status != 'cancelled'
+     GROUP BY o.id", []
 );
 $totalShipMap = [];
-foreach ($totalShipData as $ts) {
-    $totalShipMap[$ts['customer_id']] = floatval($ts['ship_total']);
+foreach ($orderShipData as $od) {
+    $cid = $od['customer_id'];
+    $wC = floatval($od['order_weight_charged'] ?? 0);
+    $wA = floatval($od['order_weight_actual'] ?? 0);
+    $pkgWC = floatval($od['pkg_weight_charged'] ?? 0);
+    $pkgWA = floatval($od['pkg_weight_actual'] ?? 0);
+    $w = $wC > 0 ? $wC : ($wA > 0 ? $wA : ($pkgWC > 0 ? $pkgWC : $pkgWA));
+    $cbm = floatval($od['total_cbm'] ?? 0);
+    $cargo = $od['cargo_type'] ?? 'easy';
+    $rate = $shippingRates[$cargo] ?? $shippingRates['easy'];
+    $rkg = $od['custom_rate_kg'] !== null ? floatval($od['custom_rate_kg']) : $rate['per_kg'];
+    $rcbm = $od['custom_rate_cbm'] !== null ? floatval($od['custom_rate_cbm']) : $rate['per_cbm'];
+    $cost = max($w * $rkg, $cbm * $rcbm);
+    if (!isset($totalShipMap[$cid])) $totalShipMap[$cid] = 0;
+    $totalShipMap[$cid] += $cost;
 }
 
 require_once(__DIR__.'/header.php');
