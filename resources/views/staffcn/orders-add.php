@@ -301,6 +301,8 @@ function submitRetailScan() {
     if(!tracking || scanBusy) return;
     scanBusy = true;
     $input.prop('disabled', true);
+    var $scanBtn = $('#btn-scan-submit');
+    $scanBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status"></span>');
     var formData = new FormData($('#form-add-order')[0]);
     formData.set('product_type', 'retail');
     formData.delete('packages[0][qty]');
@@ -355,7 +357,10 @@ function submitRetailScan() {
             );
             $input.prop('disabled', false).select();
         },
-        complete: function(){ scanBusy = false; }
+        complete: function(){
+            scanBusy = false;
+            $scanBtn.prop('disabled', false).html('<i class="ri-send-plane-line"></i>');
+        }
     });
 }
 
@@ -586,7 +591,7 @@ if ($('#select-customer').val()) $('#btn-clear-customer').show();
 $('#form-quick-customer').on('submit', function(e){
     e.preventDefault();
     var $btn = $('#btn-quick-customer');
-    $btn.prop('disabled', true);
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1" role="status"></span><?= __('Đang tạo...') ?>');
     $.ajax({
         url: '<?= base_url('ajaxs/admin/customers.php') ?>',
         type: 'POST',
@@ -605,7 +610,7 @@ $('#form-quick-customer').on('submit', function(e){
                 $('#modal-alert-box').html('<div class="alert alert-danger">' + res.msg + '</div>');
             }
         },
-        complete: function(){ $btn.prop('disabled', false); }
+        complete: function(){ $btn.prop('disabled', false).html('<i class="ri-user-add-line"></i> <?= __('Tạo khách hàng') ?>'); }
     });
 });
 
@@ -621,6 +626,10 @@ $('#form-add-order').on('keydown', 'input[type="text"], input[type="number"]', f
 $('#form-add-order').on('submit', function(e){
     e.preventDefault();
     if($('select[name="product_type"]').val() === 'retail') return;
+
+    var $btn = $('button[type=submit]', this);
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1" role="status"></span><?= __('Đang lưu...') ?>');
+
     var formData = new FormData(this);
     $.ajax({
         url: '<?= base_url('ajaxs/admin/orders.php') ?>',
@@ -635,11 +644,13 @@ $('#form-add-order').on('submit', function(e){
                     window.location.href = '<?= base_url('staffcn/orders-detail') ?>&id=' + res.order_id;
                 });
             } else {
+                $btn.prop('disabled', false).html('<i class="ri-save-line"></i> <?= __('Tạo đơn hàng') ?>');
                 $('#alert-box').html('<div class="alert alert-danger">' + res.msg + '</div>');
                 $('html, body').animate({scrollTop: 0}, 300);
             }
         },
         error: function(xhr){
+            $btn.prop('disabled', false).html('<i class="ri-save-line"></i> <?= __('Tạo đơn hàng') ?>');
             var msg = '<?= __('Lỗi server') ?>';
             try { msg = xhr.responseText.substring(0, 500); } catch(e){}
             Swal.fire({icon: 'error', title: 'Error', text: msg});
