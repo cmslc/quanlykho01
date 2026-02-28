@@ -154,7 +154,7 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0"><i class="ri-archive-line me-1"></i><?= __('Kiện hàng') ?> (<?= count($order_packages) ?>)</h5>
                         <?php if (count($order_packages) > 1): ?>
-                        <button type="button" class="btn btn-sm btn-outline-secondary active" id="btn-toggle-group"><i class="ri-layout-grid-line me-1"></i><?= __('Nhóm kiện') ?></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-toggle-group"><i class="ri-layout-grid-line me-1"></i><?= __('Nhóm kiện') ?></button>
                         <?php endif; ?>
                     </div>
                     <div class="card-body">
@@ -183,7 +183,7 @@ require_once(__DIR__.'/sidebar.php');
                                                 $pkgGroups[$gKey]['pkgs'][] = $pkg;
                                             }
                                             ?>
-                                    <tbody id="tbody-grouped">
+                                    <tbody id="tbody-grouped" class="d-none">
                                         <?php foreach ($pkgGroups as $grp):
                                             $gpkgs  = $grp['pkgs'];
                                             $first  = $gpkgs[0];
@@ -222,7 +222,7 @@ require_once(__DIR__.'/sidebar.php');
                                         </tr>
                                         <?php endforeach; ?>
                                     </tbody>
-                                    <tbody id="tbody-ungrouped" class="d-none">
+                                    <tbody id="tbody-ungrouped">
                                         <?php foreach ($order_packages as $pkg):
                                             $pkgVol = ($pkg['length_cm'] * $pkg['width_cm'] * $pkg['height_cm']) / 1000000;
                                         ?>
@@ -395,7 +395,7 @@ require_once(__DIR__.'/sidebar.php');
 
 <script>
 <?php if (count($order_packages) > 1): ?>
-var pkgGrouped = localStorage.getItem('pkg_view_detail_<?= $order['id'] ?>') !== 'ungrouped';
+var pkgGrouped = localStorage.getItem('pkg_view_detail_<?= $order['id'] ?>') === 'grouped';
 function applyPkgView() {
     if (pkgGrouped) {
         $('#tbody-grouped').show();

@@ -143,7 +143,7 @@ require_once(__DIR__.'/sidebar.php');
                     </div>
                     <div class="d-flex gap-2">
                         <?php if (count($packages) > 1): ?>
-                        <button type="button" class="btn btn-sm btn-outline-secondary active" id="btn-toggle-group"><i class="ri-layout-grid-line me-1"></i><?= __('Nhóm kiện') ?></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-toggle-group"><i class="ri-layout-grid-line me-1"></i><?= __('Nhóm kiện') ?></button>
                         <?php endif; ?>
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddPackage"><i class="ri-add-line"></i> <?= __('Tạo kiện') ?></button>
                     </div>
@@ -173,7 +173,7 @@ require_once(__DIR__.'/sidebar.php');
                                 $pkgGroups[$gKey]['pkgs'][] = $pkg;
                             }
                             ?>
-                            <tbody id="tbody-grouped">
+                            <tbody id="tbody-grouped" class="d-none">
                                 <?php foreach ($pkgGroups as $grp):
                                     $gpkgs  = $grp['pkgs'];
                                     $gid    = $grp['gid'];
@@ -233,21 +233,21 @@ require_once(__DIR__.'/sidebar.php');
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>
-                            <tbody id="tbody-ungrouped" class="d-none">
+                            <tbody id="tbody-ungrouped">
                                 <?php foreach ($packages as $pkg):
                                     $pkgVol = ($pkg['length_cm'] * $pkg['width_cm'] * $pkg['height_cm']) / 1000000;
                                 ?>
                                 <tr>
                                     <td><strong><?= htmlspecialchars($pkg['package_code']) ?></strong></td>
                                     <?php if ($productType === 'retail'): ?>
-                                    <td><input type="text" class="form-control form-control-sm" name="edit_packages[<?= $pkg['id'] ?>][tracking_cn]" value="<?= htmlspecialchars($pkg['tracking_cn'] ?? '') ?>" style="min-width:120px;text-transform:uppercase" disabled></td>
+                                    <td><input type="text" class="form-control form-control-sm" name="edit_packages[<?= $pkg['id'] ?>][tracking_cn]" value="<?= htmlspecialchars($pkg['tracking_cn'] ?? '') ?>" style="min-width:120px;text-transform:uppercase"></td>
                                     <?php endif; ?>
-                                    <td><input type="number" class="form-control form-control-sm pkg-w-input" name="edit_packages[<?= $pkg['id'] ?>][weight_actual]" value="<?= floatval($pkg['weight_actual']) ?>" step="0.01" min="0" style="width:80px" disabled></td>
+                                    <td><input type="number" class="form-control form-control-sm pkg-w-input" name="edit_packages[<?= $pkg['id'] ?>][weight_actual]" value="<?= floatval($pkg['weight_actual']) ?>" step="0.01" min="0" style="width:80px"></td>
                                     <td>
                                         <div class="d-flex gap-1">
-                                            <input type="number" class="form-control form-control-sm pkg-dim-input" name="edit_packages[<?= $pkg['id'] ?>][length_cm]" value="<?= floatval($pkg['length_cm']) ?>" step="0.1" min="0" placeholder="D" style="width:58px" title="<?= __('Dài') ?>" disabled>
-                                            <input type="number" class="form-control form-control-sm pkg-dim-input" name="edit_packages[<?= $pkg['id'] ?>][width_cm]"  value="<?= floatval($pkg['width_cm']) ?>"  step="0.1" min="0" placeholder="R" style="width:58px" title="<?= __('Rộng') ?>" disabled>
-                                            <input type="number" class="form-control form-control-sm pkg-dim-input" name="edit_packages[<?= $pkg['id'] ?>][height_cm]" value="<?= floatval($pkg['height_cm']) ?>" step="0.1" min="0" placeholder="C" style="width:58px" title="<?= __('Cao') ?>" disabled>
+                                            <input type="number" class="form-control form-control-sm pkg-dim-input" name="edit_packages[<?= $pkg['id'] ?>][length_cm]" value="<?= floatval($pkg['length_cm']) ?>" step="0.1" min="0" placeholder="D" style="width:58px" title="<?= __('Dài') ?>">
+                                            <input type="number" class="form-control form-control-sm pkg-dim-input" name="edit_packages[<?= $pkg['id'] ?>][width_cm]"  value="<?= floatval($pkg['width_cm']) ?>"  step="0.1" min="0" placeholder="R" style="width:58px" title="<?= __('Rộng') ?>">
+                                            <input type="number" class="form-control form-control-sm pkg-dim-input" name="edit_packages[<?= $pkg['id'] ?>][height_cm]" value="<?= floatval($pkg['height_cm']) ?>" step="0.1" min="0" placeholder="C" style="width:58px" title="<?= __('Cao') ?>">
                                         </div>
                                     </td>
                                     <td class="pkg-cbm-cell text-nowrap"><?= $pkgVol > 0 ? number_format($pkgVol, 4, '.', '') : '<span class="text-muted">-</span>' ?></td>
@@ -586,7 +586,7 @@ $('#btn-create-package').on('click', function(){
 
 <?php if (count($packages) > 1): ?>
 // Package group toggle
-var pkgGrouped = localStorage.getItem('pkg_view_<?= $order['id'] ?>') !== 'ungrouped';
+var pkgGrouped = localStorage.getItem('pkg_view_<?= $order['id'] ?>') === 'grouped';
 function applyPkgView() {
     if (pkgGrouped) {
         $('#tbody-grouped').show().find('input,textarea,select').prop('disabled', false);
