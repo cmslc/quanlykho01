@@ -128,4 +128,117 @@ if ($request === 'add') {
     exit;
 }
 
+// ======== EDIT TRANSACTION ========
+if ($request === 'edit') {
+    $id = intval(input_post('id'));
+    $amount = floatval(input_post('amount'));
+    $description = trim(input_post('description'));
+
+    if ($id <= 0) {
+        echo json_encode(['status' => 'error', 'msg' => __('ID không hợp lệ')]);
+        exit;
+    }
+    if ($amount <= 0) {
+        echo json_encode(['status' => 'error', 'msg' => __('Số tiền phải lớn hơn 0')]);
+        exit;
+    }
+
+    $txn = $ToryHub->get_row_safe("SELECT * FROM `transactions` WHERE `id` = ?", [$id]);
+    if (!$txn) {
+        echo json_encode(['status' => 'error', 'msg' => __('Giao dịch không tồn tại')]);
+        exit;
+    }
+
+    $customer = $ToryHub->get_row_safe("SELECT * FROM `customers` WHERE `id` = ?", [$txn['customer_id']]);
+    if (!$customer) {
+        echo json_encode(['status' => 'error', 'msg' => __('Khách hàng không tồn tại')]);
+        exit;
+    }
+
+    $oldAmount = floatval($txn['amount']);
+    $type = $txn['type'];
+    $newActual = ($type === 'payment') ? -$amount : $amount;
+
+    // Recalculate balance: reverse old, apply new
+    $currentBalance = floatval($customer['balance']);
+    $newBalance = $currentBalance - $oldAmount + $newActual;
+
+    $ToryHub->beginTransaction();
+    try {
+        $ToryHub->update_safe("transactions", [
+            'amount' => $newActual,
+            'balance_after' => $newBalance,
+            'description' => $description,
+        ], "`id` = ?", [$id]);
+
+        $ToryHub->update_safe("customers", [
+            'balance' => $newBalance,
+            'update_date' => gettime()
+        ], "`id` = ?", [$txn['customer_id']]);
+
+        // Adjust total_spent for payment type
+        if ($type === 'payment') {
+            $oldSpent = abs($oldAmount);
+            $newTotalSpent = max(0, floatval($customer['total_spent']) - $oldSpent + $amount);
+            $ToryHub->update_safe("customers", ['total_spent' => $newTotalSpent], "`id` = ?", [$txn['customer_id']]);
+        }
+
+        $ToryHub->commit();
+        add_log($getUser['id'], 'edit_transaction', "Sửa giao dịch #$id: " . format_vnd($amount));
+        echo json_encode(['status' => 'success', 'msg' => __('Cập nhật giao dịch thành công')]);
+    } catch (Exception $e) {
+        $ToryHub->rollBack();
+        echo json_encode(['status' => 'error', 'msg' => __('Lỗi hệ thống')]);
+    }
+    exit;
+}
+
+// ======== DELETE TRANSACTION ========
+if ($request === 'delete') {
+    $id = intval(input_post('id'));
+
+    if ($id <= 0) {
+        echo json_encode(['status' => 'error', 'msg' => __('ID không hợp lệ')]);
+        exit;
+    }
+
+    $txn = $ToryHub->get_row_safe("SELECT * FROM `transactions` WHERE `id` = ?", [$id]);
+    if (!$txn) {
+        echo json_encode(['status' => 'error', 'msg' => __('Giao dịch không tồn tại')]);
+        exit;
+    }
+
+    $customer = $ToryHub->get_row_safe("SELECT * FROM `customers` WHERE `id` = ?", [$txn['customer_id']]);
+    if (!$customer) {
+        echo json_encode(['status' => 'error', 'msg' => __('Khách hàng không tồn tại')]);
+        exit;
+    }
+
+    $ToryHub->beginTransaction();
+    try {
+        // Reverse balance
+        $newBalance = floatval($customer['balance']) - floatval($txn['amount']);
+        $ToryHub->update_safe("customers", [
+            'balance' => $newBalance,
+            'update_date' => gettime()
+        ], "`id` = ?", [$txn['customer_id']]);
+
+        // Reverse total_spent for payment type
+        if ($txn['type'] === 'payment') {
+            $newTotalSpent = max(0, floatval($customer['total_spent']) - abs(floatval($txn['amount'])));
+            $ToryHub->update_safe("customers", ['total_spent' => $newTotalSpent], "`id` = ?", [$txn['customer_id']]);
+        }
+
+        $ToryHub->remove_safe('transactions', "`id` = ?", [$id]);
+        $ToryHub->commit();
+
+        add_log($getUser['id'], 'delete_transaction', "Xóa giao dịch #$id");
+        echo json_encode(['status' => 'success', 'msg' => __('Đã xóa giao dịch')]);
+    } catch (Exception $e) {
+        $ToryHub->rollBack();
+        echo json_encode(['status' => 'error', 'msg' => __('Lỗi hệ thống')]);
+    }
+    exit;
+}
+
 echo json_encode(['status' => 'error', 'msg' => 'Invalid request']);

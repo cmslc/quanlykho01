@@ -190,6 +190,7 @@ require_once(__DIR__.'/sidebar.php');
                                         <th><?= __('Mô tả') ?></th>
                                         <th><?= __('Người tạo') ?></th>
                                         <th><?= __('Ngày') ?></th>
+                                        <th><?= __('Hành động') ?></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -217,6 +218,21 @@ require_once(__DIR__.'/sidebar.php');
                                         <td><?= htmlspecialchars($txn['description'] ?? '') ?></td>
                                         <td><?= htmlspecialchars($txn['created_by_name'] ?? '') ?></td>
                                         <td><?= $txn['create_date'] ?></td>
+                                        <td>
+                                            <div class="d-flex gap-1">
+                                                <button class="btn btn-sm btn-soft-info btn-edit-txn"
+                                                    data-id="<?= $txn['id'] ?>"
+                                                    data-amount="<?= abs(floatval($txn['amount'])) ?>"
+                                                    data-description="<?= htmlspecialchars($txn['description'] ?? '') ?>"
+                                                    data-type="<?= $txn['type'] ?>"
+                                                    title="<?= __('Sửa') ?>">
+                                                    <i class="ri-pencil-line"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-soft-danger btn-delete-txn" data-id="<?= $txn['id'] ?>" title="<?= __('Xóa') ?>">
+                                                    <i class="ri-delete-bin-line"></i>
+                                                </button>
+                                            </div>
+                                        </td>
                                     </tr>
                                     <?php endforeach; ?>
                                 </tbody>
@@ -227,4 +243,94 @@ require_once(__DIR__.'/sidebar.php');
             </div>
         </div>
 
+<!-- Modal Edit Transaction -->
+<div class="modal fade" id="modalEditTxn" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><?= __('Sửa giao dịch') ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editTxnId">
+                <div class="mb-3">
+                    <label class="form-label"><?= __('Loại giao dịch') ?></label>
+                    <input type="text" class="form-control" id="editTxnType" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><?= __('Số tiền') ?></label>
+                    <input type="number" class="form-control" id="editTxnAmount" min="1" step="any" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><?= __('Mô tả') ?></label>
+                    <textarea class="form-control" id="editTxnDesc" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= __('Hủy') ?></button>
+                <button type="button" class="btn btn-primary" id="btnSaveTxn"><?= __('Lưu') ?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php require_once(__DIR__.'/footer.php'); ?>
+
+<script>
+var txnTypeLabels = {deposit: '<?= __('Nạp tiền') ?>', payment: '<?= __('Thanh toán') ?>', refund: '<?= __('Hoàn tiền') ?>', adjustment: '<?= __('Điều chỉnh') ?>'};
+
+$(document).on('click', '.btn-edit-txn', function(){
+    $('#editTxnId').val($(this).data('id'));
+    $('#editTxnType').val(txnTypeLabels[$(this).data('type')] || $(this).data('type'));
+    $('#editTxnAmount').val($(this).data('amount'));
+    $('#editTxnDesc').val($(this).data('description'));
+    new bootstrap.Modal('#modalEditTxn').show();
+});
+
+$('#btnSaveTxn').on('click', function(){
+    var btn = $(this);
+    btn.prop('disabled', true);
+    $.post('<?= base_url('ajaxs/staffcn/transactions.php') ?>', {
+        request_name: 'edit',
+        id: $('#editTxnId').val(),
+        amount: $('#editTxnAmount').val(),
+        description: $('#editTxnDesc').val(),
+        csrf_token: '<?= $csrf->get_token_value() ?>'
+    }, function(res){
+        btn.prop('disabled', false);
+        if(res.status == 'success'){
+            Swal.fire({icon:'success', title:res.msg, timer:1500, showConfirmButton:false}).then(function(){ location.reload(); });
+        } else {
+            Swal.fire({icon:'error', title:'Error', text:res.msg});
+        }
+    }, 'json');
+});
+
+$(document).on('click', '.btn-delete-txn', function(){
+    var id = $(this).data('id');
+    Swal.fire({
+        title: '<?= __('Bạn có chắc chắn?') ?>',
+        text: '<?= __('Giao dịch sẽ bị xóa và số dư khách hàng sẽ được hoàn lại!') ?>',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: '<?= __('Xóa') ?>',
+        cancelButtonText: '<?= __('Hủy') ?>'
+    }).then(function(result){
+        if(result.isConfirmed){
+            $.post('<?= base_url('ajaxs/staffcn/transactions.php') ?>', {
+                request_name: 'delete',
+                id: id,
+                csrf_token: '<?= $csrf->get_token_value() ?>'
+            }, function(res){
+                if(res.status == 'success'){
+                    Swal.fire({icon:'success', title:res.msg, timer:1500, showConfirmButton:false}).then(function(){ location.reload(); });
+                } else {
+                    Swal.fire({icon:'error', title:'Error', text:res.msg});
+                }
+            }, 'json');
+        }
+    });
+});
+</script>
