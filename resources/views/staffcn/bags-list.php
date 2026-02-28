@@ -34,7 +34,7 @@ $bags = $ToryHub->get_list_safe("SELECT b.*, u.fullname as creator_name
 $bagStatuses = ['open', 'sealed', 'loading', 'shipping', 'arrived'];
 $bagStatusLabels = [
     'open' => ['label' => 'Đang mở', 'bg' => 'info-subtle', 'text' => 'info', 'icon' => 'ri-lock-unlock-line'],
-    'sealed' => ['label' => 'Chờ vận chuyển', 'bg' => 'warning-subtle', 'text' => 'warning', 'icon' => 'ri-time-line'],
+    'sealed' => ['label' => 'Chờ vận chuyển', 'bg' => 'secondary-subtle', 'text' => 'secondary', 'icon' => 'ri-time-line'],
     'loading' => ['label' => 'Đang xếp xe', 'bg' => 'secondary-subtle', 'text' => 'secondary', 'icon' => 'ri-truck-line'],
     'shipping' => ['label' => 'Đang vận chuyển', 'bg' => 'primary-subtle', 'text' => 'primary', 'icon' => 'ri-ship-line'],
     'arrived' => ['label' => 'Đã đến kho VN', 'bg' => 'success-subtle', 'text' => 'success', 'icon' => 'ri-check-double-line'],

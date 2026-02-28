@@ -24,6 +24,13 @@ $cntPacked = $ToryHub->num_rows_safe(
 );
 $totalPendingPkgs = $cntCnWarehouse + $cntPacked;
 
+$cntLoading = $ToryHub->num_rows_safe(
+    "SELECT p.id FROM `packages` p WHERE p.status = 'loading'", []
+);
+$cntShipping = $ToryHub->num_rows_safe(
+    "SELECT p.id FROM `packages` p WHERE p.status = 'shipping'", []
+);
+
 // === SEALED BAGS (retail packed) ===
 $sealedBags = [];
 $bagPkgIdsMap = [];
@@ -130,6 +137,24 @@ if ($filterType !== 'retail') {
 
 $totalRows = count($sealedBags) + count($wholesaleOrders);
 
+// === Package status distribution per wholesale order ===
+$pkgStatusMap = [];
+if (!empty($wholesaleOrders)) {
+    $woIds = array_column($wholesaleOrders, 'id');
+    $ph = implode(',', array_fill(0, count($woIds), '?'));
+    $pkgStatuses = $ToryHub->get_list_safe(
+        "SELECT po.order_id, p.status, COUNT(*) as cnt
+         FROM `package_orders` po
+         JOIN `packages` p ON po.package_id = p.id
+         WHERE po.order_id IN ($ph)
+         GROUP BY po.order_id, p.status",
+        $woIds
+    );
+    foreach ($pkgStatuses as $ps) {
+        $pkgStatusMap[$ps['order_id']][$ps['status']] = intval($ps['cnt']);
+    }
+}
+
 $customers = $ToryHub->get_list_safe("SELECT `id`, `customer_code`, `fullname` FROM `customers` ORDER BY `fullname` ASC", []);
 
 require_once(__DIR__.'/header.php');
@@ -190,7 +215,15 @@ require_once(__DIR__.'/sidebar.php');
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-                        <h5 class="card-title mb-0"><?= $page_title ?> (<?= $totalPendingPkgs ?> <?= __('kiện') ?> / <?= $totalRows ?> <?= __('dòng') ?>)</h5>
+                        <h5 class="card-title mb-0">
+                            <?= $page_title ?> (<?= $totalPendingPkgs ?> <?= __('kiện') ?> / <?= $totalRows ?> <?= __('dòng') ?>)
+                            <?php if ($cntLoading > 0): ?>
+                            <span class="badge bg-secondary-subtle text-secondary fs-12 px-2 py-1 ms-2"><i class="ri-truck-line me-1"></i><?= __('Đang xếp xe') ?>: <?= $cntLoading ?></span>
+                            <?php endif; ?>
+                            <?php if ($cntShipping > 0): ?>
+                            <span class="badge bg-primary-subtle text-primary fs-12 px-2 py-1 ms-1"><i class="ri-ship-line me-1"></i><?= __('Đang vận chuyển') ?>: <?= $cntShipping ?></span>
+                            <?php endif; ?>
+                        </h5>
                         <div class="d-flex align-items-center gap-2">
                             <button class="btn btn-success" id="btn-export-excel"><i class="ri-file-excel-2-line me-1"></i><?= __('Xuất Excel') ?></button>
                             <button class="btn btn-info" id="btn-load-truck"><i class="ri-truck-line me-1"></i><?= __('Xếp xe') ?></button>
@@ -344,7 +377,27 @@ require_once(__DIR__.'/sidebar.php');
                                         <td class="align-middle text-center"><strong><?= $pkgCount ?></strong></td>
                                         <td class="align-middle text-end"><?= $weight > 0 ? fnum($weight, 1) . ' kg' : '<span class="text-muted">-</span>' ?></td>
                                         <td class="align-middle text-end"><?= $cbm > 0 ? fnum($cbm, 2) . ' m&sup3;' : '<span class="text-muted">-</span>' ?></td>
-                                        <td class="align-middle"><span class="badge bg-info-subtle text-info" style="font-size:11px;"><?= __('Đã về kho Trung Quốc') ?>: <?= $pkgCount ?></span></td>
+                                        <td class="align-middle">
+                                            <?php
+                                            $opkgMap = $pkgStatusMap[$order['id']] ?? [];
+                                            $opkgLabels = [
+                                                'cn_warehouse' => ['label' => 'Đã về kho Trung Quốc', 'bg' => 'info'],
+                                                'packed'       => ['label' => 'Đã đóng bao', 'bg' => 'dark'],
+                                                'loading'      => ['label' => 'Đang xếp xe', 'bg' => 'secondary'],
+                                                'shipping'     => ['label' => 'Đang vận chuyển', 'bg' => 'primary'],
+                                                'vn_warehouse' => ['label' => 'Đã về kho Việt Nam', 'bg' => 'success'],
+                                                'delivered'    => ['label' => 'Đã giao hàng', 'bg' => 'success'],
+                                            ];
+                                            ?>
+                                            <div class="d-flex flex-column align-items-start gap-1">
+                                                <?php foreach ($opkgLabels as $st => $cfg):
+                                                    $cnt = $opkgMap[$st] ?? 0;
+                                                    if ($cnt > 0):
+                                                ?>
+                                                <span class="badge bg-<?= $cfg['bg'] ?>-subtle text-<?= $cfg['bg'] ?>" style="font-size:11px;"><?= __($cfg['label']) ?>: <?= $cnt ?></span>
+                                                <?php endif; endforeach; ?>
+                                            </div>
+                                        </td>
                                     </tr>
                                     <?php endforeach; ?>
                                 </tbody>
