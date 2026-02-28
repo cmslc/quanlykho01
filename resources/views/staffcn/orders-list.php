@@ -391,12 +391,12 @@ require_once(__DIR__.'/sidebar.php');
                                                 $opkgLabels = [
                                                     'cn_warehouse' => ['label' => 'Đã về kho Trung Quốc', 'bg' => 'info'],
                                                     'packed'       => ['label' => 'Đã đóng bao', 'bg' => 'dark'],
-                                                    'loading'      => ['label' => 'Đang xếp xe', 'bg' => 'warning'],
+                                                    'loading'      => ['label' => 'Đang xếp xe', 'bg' => 'secondary'],
                                                     'shipping'     => ['label' => 'Đang vận chuyển', 'bg' => 'primary'],
                                                     'vn_warehouse' => ['label' => 'Đã về kho Việt Nam', 'bg' => 'success'],
                                                     'delivered'    => ['label' => 'Đã giao hàng', 'bg' => 'success'],
                                                     'cancelled'    => ['label' => 'Đã hủy', 'bg' => 'danger'],
-                                                    'returned'     => ['label' => 'Hoàn hàng', 'bg' => 'warning'],
+                                                    'returned'     => ['label' => 'Hoàn hàng', 'bg' => 'secondary'],
                                                     'damaged'      => ['label' => 'Hỏng hàng', 'bg' => 'danger'],
                                                 ];
                                             ?>
