@@ -86,7 +86,8 @@ require_once(__DIR__.'/sidebar.php');
                                     <?php
                                         $cid = $cust['id'];
                                         $totalShip = $totalShipMap[$cid] ?? 0;
-                                        $debt = $cust['balance'] < 0 ? abs($cust['balance']) : 0;
+                                        $paid = floatval($cust['total_spent'] ?? 0);
+                                        $debt = max(0, $totalShip - $paid);
                                     ?>
                                     <tr>
                                         <td><strong><?= htmlspecialchars($cust['customer_code']) ?></strong></td>
