@@ -32,7 +32,6 @@ require_once(__DIR__.'/sidebar.php');
                 <div class="page-title-box d-sm-flex align-items-center justify-content-between">
                     <h4 class="mb-sm-0"><?= __('Chi tiết chuyến xe') ?>: <?= htmlspecialchars($shipment['shipment_code']) ?></h4>
                     <div class="d-flex gap-2">
-                        <a href="<?= base_url('ajaxs/admin/shipments-export.php?id=' . $id) ?>" class="btn btn-success" target="_blank"><i class="ri-file-excel-2-line me-1"></i><?= __('Xuất Excel') ?></a>
                         <a href="<?= base_url('admin/shipments-list') ?>" class="btn btn-secondary"><i class="ri-arrow-left-line me-1"></i><?= __('Quay lại') ?></a>
                     </div>
                 </div>
@@ -172,11 +171,12 @@ require_once(__DIR__.'/sidebar.php');
                         $grouped[$key]['pkgs'][] = $pkg;
                     }
                     ?>
-                    <div class="card-header">
+                    <div class="card-header d-flex align-items-center justify-content-between">
                         <h5 class="card-title mb-0">
                             <?= __('Danh sách mã hàng') ?>
                             <span class="text-muted fw-normal fs-13 ms-1">(<?= count($grouped) ?> <?= __('mã') ?> &mdash; <?= count($packages) ?> <?= __('kiện') ?>)</span>
                         </h5>
+                        <a href="<?= base_url('ajaxs/admin/shipments-export.php?id=' . $id) ?>" class="btn btn-success" target="_blank"><i class="ri-file-excel-2-line me-1"></i><?= __('Xuất Excel') ?></a>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">

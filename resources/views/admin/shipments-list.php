@@ -60,7 +60,6 @@ require_once(__DIR__.'/sidebar.php');
                 <div class="page-title-box d-sm-flex align-items-center justify-content-between">
                     <h4 class="mb-sm-0"><?= __('Danh sách chuyến xe') ?></h4>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-success" id="btn-export-excel"><i class="ri-file-excel-2-line me-1"></i><?= __('Xuất Excel') ?></button>
                         <button class="btn btn-primary" id="btn-create-shipment"><i class="ri-add-line me-1"></i><?= __('Tạo chuyến xe') ?></button>
                     </div>
                 </div>
@@ -104,8 +103,9 @@ require_once(__DIR__.'/sidebar.php');
         <div class="row">
             <div class="col-lg-12">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header d-flex align-items-center justify-content-between">
                         <h5 class="card-title mb-0"><?= __('Chuyến xe') ?> (<?= $totalShipments ?>)</h5>
+                        <button class="btn btn-success" id="btn-export-excel"><i class="ri-file-excel-2-line me-1"></i><?= __('Xuất Excel') ?></button>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
