@@ -61,11 +61,12 @@ $sidebarMenu = [
     [
         'label' => __('Tài chính'),
         'icon'  => 'ri-money-cny-circle-line',
-        'active' => ['transactions', 'transactions-add', 'finance-summary', 'salary-list', 'salary-detail', 'shipping-calculator'],
+        'active' => ['transactions', 'transactions-add', 'finance-summary', 'salary-list', 'salary-detail', 'shipping-calculator', 'expenses'],
         'children' => [
             ['label' => __('Tổng quan'),         'url' => base_url('admin/finance-summary'),       'active' => ['finance-summary']],
             ['label' => __('Tính cước'),         'url' => base_url('admin/shipping-calculator'),   'active' => ['shipping-calculator']],
-            ['label' => __('Giao dịch'),        'url' => base_url('admin/transactions'),          'active' => ['transactions', 'transactions-add']],
+            ['label' => __('Giao dịch'),         'url' => base_url('admin/transactions'),          'active' => ['transactions', 'transactions-add']],
+            ['label' => __('Chi phí vận hành'),  'url' => base_url('admin/expenses'),              'active' => ['expenses']],
             ['label' => __('Lương Nhân Viên'),   'url' => base_url('admin/salary-list'),           'active' => ['salary-list', 'salary-detail']],
         ],
     ],
