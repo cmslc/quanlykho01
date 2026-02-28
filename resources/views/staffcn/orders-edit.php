@@ -486,6 +486,8 @@ $(document).on('click', '.btn-remove-current-img', function(){
 // Submit
 $('#form-edit-order').on('submit', function(e){
     e.preventDefault();
+    var $btn = $('button[type=submit]', this);
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1" role="status"></span><?= __('Đang lưu...') ?>');
     var formData = new FormData(this);
     $.ajax({
         url: '<?= base_url('ajaxs/staffcn/orders.php') ?>',
@@ -500,9 +502,15 @@ $('#form-edit-order').on('submit', function(e){
                     window.location.href = '<?= base_url('staffcn/orders-detail&id=' . $order['id']) ?>';
                 });
             } else {
+                $btn.prop('disabled', false).html('<i class="ri-save-line"></i> <?= __('Cập nhật') ?>');
                 $('#alert-box').html('<div class="alert alert-danger">' + res.msg + '</div>');
                 $('html, body').animate({scrollTop: 0}, 300);
             }
+        },
+        error: function(){
+            $btn.prop('disabled', false).html('<i class="ri-save-line"></i> <?= __('Cập nhật') ?>');
+            $('#alert-box').html('<div class="alert alert-danger"><?= __('Lỗi kết nối, vui lòng thử lại') ?></div>');
+            $('html, body').animate({scrollTop: 0}, 300);
         }
     });
 });
