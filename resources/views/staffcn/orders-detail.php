@@ -151,8 +151,11 @@ require_once(__DIR__.'/sidebar.php');
             <div class="col-lg-8">
                 <!-- Packages -->
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0"><i class="ri-archive-line me-1"></i><?= __('Kiện hàng') ?> (<?= count($order_packages) ?>)</h5>
+                        <?php if (count($order_packages) > 1): ?>
+                        <button type="button" class="btn btn-sm btn-outline-secondary active" id="btn-toggle-group"><i class="ri-layout-grid-line me-1"></i><?= __('Nhóm kiện') ?></button>
+                        <?php endif; ?>
                     </div>
                     <div class="card-body">
                         <?php if (empty($order_packages)): ?>
@@ -180,7 +183,7 @@ require_once(__DIR__.'/sidebar.php');
                                                 $pkgGroups[$gKey]['pkgs'][] = $pkg;
                                             }
                                             ?>
-                                    <tbody>
+                                    <tbody id="tbody-grouped">
                                         <?php foreach ($pkgGroups as $grp):
                                             $gpkgs  = $grp['pkgs'];
                                             $first  = $gpkgs[0];
@@ -216,6 +219,26 @@ require_once(__DIR__.'/sidebar.php');
                                                 <?= display_package_status($st) ?><?= count($uniqueStatuses) > 1 ? '<br>' : '' ?>
                                                 <?php endforeach; ?>
                                             </td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                    <tbody id="tbody-ungrouped" class="d-none">
+                                        <?php foreach ($order_packages as $pkg):
+                                            $pkgVol = ($pkg['length_cm'] * $pkg['width_cm'] * $pkg['height_cm']) / 1000000;
+                                        ?>
+                                        <tr>
+                                            <td><strong><?= htmlspecialchars($pkg['package_code']) ?></strong></td>
+                                            <?php if ($isRetail): ?>
+                                            <td><?= htmlspecialchars($pkg['tracking_cn'] ?: '-') ?></td>
+                                            <?php endif; ?>
+                                            <td><?= floatval($pkg['weight_actual']) > 0 ? fnum($pkg['weight_actual'], 2) . ' kg' : '<span class="text-muted">N/A</span>' ?></td>
+                                            <td>
+                                                <?php if ($pkg['length_cm'] > 0 || $pkg['width_cm'] > 0 || $pkg['height_cm'] > 0): ?>
+                                                <?= $pkg['length_cm'] ?>x<?= $pkg['width_cm'] ?>x<?= $pkg['height_cm'] ?> cm
+                                                <?php else: ?><span class="text-muted">N/A</span><?php endif; ?>
+                                            </td>
+                                            <td><?= $pkgVol > 0 ? number_format($pkgVol, 4, '.', '') : '<span class="text-muted">N/A</span>' ?></td>
+                                            <td><?= display_package_status($pkg['status']) ?></td>
                                         </tr>
                                         <?php endforeach; ?>
                                     </tbody>
@@ -371,16 +394,26 @@ require_once(__DIR__.'/sidebar.php');
 </div>
 
 <script>
-$(document).ready(function(){
-    if($('#tbl-packages tbody tr').length > 0){
-        $('#tbl-packages').DataTable({
-            pageLength: 10,
-            ordering: false,
-            responsive: true,
-            language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json' }
-        });
+<?php if (count($order_packages) > 1): ?>
+var pkgGrouped = localStorage.getItem('pkg_view_detail_<?= $order['id'] ?>') !== 'ungrouped';
+function applyPkgView() {
+    if (pkgGrouped) {
+        $('#tbody-grouped').show();
+        $('#tbody-ungrouped').hide();
+        $('#btn-toggle-group').addClass('active').html('<i class="ri-layout-grid-line me-1"></i><?= __('Nhóm kiện') ?>');
+    } else {
+        $('#tbody-ungrouped').show();
+        $('#tbody-grouped').hide();
+        $('#btn-toggle-group').removeClass('active').html('<i class="ri-list-unordered me-1"></i><?= __('Riêng lẻ') ?>');
     }
+}
+$('#btn-toggle-group').on('click', function() {
+    pkgGrouped = !pkgGrouped;
+    localStorage.setItem('pkg_view_detail_<?= $order['id'] ?>', pkgGrouped ? 'grouped' : 'ungrouped');
+    applyPkgView();
 });
+applyPkgView();
+<?php endif; ?>
 
 var popupImages = [];
 var popupIndex = 0;
