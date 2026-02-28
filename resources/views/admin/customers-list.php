@@ -70,7 +70,7 @@ require_once(__DIR__.'/sidebar.php');
                             <table class="table data-table table-hover mb-0">
                                 <thead>
                                     <tr>
-                                        <th><?= __('Mã KH') ?></th>
+                                        <th>#</th>
                                         <th><?= __('Họ tên') ?></th>
                                         <th><?= __('Điện thoại') ?></th>
                                         <th><?= __('Loại') ?></th>
@@ -82,7 +82,7 @@ require_once(__DIR__.'/sidebar.php');
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($customers as $cust): ?>
+                                    <?php $stt = 0; foreach ($customers as $cust): $stt++; ?>
                                     <?php
                                         $cid = $cust['id'];
                                         $totalShip = $totalShipMap[$cid] ?? 0;
@@ -90,7 +90,7 @@ require_once(__DIR__.'/sidebar.php');
                                         $debt = max(0, $totalShip - $paid);
                                     ?>
                                     <tr>
-                                        <td><strong><?= htmlspecialchars($cust['customer_code']) ?></strong></td>
+                                        <td><?= $stt ?></td>
                                         <td><?= htmlspecialchars($cust['fullname']) ?></td>
                                         <td><?= htmlspecialchars($cust['phone'] ?? '') ?></td>
                                         <td><?= display_customer_type($cust['customer_type']) ?></td>
