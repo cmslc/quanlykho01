@@ -196,6 +196,9 @@ require_once(__DIR__.'/sidebar.php');
                                         <td><?= htmlspecialchars($exp['created_by_name'] ?? '') ?></td>
                                         <td><?= $exp['create_date'] ?></td>
                                         <td>
+                                            <button class="btn btn-sm btn-soft-info btn-edit-expense" data-id="<?= $exp['id'] ?>" data-category="<?= htmlspecialchars($exp['category']) ?>" data-amount="<?= $exp['amount'] ?>" data-date="<?= $exp['expense_date'] ?>" data-description="<?= htmlspecialchars($exp['description'] ?? '') ?>">
+                                                <i class="ri-pencil-line"></i>
+                                            </button>
                                             <button class="btn btn-sm btn-soft-danger btn-delete-expense" data-id="<?= $exp['id'] ?>">
                                                 <i class="ri-delete-bin-line"></i>
                                             </button>
@@ -253,10 +256,93 @@ require_once(__DIR__.'/sidebar.php');
             </div>
         </div>
 
+        <!-- Modal Edit Expense -->
+        <div class="modal fade" id="modalEditExpense" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><?= __('Sửa chi phí') ?></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="form-edit-expense">
+                        <input type="hidden" name="<?= $csrf->get_token_name() ?>" value="<?= $csrf->get_token_value() ?>">
+                        <input type="hidden" name="request_name" value="edit">
+                        <input type="hidden" name="id" id="edit-id">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label"><?= __('Danh mục') ?> <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="category" id="edit-category" list="cat-suggestions-edit" placeholder="<?= __('VD: Thuê mặt bằng, Điện nước...') ?>" required>
+                                <datalist id="cat-suggestions-edit">
+                                    <?php foreach ($catList as $c): ?>
+                                    <option value="<?= htmlspecialchars($c) ?>">
+                                    <?php endforeach; ?>
+                                </datalist>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label"><?= __('Số tiền') ?> <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="amount" id="edit-amount" min="0" step="1000" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label"><?= __('Ngày chi') ?> <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" name="expense_date" id="edit-expense-date" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label"><?= __('Mô tả') ?></label>
+                                <textarea class="form-control" name="description" id="edit-description" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= __('Hủy') ?></button>
+                            <button type="submit" class="btn btn-primary"><?= __('Lưu') ?></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
 <script>
 $(function() {
     // Add expense
     $('#form-add-expense').on('submit', function(e) {
+        e.preventDefault();
+        var $btn = $('button[type=submit]', this);
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1" role="status"></span><?= __('Đang lưu...') ?>');
+
+        $.ajax({
+            url: '<?= base_url('ajaxs/staffcn/expenses.php') ?>',
+            type: 'POST',
+            data: $(this).serialize(),
+            dataType: 'json',
+            success: function(res) {
+                if (res.status === 'success') {
+                    Swal.fire({icon: 'success', title: res.msg, timer: 1500, showConfirmButton: false}).then(function() {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({icon: 'error', title: res.msg});
+                }
+            },
+            error: function() {
+                Swal.fire({icon: 'error', title: '<?= __('Lỗi kết nối') ?>'});
+            },
+            complete: function() {
+                $btn.prop('disabled', false).html('<?= __('Lưu') ?>');
+            }
+        });
+    });
+
+    // Edit expense - open modal
+    $(document).on('click', '.btn-edit-expense', function() {
+        $('#edit-id').val($(this).data('id'));
+        $('#edit-category').val($(this).data('category'));
+        $('#edit-amount').val($(this).data('amount'));
+        $('#edit-expense-date').val($(this).data('date'));
+        $('#edit-description').val($(this).data('description'));
+        $('#modalEditExpense').modal('show');
+    });
+
+    // Edit expense - submit
+    $('#form-edit-expense').on('submit', function(e) {
         e.preventDefault();
         var $btn = $('button[type=submit]', this);
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1" role="status"></span><?= __('Đang lưu...') ?>');

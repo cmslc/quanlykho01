@@ -66,6 +66,46 @@ if ($request === 'add') {
     exit();
 }
 
+// EDIT EXPENSE
+if ($request === 'edit') {
+    $id = intval(input_post('id'));
+    $category = check_string(input_post('category'));
+    $amount = floatval(input_post('amount'));
+    $expense_date = check_string(input_post('expense_date'));
+    $description = trim(input_post('description'));
+
+    if ($id <= 0) {
+        echo json_encode(['status' => 'error', 'msg' => __('ID không hợp lệ')]);
+        exit();
+    }
+
+    if (empty($category)) {
+        echo json_encode(['status' => 'error', 'msg' => __('Vui lòng nhập danh mục')]);
+        exit();
+    }
+
+    if ($amount <= 0) {
+        echo json_encode(['status' => 'error', 'msg' => __('Số tiền phải lớn hơn 0')]);
+        exit();
+    }
+
+    if (empty($expense_date)) {
+        echo json_encode(['status' => 'error', 'msg' => __('Vui lòng chọn ngày chi')]);
+        exit();
+    }
+
+    $ToryHub->update_safe('expenses', [
+        'category'     => $category,
+        'amount'       => $amount,
+        'description'  => $description,
+        'expense_date' => $expense_date,
+    ], "`id` = ?", [$id]);
+
+    add_log($getUser['id'], 'EDIT_EXPENSE', "Edited expense ID: $id - $category - $amount");
+    echo json_encode(['status' => 'success', 'msg' => __('Cập nhật chi phí thành công')]);
+    exit();
+}
+
 // DELETE EXPENSE
 if ($request === 'delete') {
     $id = intval(input_post('id'));
