@@ -38,14 +38,11 @@ require_once(__DIR__.'/sidebar.php');
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label"><?= __('Khách hàng') ?> <span class="text-danger">*</span></label>
-                                        <select class="form-select" name="customer_id" id="sel-customer" required>
-                                            <option value=""><?= __('-- Chọn khách hàng --') ?></option>
-                                            <?php foreach ($customers as $c): ?>
-                                            <option value="<?= $c['id'] ?>" data-balance="<?= $c['balance'] ?>" <?= $preselect_customer == $c['id'] ? 'selected' : '' ?>>
-                                                <?= htmlspecialchars($c['customer_code'] . ' - ' . $c['fullname']) ?> (<?= format_vnd($c['balance']) ?>)
-                                            </option>
-                                            <?php endforeach; ?>
-                                        </select>
+                                        <input type="hidden" name="customer_id" id="sel-customer" value="<?= htmlspecialchars($preselect_customer) ?>">
+                                        <div class="position-relative" id="customer-search-wrap">
+                                            <input type="text" class="form-control" id="customer-search" placeholder="<?= __('Gõ mã KH hoặc tên để tìm...') ?>" autocomplete="off">
+                                            <div class="dropdown-menu w-100 shadow" id="customer-dropdown" style="max-height:250px;overflow-y:auto;"></div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -135,10 +132,48 @@ require_once(__DIR__.'/sidebar.php');
 <?php require_once(__DIR__.'/footer.php'); ?>
 
 <script>
-var customersData = {};
+var customersList = [
 <?php foreach ($customers as $c): ?>
-customersData[<?= $c['id'] ?>] = {name: '<?= addslashes($c['customer_code'] . ' - ' . $c['fullname']) ?>', balance: <?= $c['balance'] ?>};
+{id:<?= $c['id'] ?>, code:'<?= addslashes($c['customer_code']) ?>', name:'<?= addslashes($c['fullname']) ?>', balance:<?= $c['balance'] ?>},
 <?php endforeach; ?>
+];
+var customersData = {};
+customersList.forEach(function(c){ customersData[c.id] = {name: c.code + ' - ' + c.name, balance: c.balance}; });
+
+var formatVND = function(n) { return new Intl.NumberFormat('vi-VN').format(Math.round(n)) + 'đ'; };
+
+// Customer search
+function renderCustomerDropdown(keyword) {
+    var dd = $('#customer-dropdown');
+    dd.empty();
+    var kw = (keyword || '').toLowerCase();
+    var filtered = customersList.filter(function(c){
+        return !kw || c.code.toLowerCase().indexOf(kw) !== -1 || c.name.toLowerCase().indexOf(kw) !== -1;
+    }).slice(0, 20);
+    if (!filtered.length) { dd.hide(); return; }
+    filtered.forEach(function(c){
+        var balCls = c.balance < 0 ? 'text-danger' : 'text-success';
+        dd.append('<a href="#" class="dropdown-item customer-option" data-id="'+c.id+'"><strong>'+c.code+'</strong> - '+c.name+' <span class="'+balCls+'">('+formatVND(c.balance)+')</span></a>');
+    });
+    dd.show();
+}
+function selectCustomer(id) {
+    var c = customersData[id];
+    if (!c) return;
+    $('#sel-customer').val(id);
+    $('#customer-search').val(c.name);
+    $('#customer-dropdown').hide();
+    updatePreview();
+}
+$('#customer-search').on('input', function(){ renderCustomerDropdown($(this).val()); });
+$('#customer-search').on('focus', function(){ renderCustomerDropdown($(this).val()); });
+$(document).on('click', '.customer-option', function(e){ e.preventDefault(); selectCustomer($(this).data('id')); });
+$(document).on('click', function(e){ if (!$(e.target).closest('#customer-search-wrap').length) $('#customer-dropdown').hide(); });
+
+// Preselect
+<?php if ($preselect_customer): ?>
+selectCustomer(<?= intval($preselect_customer) ?>);
+<?php endif; ?>
 
 function updatePreview() {
     var custId = $('#sel-customer').val();
@@ -168,8 +203,6 @@ function updatePreview() {
         balanceAfter = balanceBefore + amount;
         sign = '±';
     }
-
-    var formatVND = function(n) { return new Intl.NumberFormat('vi-VN').format(Math.round(n)) + 'đ'; };
 
     $('#cust-name').text(cust.name);
     $('#cust-balance').text(formatVND(balanceBefore)).removeClass('text-success text-danger').addClass(balanceBefore >= 0 ? 'text-success' : 'text-danger');
