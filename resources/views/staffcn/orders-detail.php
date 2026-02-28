@@ -398,12 +398,12 @@ require_once(__DIR__.'/sidebar.php');
 var pkgGrouped = localStorage.getItem('pkg_view_detail_<?= $order['id'] ?>') === 'grouped';
 function applyPkgView() {
     if (pkgGrouped) {
-        $('#tbody-grouped').show();
-        $('#tbody-ungrouped').hide();
+        $('#tbody-grouped').removeClass('d-none');
+        $('#tbody-ungrouped').addClass('d-none');
         $('#btn-toggle-group').addClass('active').html('<i class="ri-layout-grid-line me-1"></i><?= __('Nhóm kiện') ?>');
     } else {
-        $('#tbody-ungrouped').show();
-        $('#tbody-grouped').hide();
+        $('#tbody-ungrouped').removeClass('d-none');
+        $('#tbody-grouped').addClass('d-none');
         $('#btn-toggle-group').removeClass('active').html('<i class="ri-list-unordered me-1"></i><?= __('Riêng lẻ') ?>');
     }
 }

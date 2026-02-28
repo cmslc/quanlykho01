@@ -589,12 +589,12 @@ $('#btn-create-package').on('click', function(){
 var pkgGrouped = localStorage.getItem('pkg_view_<?= $order['id'] ?>') === 'grouped';
 function applyPkgView() {
     if (pkgGrouped) {
-        $('#tbody-grouped').show().find('input,textarea,select').prop('disabled', false);
-        $('#tbody-ungrouped').hide().find('input,textarea,select').prop('disabled', true);
+        $('#tbody-grouped').removeClass('d-none').find('input,textarea,select').prop('disabled', false);
+        $('#tbody-ungrouped').addClass('d-none').find('input,textarea,select').prop('disabled', true);
         $('#btn-toggle-group').addClass('active').html('<i class="ri-layout-grid-line me-1"></i><?= __('Nhóm kiện') ?>');
     } else {
-        $('#tbody-ungrouped').show().find('input,textarea,select').prop('disabled', false);
-        $('#tbody-grouped').hide().find('input,textarea,select').prop('disabled', true);
+        $('#tbody-ungrouped').removeClass('d-none').find('input,textarea,select').prop('disabled', false);
+        $('#tbody-grouped').addClass('d-none').find('input,textarea,select').prop('disabled', true);
         $('#btn-toggle-group').removeClass('active').html('<i class="ri-list-unordered me-1"></i><?= __('Riêng lẻ') ?>');
     }
     toggleWeightExclusive();
