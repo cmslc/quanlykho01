@@ -97,8 +97,13 @@ if ($request === 'add') {
             'update_date' => gettime()
         ], "id = ?", [$customer_id]);
 
-        // If payment linked to order, update customer total_spent
-        if ($type === 'payment') {
+        // Update total_spent (Đã thanh toán)
+        if ($type === 'deposit' || $type === 'payment') {
+            $ToryHub->cong_safe("customers", "total_spent", $amount, "id = ?", [$customer_id]);
+        } elseif ($type === 'refund') {
+            $newTotalSpent = max(0, floatval($customer['total_spent']) - $amount);
+            $ToryHub->update_safe("customers", ['total_spent' => $newTotalSpent], "id = ?", [$customer_id]);
+        } elseif ($type === 'adjustment') {
             $ToryHub->cong_safe("customers", "total_spent", $amount, "id = ?", [$customer_id]);
         }
 
@@ -176,10 +181,14 @@ if ($request === 'edit') {
             'update_date' => gettime()
         ], "`id` = ?", [$txn['customer_id']]);
 
-        // Adjust total_spent for payment type
-        if ($type === 'payment') {
+        // Adjust total_spent
+        if ($type === 'deposit' || $type === 'payment' || $type === 'adjustment') {
             $oldSpent = abs($oldAmount);
             $newTotalSpent = max(0, floatval($customer['total_spent']) - $oldSpent + $amount);
+            $ToryHub->update_safe("customers", ['total_spent' => $newTotalSpent], "`id` = ?", [$txn['customer_id']]);
+        } elseif ($type === 'refund') {
+            $oldRefund = abs($oldAmount);
+            $newTotalSpent = max(0, floatval($customer['total_spent']) + $oldRefund - $amount);
             $ToryHub->update_safe("customers", ['total_spent' => $newTotalSpent], "`id` = ?", [$txn['customer_id']]);
         }
 
@@ -223,9 +232,12 @@ if ($request === 'delete') {
             'update_date' => gettime()
         ], "`id` = ?", [$txn['customer_id']]);
 
-        // Reverse total_spent for payment type
-        if ($txn['type'] === 'payment') {
+        // Reverse total_spent
+        if ($txn['type'] === 'deposit' || $txn['type'] === 'payment' || $txn['type'] === 'adjustment') {
             $newTotalSpent = max(0, floatval($customer['total_spent']) - abs(floatval($txn['amount'])));
+            $ToryHub->update_safe("customers", ['total_spent' => $newTotalSpent], "`id` = ?", [$txn['customer_id']]);
+        } elseif ($txn['type'] === 'refund') {
+            $newTotalSpent = floatval($customer['total_spent']) + abs(floatval($txn['amount']));
             $ToryHub->update_safe("customers", ['total_spent' => $newTotalSpent], "`id` = ?", [$txn['customer_id']]);
         }
 

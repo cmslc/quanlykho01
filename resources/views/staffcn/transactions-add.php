@@ -5,7 +5,7 @@ require_once(__DIR__.'/../../../libs/csrf.php');
 
 $page_title = __('Tạo giao dịch');
 
-$customers = $ToryHub->get_list_safe("SELECT `id`, `customer_code`, `fullname`, `balance` FROM `customers` ORDER BY `fullname` ASC", []);
+$customers = $ToryHub->get_list_safe("SELECT `id`, `customer_code`, `fullname`, `balance`, `total_spent` FROM `customers` ORDER BY `fullname` ASC", []);
 $preselect_customer = input_get('customer_id') ?: '';
 $preselect_order = input_get('order_id') ?: '';
 $preselect_type = input_get('type') ?: 'deposit';
@@ -99,19 +99,19 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="card-body">
                         <div class="mb-3">
                             <span class="badge bg-success"><?= __('Nạp tiền') ?></span>
-                            <p class="text-muted mb-0 mt-1"><?= __('Khách hàng chuyển tiền vào tài khoản. Số dư tăng.') ?></p>
+                            <p class="text-muted mb-0 mt-1"><?= __('Khách chuyển tiền vào. Đã TT tăng, nợ giảm.') ?></p>
                         </div>
                         <div class="mb-3">
                             <span class="badge bg-primary"><?= __('Thanh toán') ?></span>
-                            <p class="text-muted mb-0 mt-1"><?= __('Thanh toán đơn hàng. Số dư giảm.') ?></p>
+                            <p class="text-muted mb-0 mt-1"><?= __('Thanh toán cước vận chuyển. Đã TT tăng, nợ giảm.') ?></p>
                         </div>
                         <div class="mb-3">
                             <span class="badge bg-warning"><?= __('Hoàn tiền') ?></span>
-                            <p class="text-muted mb-0 mt-1"><?= __('Hoàn tiền khi hủy đơn/lỗi. Số dư tăng.') ?></p>
+                            <p class="text-muted mb-0 mt-1"><?= __('Hoàn tiền khi hủy đơn/lỗi. Đã TT giảm, nợ tăng.') ?></p>
                         </div>
                         <div class="mb-3">
                             <span class="badge bg-info"><?= __('Điều chỉnh') ?></span>
-                            <p class="text-muted mb-0 mt-1"><?= __('Điều chỉnh số dư. Có thể tăng hoặc giảm.') ?></p>
+                            <p class="text-muted mb-0 mt-1"><?= __('Điều chỉnh số đã thanh toán.') ?></p>
                         </div>
                     </div>
                 </div>
@@ -122,8 +122,8 @@ require_once(__DIR__.'/sidebar.php');
                     </div>
                     <div class="card-body">
                         <p class="mb-1"><strong id="cust-name"></strong></p>
-                        <p class="mb-1"><?= __('Số dư hiện tại') ?>: <span class="fw-bold" id="cust-balance"></span></p>
-                        <p class="mb-0"><?= __('Số dư sau giao dịch') ?>: <span class="fw-bold fs-16" id="cust-balance-after"></span></p>
+                        <p class="mb-1"><?= __('Đã thanh toán') ?>: <span class="fw-bold" id="cust-paid"></span></p>
+                        <p class="mb-0"><?= __('Sau giao dịch') ?>: <span class="fw-bold fs-16" id="cust-paid-after"></span></p>
                     </div>
                 </div>
             </div>
@@ -134,11 +134,11 @@ require_once(__DIR__.'/sidebar.php');
 <script>
 var customersList = [
 <?php foreach ($customers as $c): ?>
-{id:<?= $c['id'] ?>, code:'<?= addslashes($c['customer_code']) ?>', name:'<?= addslashes($c['fullname']) ?>', balance:<?= $c['balance'] ?>},
+{id:<?= $c['id'] ?>, code:'<?= addslashes($c['customer_code']) ?>', name:'<?= addslashes($c['fullname']) ?>', balance:<?= $c['balance'] ?>, totalSpent:<?= floatval($c['total_spent']) ?>},
 <?php endforeach; ?>
 ];
 var customersData = {};
-customersList.forEach(function(c){ customersData[c.id] = {name: c.code + ' - ' + c.name, balance: c.balance}; });
+customersList.forEach(function(c){ customersData[c.id] = {name: c.code + ' - ' + c.name, balance: c.balance, totalSpent: c.totalSpent}; });
 
 var formatVND = function(n) { return new Intl.NumberFormat('vi-VN').format(Math.round(n)) + 'đ'; };
 
@@ -189,27 +189,24 @@ function updatePreview() {
     var cust = customersData[custId];
     if (!cust) return;
 
-    var balanceBefore = cust.balance;
-    var balanceAfter = balanceBefore;
+    var paidBefore = cust.totalSpent;
+    var paidAfter = paidBefore;
     var sign = '';
 
-    if (type === 'deposit' || type === 'refund') {
-        balanceAfter = balanceBefore + amount;
+    if (type === 'deposit' || type === 'payment' || type === 'adjustment') {
+        paidAfter = paidBefore + amount;
         sign = '+';
-    } else if (type === 'payment') {
-        balanceAfter = balanceBefore - amount;
+    } else if (type === 'refund') {
+        paidAfter = Math.max(0, paidBefore - amount);
         sign = '-';
-    } else {
-        balanceAfter = balanceBefore + amount;
-        sign = '±';
     }
 
     $('#cust-name').text(cust.name);
-    $('#cust-balance').text(formatVND(balanceBefore)).removeClass('text-success text-danger').addClass(balanceBefore >= 0 ? 'text-success' : 'text-danger');
-    $('#cust-balance-after').text(formatVND(balanceAfter)).removeClass('text-success text-danger').addClass(balanceAfter >= 0 ? 'text-success' : 'text-danger');
+    $('#cust-paid').text(formatVND(paidBefore)).removeClass('text-success text-danger').addClass('text-success');
+    $('#cust-paid-after').text(formatVND(paidAfter)).removeClass('text-success text-danger').addClass('text-success');
     $('#customer-info-card').show();
 
-    $('#preview-text').text(cust.name + ': ' + formatVND(balanceBefore) + ' ' + sign + ' ' + formatVND(amount) + ' = ' + formatVND(balanceAfter));
+    $('#preview-text').text(cust.name + ': <?= __('Đã TT') ?> ' + formatVND(paidBefore) + ' ' + sign + ' ' + formatVND(amount) + ' = ' + formatVND(paidAfter));
     $('#preview-box').show();
 }
 
