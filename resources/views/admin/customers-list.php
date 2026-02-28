@@ -44,6 +44,25 @@ foreach ($orderShipData as $od) {
     $totalShipMap[$cid] += $cost;
 }
 
+// KPI totals
+$kpiTotalCustomers = count($customers);
+$kpiTotalOrders = 0;
+$kpiTotalShip = 0;
+$kpiTotalPaid = 0;
+$kpiTotalDebt = 0;
+$kpiCustomersWithDebt = 0;
+foreach ($customers as $c) {
+    $cid = $c['id'];
+    $ship = $totalShipMap[$cid] ?? 0;
+    $paid = floatval($c['total_spent'] ?? 0);
+    $debt = max(0, $ship - $paid);
+    $kpiTotalOrders += intval($c['total_orders'] ?? 0);
+    $kpiTotalShip += $ship;
+    $kpiTotalPaid += $paid;
+    $kpiTotalDebt += $debt;
+    if ($debt > 0) $kpiCustomersWithDebt++;
+}
+
 require_once(__DIR__.'/header.php');
 require_once(__DIR__.'/sidebar.php');
 ?>
@@ -52,6 +71,85 @@ require_once(__DIR__.'/sidebar.php');
             <div class="col-12">
                 <div class="page-title-box d-sm-flex align-items-center justify-content-between">
                     <h4 class="mb-sm-0"><?= __('Quản lý khách hàng') ?></h4>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="row">
+            <div class="col-xl-2 col-md-4">
+                <div class="card card-animate">
+                    <div class="card-body">
+                        <div class="d-flex align-items-end justify-content-between mt-2">
+                            <div>
+                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Khách hàng') ?></p>
+                                <h4 class="fs-22 fw-semibold mt-4 mb-0"><?= $kpiTotalCustomers ?></h4>
+                            </div>
+                            <div class="avatar-sm flex-shrink-0">
+                                <span class="avatar-title bg-info-subtle rounded fs-3"><i class="ri-user-line text-info"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4">
+                <div class="card card-animate">
+                    <div class="card-body">
+                        <div class="d-flex align-items-end justify-content-between mt-2">
+                            <div>
+                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Đơn hàng') ?></p>
+                                <h4 class="fs-22 fw-semibold mt-4 mb-0"><?= $kpiTotalOrders ?></h4>
+                            </div>
+                            <div class="avatar-sm flex-shrink-0">
+                                <span class="avatar-title bg-primary-subtle rounded fs-3"><i class="ri-shopping-bag-line text-primary"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-4">
+                <div class="card card-animate">
+                    <div class="card-body">
+                        <div class="d-flex align-items-end justify-content-between mt-2">
+                            <div>
+                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Tổng cước') ?></p>
+                                <h4 class="fs-22 fw-semibold mt-4 mb-0 text-primary"><?= format_vnd($kpiTotalShip) ?></h4>
+                            </div>
+                            <div class="avatar-sm flex-shrink-0">
+                                <span class="avatar-title bg-primary-subtle rounded fs-3"><i class="ri-truck-line text-primary"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4">
+                <div class="card card-animate">
+                    <div class="card-body">
+                        <div class="d-flex align-items-end justify-content-between mt-2">
+                            <div>
+                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Đã thanh toán') ?></p>
+                                <h4 class="fs-22 fw-semibold mt-4 mb-0 text-success"><?= format_vnd($kpiTotalPaid) ?></h4>
+                            </div>
+                            <div class="avatar-sm flex-shrink-0">
+                                <span class="avatar-title bg-success-subtle rounded fs-3"><i class="ri-checkbox-circle-line text-success"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-4">
+                <div class="card card-animate">
+                    <div class="card-body">
+                        <div class="d-flex align-items-end justify-content-between mt-2">
+                            <div>
+                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Tổng nợ') ?> (<?= $kpiCustomersWithDebt ?> KH)</p>
+                                <h4 class="fs-22 fw-semibold mt-4 mb-0 text-danger"><?= format_vnd($kpiTotalDebt) ?></h4>
+                            </div>
+                            <div class="avatar-sm flex-shrink-0">
+                                <span class="avatar-title bg-danger-subtle rounded fs-3"><i class="ri-error-warning-line text-danger"></i></span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
