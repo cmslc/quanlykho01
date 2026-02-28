@@ -5,47 +5,16 @@ require_once(__DIR__.'/../../../libs/csrf.php');
 $page_title = __('Quản lý khách hàng');
 $customers = $ToryHub->get_list_safe("SELECT * FROM `customers` ORDER BY `id` DESC", []);
 
-// Số kiện đang xử lý (chưa delivered/returned/damaged) theo customer
-$pendingPkgData = $ToryHub->get_list_safe(
-    "SELECT o.customer_id, COUNT(p.id) as cnt
-     FROM `packages` p
-     JOIN `package_orders` po ON p.id = po.package_id
-     JOIN `orders` o ON po.order_id = o.id
-     WHERE p.status NOT IN ('delivered','returned','damaged')
-     GROUP BY o.customer_id", []
-);
-$pendingPkgMap = [];
-foreach ($pendingPkgData as $pp) {
-    $pendingPkgMap[$pp['customer_id']] = intval($pp['cnt']);
-}
-
-// Cước chưa thanh toán theo customer
-$unpaidData = $ToryHub->get_list_safe(
-    "SELECT customer_id, SUM(grand_total) as unpaid_total
+// Tổng cước vận chuyển (đã TT + chưa TT) theo customer
+$totalShipData = $ToryHub->get_list_safe(
+    "SELECT customer_id, SUM(shipping_fee_cn + shipping_fee_intl) as ship_total
      FROM `orders`
-     WHERE is_paid = 0 AND status != 'cancelled'
+     WHERE status != 'cancelled'
      GROUP BY customer_id", []
 );
-$unpaidMap = [];
-foreach ($unpaidData as $ud) {
-    $unpaidMap[$ud['customer_id']] = floatval($ud['unpaid_total']);
-}
-
-// Cước vận chuyển của kiện/mã hàng đã nhập kho (cn_warehouse trở đi, chưa giao)
-$warehouseShipData = $ToryHub->get_list_safe(
-    "SELECT o.customer_id,
-        SUM(o.shipping_fee_cn + o.shipping_fee_intl) as ship_total
-     FROM `orders` o
-     WHERE o.id IN (
-         SELECT DISTINCT po.order_id FROM `package_orders` po
-         JOIN `packages` p ON po.package_id = p.id
-         WHERE p.status IN ('cn_warehouse','packed','loading','shipping','vn_warehouse')
-     ) AND o.status != 'cancelled'
-     GROUP BY o.customer_id", []
-);
-$warehouseShipMap = [];
-foreach ($warehouseShipData as $ws) {
-    $warehouseShipMap[$ws['customer_id']] = floatval($ws['ship_total']);
+$totalShipMap = [];
+foreach ($totalShipData as $ts) {
+    $totalShipMap[$ts['customer_id']] = floatval($ts['ship_total']);
 }
 
 require_once(__DIR__.'/header.php');
@@ -79,11 +48,9 @@ require_once(__DIR__.'/sidebar.php');
                                         <th><?= __('Điện thoại') ?></th>
                                         <th><?= __('Loại') ?></th>
                                         <th><?= __('Đơn') ?></th>
-                                        <th><?= __('Kiện đang xử lý') ?></th>
-                                        <th><?= __('Cước tại kho') ?></th>
-                                        <th><?= __('Đã chi tiêu') ?></th>
-                                        <th><?= __('Chưa thanh toán') ?></th>
-                                        <th><?= __('Số dư') ?></th>
+                                        <th><?= __('Tổng cước') ?></th>
+                                        <th><?= __('Đã thanh toán') ?></th>
+                                        <th><?= __('Đang nợ') ?></th>
                                         <th><?= __('Hành động') ?></th>
                                     </tr>
                                 </thead>
@@ -91,9 +58,8 @@ require_once(__DIR__.'/sidebar.php');
                                     <?php foreach ($customers as $cust): ?>
                                     <?php
                                         $cid = $cust['id'];
-                                        $pendingPkgs = $pendingPkgMap[$cid] ?? 0;
-                                        $unpaidAmount = $unpaidMap[$cid] ?? 0;
-                                        $warehouseShip = $warehouseShipMap[$cid] ?? 0;
+                                        $totalShip = $totalShipMap[$cid] ?? 0;
+                                        $debt = $cust['balance'] < 0 ? abs($cust['balance']) : 0;
                                     ?>
                                     <tr>
                                         <td><strong><?= htmlspecialchars($cust['customer_code']) ?></strong></td>
@@ -101,29 +67,15 @@ require_once(__DIR__.'/sidebar.php');
                                         <td><?= htmlspecialchars($cust['phone'] ?? '') ?></td>
                                         <td><?= display_customer_type($cust['customer_type']) ?></td>
                                         <td><span class="badge bg-info-subtle text-info"><?= $cust['total_orders'] ?></span></td>
-                                        <td>
-                                            <?php if ($pendingPkgs > 0): ?>
-                                            <span class="badge bg-warning-subtle text-warning"><?= $pendingPkgs ?></span>
-                                            <?php else: ?>
-                                            <span class="text-muted">0</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <?php if ($warehouseShip > 0): ?>
-                                            <span class="text-primary fw-bold"><?= format_vnd($warehouseShip) ?></span>
-                                            <?php else: ?>
-                                            <span class="text-muted">0 ₫</span>
-                                            <?php endif; ?>
-                                        </td>
+                                        <td class="text-primary fw-bold"><?= format_vnd($totalShip) ?></td>
                                         <td class="text-success"><?= format_vnd($cust['total_spent']) ?></td>
                                         <td>
-                                            <?php if ($unpaidAmount > 0): ?>
-                                            <span class="text-danger fw-bold"><?= format_vnd($unpaidAmount) ?></span>
+                                            <?php if ($debt > 0): ?>
+                                            <span class="text-danger fw-bold"><?= format_vnd($debt) ?></span>
                                             <?php else: ?>
                                             <span class="text-muted">0 ₫</span>
                                             <?php endif; ?>
                                         </td>
-                                        <td class="<?= $cust['balance'] < 0 ? 'text-danger fw-bold' : 'text-success' ?>"><?= format_vnd($cust['balance']) ?></td>
                                         <td>
                                             <div class="d-flex gap-1">
                                                 <a href="<?= base_url('admin/customers-detail&id=' . $cust['id']) ?>" class="btn btn-sm btn-info" title="<?= __('Chi tiết') ?>">
