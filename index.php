@@ -15,14 +15,6 @@ $module = !empty($_GET['module']) ? check_path($_GET['module']) : 'admin';
 $home = 'home';
 $action = !empty($_GET['action']) ? check_path($_GET['action']) : $home;
 
-// Maintenance mode check (only for customer module)
-if ($module == 'customer') {
-    if ($ToryHub->site('status') != 1 && !isset($_SESSION['admin_login'])) {
-        require_once(__DIR__.'/resources/views/common/maintenance.php');
-        exit();
-    }
-}
-
 // Block access to layout files
 $blocked_actions = ['footer', 'header', 'sidebar', 'nav'];
 if (in_array($action, $blocked_actions)) {
@@ -31,7 +23,7 @@ if (in_array($action, $blocked_actions)) {
 }
 
 // Allowed modules
-$allowed_modules = ['admin', 'staffcn', 'staffvn', 'customer', 'common'];
+$allowed_modules = ['admin', 'staffcn', 'staffvn', 'common'];
 if (!in_array($module, $allowed_modules)) {
     require_once(__DIR__.'/resources/views/common/404.php');
     exit();

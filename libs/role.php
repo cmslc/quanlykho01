@@ -59,15 +59,6 @@ function is_staffvn()
     return false;
 }
 
-function is_customer()
-{
-    $user = is_logged();
-    if (!empty($user['role']) && $user['role'] == 'customer') {
-        return true;
-    }
-    return false;
-}
-
 function has_role($roles)
 {
     $user = is_logged();

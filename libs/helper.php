@@ -460,7 +460,6 @@ function display_role($role)
         'staffcn'    => ['label' => 'Nhân viên Kho Trung Quốc', 'class' => 'bg-warning'],
         'finance_cn' => ['label' => 'Tài chính Kho Trung Quốc', 'class' => 'bg-primary'],
         'staffvn'    => ['label' => 'Nhân viên Kho Việt Nam', 'class' => 'bg-info'],
-        'customer'  => ['label' => 'Khách hàng',     'class' => 'bg-success'],
     ];
     $r = $roles[$role] ?? ['label' => $role, 'class' => 'bg-secondary'];
     return '<span class="badge ' . $r['class'] . '">' . $r['label'] . '</span>';
