@@ -174,7 +174,11 @@ if (!empty($wholesaleOrders) && ($filterWeightMin !== null || $filterWeightMax !
 
 $totalRows = count($sealedBags) + count($wholesaleOrders);
 
-$customers = $ToryHub->get_list_safe("SELECT `id`, `customer_code`, `fullname` FROM `customers` ORDER BY `fullname` ASC", []);
+$customers = $ToryHub->get_list_safe("SELECT `id`, `customer_code`, `fullname`, `balance` FROM `customers` ORDER BY `fullname` ASC", []);
+
+// Tổng công nợ khách hàng
+$totalDebt = $ToryHub->get_row_safe("SELECT COALESCE(SUM(ABS(balance)),0) as total FROM `customers` WHERE `balance` < 0", [])['total'];
+$debtCustomerCount = $ToryHub->num_rows_safe("SELECT id FROM `customers` WHERE `balance` < 0", []);
 
 // === Shipping rates for cost calculation ===
 $shippingRates = [
@@ -290,6 +294,12 @@ require_once(__DIR__.'/sidebar.php');
                     <h5 class="mb-0 text-danger"><?= format_vnd($grandCostCbm) ?></h5>
                 </div>
             </div>
+            <div class="col">
+                <div class="card card-body py-3 mb-0 border-danger">
+                    <div class="text-muted fs-12 mb-1"><?= __('Tổng công nợ') ?> <span class="badge bg-danger-subtle text-danger"><?= $debtCustomerCount ?> KH</span></div>
+                    <h5 class="mb-0 text-danger"><?= format_vnd($totalDebt) ?></h5>
+                </div>
+            </div>
         </div>
 
         <!-- Filter Bar -->
@@ -331,7 +341,7 @@ require_once(__DIR__.'/sidebar.php');
                                         }
                                     ?>">
                                 <button type="button" class="btn btn-outline-secondary btn-sm px-2" id="btn-clear-filter-customer" title="<?= __('Xóa lọc') ?>" style="<?= $filterCustomer ? '' : 'display:none;' ?>"><i class="ri-close-line"></i></button>
-                                <div id="filter-customer-dropdown" class="position-absolute top-100 start-0 bg-white border rounded shadow-sm" style="z-index:1055;max-height:200px;overflow-y:auto;display:none;min-width:220px;"></div>
+                                <div id="filter-customer-dropdown" class="position-absolute top-100 start-0 bg-white border rounded shadow-sm" style="z-index:1055;max-height:250px;overflow-y:auto;display:none;min-width:320px;"></div>
                             </div>
                         </div>
                         <div class="col-md-1">
@@ -617,7 +627,7 @@ function fnum(val, dec) {
 $(function(){
     // ===== Filter customer autocomplete =====
     var filterCustomerList = <?= json_encode(array_values(array_map(function($c) {
-        return ['id' => $c['id'], 'label' => $c['fullname'] . ' (' . $c['customer_code'] . ')'];
+        return ['id' => $c['id'], 'label' => $c['fullname'] . ' (' . $c['customer_code'] . ')', 'balance' => floatval($c['balance'])];
     }, $customers)), JSON_UNESCAPED_UNICODE) ?>;
 
     function renderFilterCustomerDropdown(q) {
@@ -632,8 +642,11 @@ $(function(){
         }
         var html = '<div class="filter-cust-option px-3 py-2 border-bottom" data-id="" style="cursor:pointer;font-style:italic;" ><?= __('Tất cả') ?></div>';
         results.slice(0, 50).forEach(function(c){
-            html += '<div class="filter-cust-option px-3 py-2 border-bottom" data-id="' + c.id + '" data-label="' + $('<span>').text(c.label).html() + '" style="cursor:pointer;">'
-                + $('<span>').text(c.label).html() + '</div>';
+            var balClass = c.balance < 0 ? 'text-danger fw-bold' : 'text-success';
+            var balText = formatVnd(c.balance);
+            html += '<div class="filter-cust-option px-3 py-2 border-bottom d-flex justify-content-between align-items-center" data-id="' + c.id + '" data-label="' + $('<span>').text(c.label).html() + '" style="cursor:pointer;">'
+                + '<span>' + $('<span>').text(c.label).html() + '</span>'
+                + '<small class="' + balClass + ' ms-2" style="white-space:nowrap;">' + balText + '</small></div>';
         });
         $dd.html(html).show();
     }
