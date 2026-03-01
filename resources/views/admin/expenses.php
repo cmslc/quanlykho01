@@ -10,15 +10,20 @@ $catList = array_column($existingCats, 'category');
 
 // Filters
 $filterCat = input_get('category') ?: '';
-$filterMonth = input_get('month') ?: date('n');
-$filterYear = input_get('year') ?: date('Y');
+$filterMonth = input_get('month') ?: '';
+$filterYear = input_get('year') ?: '';
+$hasMonthFilter = ($filterMonth !== '' && $filterYear !== '');
 
-$monthStart = sprintf('%04d-%02d-01', $filterYear, $filterMonth);
-$monthEnd = date('Y-m-t', strtotime($monthStart));
+$where = "1=1";
+$params = [];
 
-$where = "e.expense_date BETWEEN ? AND ?";
-$params = [$monthStart, $monthEnd];
-
+if ($hasMonthFilter) {
+    $monthStart = sprintf('%04d-%02d-01', $filterYear, $filterMonth);
+    $monthEnd = date('Y-m-t', strtotime($monthStart));
+    $where .= " AND e.expense_date BETWEEN ? AND ?";
+    $params[] = $monthStart;
+    $params[] = $monthEnd;
+}
 if ($filterCat) {
     $where .= " AND e.category = ?";
     $params[] = $filterCat;
@@ -29,13 +34,18 @@ $expenses = $ToryHub->get_list_safe("SELECT e.*, u.username as created_by_name
     LEFT JOIN `users` u ON e.created_by = u.id
     WHERE $where ORDER BY e.expense_date DESC, e.id DESC LIMIT 500", $params);
 
-// Summary tháng đã chọn
-$totalMonth = $ToryHub->get_row_safe("SELECT COALESCE(SUM(amount),0) as total FROM `expenses` WHERE `expense_date` BETWEEN ? AND ?", [$monthStart, $monthEnd]);
-$totalAll = $ToryHub->get_row_safe("SELECT COALESCE(SUM(amount),0) as total FROM `expenses`", []);
-$countMonth = $ToryHub->num_rows_safe("SELECT id FROM `expenses` WHERE `expense_date` BETWEEN ? AND ?", [$monthStart, $monthEnd]);
-
-// Tổng theo danh mục tháng đã chọn
-$catSums = $ToryHub->get_list_safe("SELECT category, COALESCE(SUM(amount),0) as total FROM `expenses` WHERE `expense_date` BETWEEN ? AND ? GROUP BY category", [$monthStart, $monthEnd]);
+// Summary
+$summaryLabel = __('Tất cả');
+if ($hasMonthFilter) {
+    $summaryLabel = __('Tháng') . ' ' . $filterMonth . '/' . $filterYear;
+    $totalFiltered = $ToryHub->get_row_safe("SELECT COALESCE(SUM(amount),0) as total FROM `expenses` WHERE `expense_date` BETWEEN ? AND ?", [$monthStart, $monthEnd]);
+    $countFiltered = $ToryHub->num_rows_safe("SELECT id FROM `expenses` WHERE `expense_date` BETWEEN ? AND ?", [$monthStart, $monthEnd]);
+    $catSums = $ToryHub->get_list_safe("SELECT category, COALESCE(SUM(amount),0) as total FROM `expenses` WHERE `expense_date` BETWEEN ? AND ? GROUP BY category", [$monthStart, $monthEnd]);
+} else {
+    $totalFiltered = $ToryHub->get_row_safe("SELECT COALESCE(SUM(amount),0) as total FROM `expenses`", []);
+    $countFiltered = $ToryHub->num_rows_safe("SELECT id FROM `expenses`", []);
+    $catSums = $ToryHub->get_list_safe("SELECT category, COALESCE(SUM(amount),0) as total FROM `expenses` GROUP BY category", []);
+}
 $catSumMap = [];
 foreach ($catSums as $cs) {
     $catSumMap[$cs['category']] = floatval($cs['total']);
@@ -68,8 +78,8 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="card-body">
                         <div class="d-flex align-items-end justify-content-between mt-2">
                             <div>
-                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Chi tháng') ?> <?= $filterMonth ?>/<?= $filterYear ?></p>
-                                <h4 class="fs-22 fw-semibold mt-4 mb-0 text-danger"><?= format_vnd($totalMonth['total']) ?></h4>
+                                <p class="text-uppercase fw-medium text-muted mb-0"><?= $summaryLabel ?></p>
+                                <h4 class="fs-22 fw-semibold mt-4 mb-0 text-danger"><?= format_vnd($totalFiltered['total']) ?></h4>
                             </div>
                             <div class="avatar-sm flex-shrink-0">
                                 <span class="avatar-title bg-danger-subtle rounded fs-3"><i class="ri-money-cny-circle-line text-danger"></i></span>
@@ -83,26 +93,11 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="card-body">
                         <div class="d-flex align-items-end justify-content-between mt-2">
                             <div>
-                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Tổng tất cả') ?></p>
-                                <h4 class="fs-22 fw-semibold mt-4 mb-0 text-primary"><?= format_vnd($totalAll['total']) ?></h4>
+                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Số khoản') ?></p>
+                                <h4 class="fs-22 fw-semibold mt-4 mb-0 text-primary"><?= $countFiltered ?></h4>
                             </div>
                             <div class="avatar-sm flex-shrink-0">
                                 <span class="avatar-title bg-primary-subtle rounded fs-3"><i class="ri-wallet-3-line text-primary"></i></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-4 col-md-6">
-                <div class="card card-animate">
-                    <div class="card-body">
-                        <div class="d-flex align-items-end justify-content-between mt-2">
-                            <div>
-                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Số khoản tháng') ?> <?= $filterMonth ?>/<?= $filterYear ?></p>
-                                <h4 class="fs-22 fw-semibold mt-4 mb-0"><?= $countMonth ?></h4>
-                            </div>
-                            <div class="avatar-sm flex-shrink-0">
-                                <span class="avatar-title bg-info-subtle rounded fs-3"><i class="ri-file-list-3-line text-info"></i></span>
                             </div>
                         </div>
                     </div>
@@ -134,16 +129,18 @@ require_once(__DIR__.'/sidebar.php');
                             <div class="col-md-2">
                                 <label class="form-label"><?= __('Tháng') ?></label>
                                 <select class="form-select" name="month">
+                                    <option value=""><?= __('Tất cả') ?></option>
                                     <?php for ($m = 1; $m <= 12; $m++): ?>
-                                    <option value="<?= $m ?>" <?= $filterMonth == $m ? 'selected' : '' ?>><?= $m ?></option>
+                                    <option value="<?= $m ?>" <?= $filterMonth !== '' && $filterMonth == $m ? 'selected' : '' ?>><?= $m ?></option>
                                     <?php endfor; ?>
                                 </select>
                             </div>
                             <div class="col-md-2">
                                 <label class="form-label"><?= __('Năm') ?></label>
                                 <select class="form-select" name="year">
+                                    <option value=""><?= __('Tất cả') ?></option>
                                     <?php foreach ($availableYears as $y): ?>
-                                    <option value="<?= $y ?>" <?= $filterYear == $y ? 'selected' : '' ?>><?= $y ?></option>
+                                    <option value="<?= $y ?>" <?= $filterYear !== '' && $filterYear == $y ? 'selected' : '' ?>><?= $y ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
