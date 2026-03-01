@@ -225,13 +225,13 @@ require_once(__DIR__.'/sidebar.php');
                                         <td>
                                             <div class="d-flex gap-1">
                                                 <a href="<?= base_url('admin/customers-detail&id=' . $cust['id']) ?>" class="btn btn-sm btn-info" title="<?= __('Chi tiết') ?>">
-                                                    <i class="ri-eye-line"></i>
+                                                    <i class="ri-eye-line"></i> <?= __('Xem') ?>
                                                 </a>
                                                 <a href="<?= base_url('admin/customers-edit&id=' . $cust['id']) ?>" class="btn btn-sm btn-warning" title="<?= __('Sửa') ?>">
-                                                    <i class="ri-pencil-line"></i>
+                                                    <i class="ri-pencil-line"></i> <?= __('Sửa') ?>
                                                 </a>
                                                 <button class="btn btn-sm btn-danger btn-delete-customer" data-id="<?= $cust['id'] ?>" title="<?= __('Xóa') ?>">
-                                                    <i class="ri-delete-bin-line"></i>
+                                                    <i class="ri-delete-bin-line"></i> <?= __('Xóa') ?>
                                                 </button>
                                             </div>
                                         </td>
