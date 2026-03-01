@@ -29,7 +29,7 @@ if ($request === 'update_settings') {
     ];
 
     $fields = [
-        'site_name', 'exchange_rate_cny_vnd', 'service_fee_percent',
+        'site_name', 'exchange_rate_cny_vnd',
         'shipping_rate_road', 'site_status',
         'shipping_road_easy_per_kg', 'shipping_road_easy_per_cbm',
         'shipping_road_difficult_per_kg', 'shipping_road_difficult_per_cbm',

@@ -107,10 +107,6 @@ class Orders extends DB
         $exchange_rate = get_exchange_rate();
         $total_vnd = $total_cny * $exchange_rate;
 
-        // Service fee
-        $service_fee_cny = calculate_service_fee($total_cny);
-        $service_fee = $service_fee_cny * $exchange_rate;
-
         // Shipping fee
         $weight = calculate_charged_weight(
             floatval($order['weight_actual'] ?: 0),
@@ -119,7 +115,7 @@ class Orders extends DB
         $shipping_fee_intl = calculate_shipping_fee($weight);
 
         // Total
-        $total_fee = $service_fee + floatval($order['shipping_fee_cn']) + $shipping_fee_intl
+        $total_fee = floatval($order['shipping_fee_cn']) + $shipping_fee_intl
                    + floatval($order['packing_fee']) + floatval($order['insurance_fee'])
                    + floatval($order['other_fee']);
         $grand_total = $total_vnd + $total_fee;
@@ -128,7 +124,7 @@ class Orders extends DB
             'total_cny'        => $total_cny,
             'exchange_rate'    => $exchange_rate,
             'total_vnd'        => $total_vnd,
-            'service_fee'      => $service_fee,
+            'service_fee'      => 0,
             'shipping_fee_intl'=> $shipping_fee_intl,
             'weight_charged'   => $weight,
             'total_fee'        => $total_fee,
@@ -156,7 +152,7 @@ class Orders extends DB
         if ($w && floatval($w['total_charged']) > 0) {
             $weight = floatval($w['total_charged']);
             $shipping_fee_intl = calculate_shipping_fee($weight);
-            $total_fee = floatval($order['service_fee']) + floatval($order['shipping_fee_cn'])
+            $total_fee = floatval($order['shipping_fee_cn'])
                        + $shipping_fee_intl + floatval($order['packing_fee'])
                        + floatval($order['insurance_fee']) + floatval($order['other_fee']);
             $grand_total = floatval($order['total_vnd']) + $total_fee;

@@ -59,8 +59,6 @@ $translations = [
 
     // Shipping method
     'Đường bộ' => ['zh' => '陆运', 'en' => 'Road'],
-    'Đường biển' => ['zh' => '海运', 'en' => 'Sea'],
-    'Đường bay' => ['zh' => '空运', 'en' => 'Air'],
     'Phương thức vận chuyển' => ['zh' => '运输方式', 'en' => 'Shipping Method'],
 
     // Scan hints

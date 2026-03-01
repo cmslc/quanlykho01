@@ -100,19 +100,13 @@ if ($request === 'add') {
     // Calculate fees
     $total_cny = $quantity * $unit_price_cny;
     $total_vnd = $total_cny * $exchange_rate;
-    $service_fee = 0;
-    if ($order_type === 'purchase') {
-        $service_fee_percent = floatval($ToryHub->site('service_fee_percent') ?: 3);
-        $service_fee = round($total_vnd * $service_fee_percent / 100);
-    }
-
     $shipping_fee_cn_cny = floatval(input_post('shipping_fee_cn'));
     $shipping_fee_cn = round($shipping_fee_cn_cny * $exchange_rate);
     $packing_fee = floatval(input_post('packing_fee'));
     $insurance_fee = floatval(input_post('insurance_fee'));
     $other_fee = floatval(input_post('other_fee'));
 
-    $total_fee = $service_fee + $shipping_fee_cn + $packing_fee + $insurance_fee + $other_fee;
+    $total_fee = $shipping_fee_cn + $packing_fee + $insurance_fee + $other_fee;
     $grand_total = round($total_vnd + $total_fee);
 
     // Weight & dimensions
@@ -166,7 +160,7 @@ if ($request === 'add') {
         'total_cny' => $total_cny,
         'exchange_rate' => $exchange_rate,
         'total_vnd' => round($total_vnd),
-        'service_fee' => $service_fee,
+        'service_fee' => 0,
         'shipping_fee_cn' => $shipping_fee_cn,
         'shipping_fee_intl' => 0,
         'packing_fee' => $packing_fee,

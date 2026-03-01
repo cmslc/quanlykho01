@@ -9,7 +9,6 @@ $totalDeposit = $ToryHub->get_row_safe("SELECT COALESCE(SUM(amount),0) as total 
 $totalPayment = $ToryHub->get_row_safe("SELECT COALESCE(SUM(ABS(amount)),0) as total FROM `transactions` WHERE `type` = 'payment'", [])['total'];
 $totalRefund = $ToryHub->get_row_safe("SELECT COALESCE(SUM(amount),0) as total FROM `transactions` WHERE `type` = 'refund'", [])['total'];
 $totalRevenue = $ToryHub->get_row_safe("SELECT COALESCE(SUM(grand_total),0) as total FROM `orders` WHERE `status` != 'cancelled'", [])['total'];
-$totalServiceFee = $ToryHub->get_row_safe("SELECT COALESCE(SUM(service_fee),0) as total FROM `orders` WHERE `status` != 'cancelled'", [])['total'];
 $totalShippingFee = $ToryHub->get_row_safe("SELECT COALESCE(SUM(shipping_fee_cn + shipping_fee_intl),0) as total FROM `orders` WHERE `status` != 'cancelled'", [])['total'];
 
 // Customers with debt (negative balance)
@@ -23,8 +22,7 @@ $topCustomers = $ToryHub->get_list_safe("SELECT `id`, `customer_code`, `fullname
 
 // Monthly revenue (last 6 months)
 $monthlyRevenue = $ToryHub->get_list_safe("SELECT DATE_FORMAT(create_date, '%Y-%m') as month,
-    COUNT(*) as order_count, COALESCE(SUM(grand_total),0) as revenue,
-    COALESCE(SUM(service_fee),0) as service_fees
+    COUNT(*) as order_count, COALESCE(SUM(grand_total),0) as revenue
     FROM `orders` WHERE `status` != 'cancelled' AND create_date >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
     GROUP BY DATE_FORMAT(create_date, '%Y-%m') ORDER BY month ASC", []);
 
@@ -52,21 +50,6 @@ require_once(__DIR__.'/sidebar.php');
                             </div>
                             <div class="avatar-sm flex-shrink-0">
                                 <span class="avatar-title bg-success-subtle rounded fs-3"><i class="ri-money-dollar-circle-line text-success"></i></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6">
-                <div class="card card-animate">
-                    <div class="card-body">
-                        <div class="d-flex align-items-end justify-content-between mt-2">
-                            <div>
-                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Phí dịch vụ thu') ?></p>
-                                <h4 class="fs-22 fw-semibold mt-4 mb-0 text-primary"><?= format_vnd($totalServiceFee) ?></h4>
-                            </div>
-                            <div class="avatar-sm flex-shrink-0">
-                                <span class="avatar-title bg-primary-subtle rounded fs-3"><i class="ri-hand-coin-line text-primary"></i></span>
                             </div>
                         </div>
                     </div>
@@ -119,7 +102,6 @@ require_once(__DIR__.'/sidebar.php');
                                         <th><?= __('Tháng') ?></th>
                                         <th class="text-end"><?= __('Số đơn') ?></th>
                                         <th class="text-end"><?= __('Doanh thu') ?></th>
-                                        <th class="text-end"><?= __('Phí DV') ?></th>
                                         <th><?= __('Biểu đồ') ?></th>
                                     </tr>
                                 </thead>
@@ -133,7 +115,6 @@ require_once(__DIR__.'/sidebar.php');
                                         <td class="fw-bold"><?= $m['month'] ?></td>
                                         <td class="text-end"><?= $m['order_count'] ?></td>
                                         <td class="text-end text-success fw-bold"><?= format_vnd($m['revenue']) ?></td>
-                                        <td class="text-end"><?= format_vnd($m['service_fees']) ?></td>
                                         <td style="width: 30%;">
                                             <div class="progress" style="height: 8px;">
                                                 <div class="progress-bar bg-success" style="width: <?= $pct ?>%"></div>
@@ -142,7 +123,7 @@ require_once(__DIR__.'/sidebar.php');
                                     </tr>
                                     <?php endforeach; ?>
                                     <?php if (empty($monthlyRevenue)): ?>
-                                    <tr><td colspan="5" class="text-center text-muted"><?= __('Chưa có dữ liệu') ?></td></tr>
+                                    <tr><td colspan="4" class="text-center text-muted"><?= __('Chưa có dữ liệu') ?></td></tr>
                                     <?php endif; ?>
                                 </tbody>
                             </table>

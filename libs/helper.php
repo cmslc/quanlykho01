@@ -362,9 +362,7 @@ function calculate_charged_weight($actual, $volume)
 
 function calculate_service_fee($total_cny)
 {
-    $ToryHub = new DB();
-    $percent = floatval($ToryHub->site('service_fee_percent') ?: 3);
-    return ($total_cny * $percent) / 100;
+    return 0;
 }
 
 // ===== DISPLAY HELPERS =====

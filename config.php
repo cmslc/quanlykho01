@@ -25,21 +25,10 @@ $config_shipping_rates = [
         'easy'      => ['per_kg' => 25000, 'per_cbm' => 6000000],
         'difficult' => ['per_kg' => 35000, 'per_cbm' => 8000000],
     ],
-    'sea' => [
-        'easy'      => ['per_kg' => 15000, 'per_cbm' => 3500000],
-        'difficult' => ['per_kg' => 20000, 'per_cbm' => 5000000],
-    ],
-    'air' => [
-        'easy'      => ['per_kg' => 120000, 'per_cbm' => 25000000],
-        'difficult' => ['per_kg' => 150000, 'per_cbm' => 30000000],
-    ],
 ];
 
 // Volume weight divisor (cm³ / divisor = kg)
 $config_volume_divisor = 6000;
-
-// Service fee percentage for buying agent
-$config_service_fee_percent = 3; // 3% of product value
 
 // Banks for payment
 $config_listbank = [

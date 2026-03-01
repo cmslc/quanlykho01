@@ -119,15 +119,6 @@ require_once(__DIR__.'/sidebar.php');
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label class="form-label"><?= __('Phí dịch vụ mua hộ') ?> (%)</label>
-                                                <div class="input-group">
-                                                    <input type="number" class="form-control" name="service_fee_percent" value="<?= htmlspecialchars($settingsMap['service_fee_percent'] ?? '3') ?>" step="0.1">
-                                                    <span class="input-group-text">%</span>
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
 
                                     <div class="mb-3">

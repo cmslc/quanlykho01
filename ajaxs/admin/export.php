@@ -43,13 +43,12 @@ echo '<Worksheet ss:Name="Sheet1"><Table>' . "\n";
 
 // ======== REVENUE EXPORT ========
 if ($type === 'revenue') {
-    echo xls_row(['Kỳ', 'Số đơn', 'Tiền hàng CNY', 'Tiền hàng VND', 'Phí dịch vụ', 'Phí vận chuyển', 'Phí khác', 'Tổng phí', 'Tổng cộng'], true);
+    echo xls_row(['Kỳ', 'Số đơn', 'Tiền hàng CNY', 'Tiền hàng VND', 'Phí vận chuyển', 'Phí khác', 'Tổng phí', 'Tổng cộng'], true);
 
     $data = $ToryHub->get_list_safe("SELECT DATE_FORMAT(create_date, '%Y-%m-%d') as period,
         COUNT(*) as order_count,
         COALESCE(SUM(total_cny),0) as total_cny,
         COALESCE(SUM(total_vnd),0) as total_vnd,
-        COALESCE(SUM(service_fee),0) as service_fee,
         COALESCE(SUM(shipping_fee_cn + shipping_fee_intl),0) as shipping_fee,
         COALESCE(SUM(packing_fee + insurance_fee + other_fee),0) as other_fees,
         COALESCE(SUM(total_fee),0) as total_fee,
@@ -61,7 +60,7 @@ if ($type === 'revenue') {
     foreach ($data as $row) {
         echo xls_row([
             $row['period'], $row['order_count'], $row['total_cny'],
-            $row['total_vnd'], $row['service_fee'], $row['shipping_fee'],
+            $row['total_vnd'], $row['shipping_fee'],
             $row['other_fees'], $row['total_fee'], $row['grand_total']
         ]);
     }
@@ -71,7 +70,7 @@ if ($type === 'revenue') {
 
 // ======== ORDERS EXPORT ========
 elseif ($type === 'orders') {
-    echo xls_row(['Mã đơn', 'Khách hàng', 'Mã khách hàng', 'Nền tảng', 'Sản phẩm', 'Số lượng', 'Đơn giá CNY', 'Tổng CNY', 'Tỷ giá', 'Tiền hàng VND', 'Phí dịch vụ', 'Ship nội Trung Quốc', 'Ship quốc tế', 'Đóng gỗ', 'Bảo hiểm', 'Phí khác', 'Tổng cộng', 'Trạng thái', 'Mã vận đơn Trung Quốc', 'Mã quốc tế', 'Mã Việt Nam', 'Cân tính phí', 'Ngày tạo'], true);
+    echo xls_row(['Mã đơn', 'Khách hàng', 'Mã khách hàng', 'Nền tảng', 'Sản phẩm', 'Số lượng', 'Đơn giá CNY', 'Tổng CNY', 'Tỷ giá', 'Tiền hàng VND', 'Ship nội Trung Quốc', 'Ship quốc tế', 'Đóng gỗ', 'Bảo hiểm', 'Phí khác', 'Tổng cộng', 'Trạng thái', 'Mã vận đơn Trung Quốc', 'Mã quốc tế', 'Mã Việt Nam', 'Cân tính phí', 'Ngày tạo'], true);
 
     $data = $ToryHub->get_list_safe("SELECT o.*, c.fullname as customer_name, c.customer_code
         FROM `orders` o LEFT JOIN `customers` c ON o.customer_id = c.id
@@ -89,7 +88,7 @@ elseif ($type === 'orders') {
             $row['order_code'], $row['customer_name'] ?? '', $row['customer_code'] ?? '',
             $row['platform'], $row['product_name'], $row['quantity'],
             $row['unit_price_cny'], $row['total_cny'], $row['exchange_rate'],
-            $row['total_vnd'], $row['service_fee'], $row['shipping_fee_cn'],
+            $row['total_vnd'], $row['shipping_fee_cn'],
             $row['shipping_fee_intl'], $row['packing_fee'], $row['insurance_fee'],
             $row['other_fee'], $row['grand_total'],
             $statusLabel[$row['status']] ?? $row['status'],

@@ -14,7 +14,6 @@ $revenueData = $ToryHub->get_list_safe("SELECT DATE_FORMAT(create_date, '$groupF
     COUNT(*) as order_count,
     COALESCE(SUM(total_cny),0) as total_cny,
     COALESCE(SUM(total_vnd),0) as total_vnd,
-    COALESCE(SUM(service_fee),0) as service_fee,
     COALESCE(SUM(shipping_fee_cn + shipping_fee_intl),0) as shipping_fee,
     COALESCE(SUM(packing_fee + insurance_fee + other_fee),0) as other_fees,
     COALESCE(SUM(total_fee),0) as total_fee,
@@ -26,7 +25,7 @@ $revenueData = $ToryHub->get_list_safe("SELECT DATE_FORMAT(create_date, '$groupF
 // Totals
 $totals = [
     'order_count' => 0, 'total_cny' => 0, 'total_vnd' => 0,
-    'service_fee' => 0, 'shipping_fee' => 0, 'other_fees' => 0,
+    'shipping_fee' => 0, 'other_fees' => 0,
     'total_fee' => 0, 'grand_total' => 0
 ];
 foreach ($revenueData as $r) {
@@ -110,14 +109,6 @@ require_once(__DIR__.'/sidebar.php');
             <div class="col-xl-3 col-md-6">
                 <div class="card card-animate">
                     <div class="card-body">
-                        <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Phí dịch vụ') ?></p>
-                        <h4 class="fs-22 fw-semibold mt-4 mb-0 text-primary"><?= format_vnd($totals['service_fee']) ?></h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6">
-                <div class="card card-animate">
-                    <div class="card-body">
                         <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Tiền hàng CNY') ?></p>
                         <h4 class="fs-22 fw-semibold mt-4 mb-0">¥<?= number_format($totals['total_cny'], 2) ?></h4>
                     </div>
@@ -140,7 +131,6 @@ require_once(__DIR__.'/sidebar.php');
                                         <th class="text-end"><?= __('Số đơn') ?></th>
                                         <th class="text-end"><?= __('CNY') ?></th>
                                         <th class="text-end"><?= __('Tiền hàng VND') ?></th>
-                                        <th class="text-end"><?= __('Phí DV') ?></th>
                                         <th class="text-end"><?= __('Phí ship') ?></th>
                                         <th class="text-end"><?= __('Tổng cộng') ?></th>
                                     </tr>
@@ -152,13 +142,12 @@ require_once(__DIR__.'/sidebar.php');
                                         <td class="text-end"><?= $r['order_count'] ?></td>
                                         <td class="text-end">¥<?= number_format($r['total_cny'], 2) ?></td>
                                         <td class="text-end"><?= format_vnd($r['total_vnd']) ?></td>
-                                        <td class="text-end"><?= format_vnd($r['service_fee']) ?></td>
                                         <td class="text-end"><?= format_vnd($r['shipping_fee']) ?></td>
                                         <td class="text-end fw-bold text-success"><?= format_vnd($r['grand_total']) ?></td>
                                     </tr>
                                     <?php endforeach; ?>
                                     <?php if (empty($revenueData)): ?>
-                                    <tr><td colspan="7" class="text-center text-muted"><?= __('Không có dữ liệu') ?></td></tr>
+                                    <tr><td colspan="6" class="text-center text-muted"><?= __('Không có dữ liệu') ?></td></tr>
                                     <?php endif; ?>
                                 </tbody>
                                 <?php if (!empty($revenueData)): ?>
@@ -168,7 +157,6 @@ require_once(__DIR__.'/sidebar.php');
                                         <td class="text-end"><?= $totals['order_count'] ?></td>
                                         <td class="text-end">¥<?= number_format($totals['total_cny'], 2) ?></td>
                                         <td class="text-end"><?= format_vnd($totals['total_vnd']) ?></td>
-                                        <td class="text-end"><?= format_vnd($totals['service_fee']) ?></td>
                                         <td class="text-end"><?= format_vnd($totals['shipping_fee']) ?></td>
                                         <td class="text-end text-success"><?= format_vnd($totals['grand_total']) ?></td>
                                     </tr>
