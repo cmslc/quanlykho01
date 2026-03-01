@@ -29,7 +29,7 @@ $expenses = $ToryHub->get_list_safe("SELECT e.*, u.username as created_by_name
     LEFT JOIN `users` u ON e.created_by = u.id
     WHERE $where ORDER BY e.expense_date DESC, e.id DESC LIMIT 500", $params);
 
-// Summary tháng hiện tại
+// Summary tháng hiện tại (toàn bộ, không theo filter danh mục)
 $totalMonth = floatval($ToryHub->get_row_safe("SELECT COALESCE(SUM(amount),0) as total FROM `expenses` WHERE `expense_date` BETWEEN ? AND ?", [$monthStart, $monthEnd])['total']);
 $countMonth = $ToryHub->num_rows_safe("SELECT id FROM `expenses` WHERE `expense_date` BETWEEN ? AND ?", [$monthStart, $monthEnd]);
 
@@ -37,25 +37,10 @@ $countMonth = $ToryHub->num_rows_safe("SELECT id FROM `expenses` WHERE `expense_
 $prevMonthStart = date('Y-m-01', strtotime($monthStart . ' -1 month'));
 $prevMonthEnd = date('Y-m-t', strtotime($prevMonthStart));
 $totalPrevMonth = floatval($ToryHub->get_row_safe("SELECT COALESCE(SUM(amount),0) as total FROM `expenses` WHERE `expense_date` BETWEEN ? AND ?", [$prevMonthStart, $prevMonthEnd])['total']);
-
-// % thay đổi so với tháng trước
 $changePercent = ($totalPrevMonth > 0) ? round(($totalMonth - $totalPrevMonth) / $totalPrevMonth * 100, 1) : 0;
 
 // Tổng theo danh mục tháng đã chọn
 $catSums = $ToryHub->get_list_safe("SELECT category, COALESCE(SUM(amount),0) as total, COUNT(*) as cnt FROM `expenses` WHERE `expense_date` BETWEEN ? AND ? GROUP BY category ORDER BY total DESC", [$monthStart, $monthEnd]);
-$catSumMap = [];
-foreach ($catSums as $cs) {
-    $catSumMap[$cs['category']] = ['total' => floatval($cs['total']), 'count' => intval($cs['cnt'])];
-}
-
-// Bảng tổng hợp theo tháng (12 tháng gần nhất)
-$monthlySummary = $ToryHub->get_list_safe(
-    "SELECT DATE_FORMAT(expense_date, '%Y-%m') as ym,
-            YEAR(expense_date) as y, MONTH(expense_date) as m,
-            COALESCE(SUM(amount),0) as total, COUNT(*) as cnt
-     FROM `expenses`
-     GROUP BY ym ORDER BY ym DESC LIMIT 12", []
-);
 
 // Năm có dữ liệu
 $yearsData = $ToryHub->get_list_safe("SELECT DISTINCT YEAR(expense_date) as y FROM `expenses` ORDER BY y DESC", []);
@@ -73,18 +58,21 @@ require_once(__DIR__.'/sidebar.php');
             <div class="col-12">
                 <div class="page-title-box d-sm-flex align-items-center justify-content-between">
                     <h4 class="mb-sm-0"><?= __('Chi phí vận hành kho') ?></h4>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalAddExpense">
+                        <i class="ri-add-line"></i> <?= __('Thêm chi phí') ?>
+                    </button>
                 </div>
             </div>
         </div>
 
         <!-- KPI Cards -->
         <div class="row">
-            <div class="col-xl-4 col-md-6">
+            <div class="col-xl-3 col-md-6">
                 <div class="card card-animate">
                     <div class="card-body">
                         <div class="d-flex align-items-end justify-content-between mt-2">
                             <div>
-                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Chi tháng') ?> <?= $filterMonth ?>/<?= $filterYear ?></p>
+                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Tổng chi') ?> <?= $filterMonth ?>/<?= $filterYear ?></p>
                                 <h4 class="fs-22 fw-semibold mt-4 mb-0 text-danger"><?= format_vnd($totalMonth) ?></h4>
                             </div>
                             <div class="avatar-sm flex-shrink-0">
@@ -94,15 +82,15 @@ require_once(__DIR__.'/sidebar.php');
                     </div>
                 </div>
             </div>
-            <div class="col-xl-4 col-md-6">
+            <div class="col-xl-3 col-md-6">
                 <div class="card card-animate">
                     <div class="card-body">
                         <div class="d-flex align-items-end justify-content-between mt-2">
                             <div>
-                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('So với tháng trước') ?></p>
+                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Tháng trước') ?></p>
                                 <h4 class="fs-22 fw-semibold mt-4 mb-0 <?= $changePercent > 0 ? 'text-danger' : ($changePercent < 0 ? 'text-success' : 'text-muted') ?>">
                                     <?= $changePercent > 0 ? '+' : '' ?><?= $changePercent ?>%
-                                    <small class="fs-14 fw-normal text-muted">(<?= format_vnd($totalPrevMonth) ?>)</small>
+                                    <small class="fs-13 fw-normal text-muted">(<?= format_vnd($totalPrevMonth) ?>)</small>
                                 </h4>
                             </div>
                             <div class="avatar-sm flex-shrink-0">
@@ -114,12 +102,12 @@ require_once(__DIR__.'/sidebar.php');
                     </div>
                 </div>
             </div>
-            <div class="col-xl-4 col-md-6">
+            <div class="col-xl-3 col-md-6">
                 <div class="card card-animate">
                     <div class="card-body">
                         <div class="d-flex align-items-end justify-content-between mt-2">
                             <div>
-                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Số khoản') ?></p>
+                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Số khoản chi') ?></p>
                                 <h4 class="fs-22 fw-semibold mt-4 mb-0 text-primary"><?= $countMonth ?></h4>
                             </div>
                             <div class="avatar-sm flex-shrink-0">
@@ -129,137 +117,121 @@ require_once(__DIR__.'/sidebar.php');
                     </div>
                 </div>
             </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card card-animate">
+                    <div class="card-body">
+                        <div class="d-flex align-items-end justify-content-between mt-2">
+                            <div>
+                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Danh mục') ?></p>
+                                <h4 class="fs-22 fw-semibold mt-4 mb-0 text-info"><?= count($catSums) ?></h4>
+                            </div>
+                            <div class="avatar-sm flex-shrink-0">
+                                <span class="avatar-title bg-info-subtle rounded fs-3"><i class="ri-folder-line text-info"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
+        <!-- Filter -->
         <div class="row">
-            <!-- Tổng hợp theo tháng -->
-            <div class="col-xl-7">
+            <div class="col-12">
                 <div class="card">
-                    <div class="card-header d-flex align-items-center justify-content-between">
-                        <h5 class="card-title mb-0"><?= __('Tổng hợp theo tháng') ?></h5>
-                        <form method="GET" action="<?= base_url('staffcn/expenses') ?>" class="d-flex gap-2 align-items-center">
-                            <select class="form-select form-select-sm" name="month" style="width:80px">
-                                <?php for ($m = 1; $m <= 12; $m++): ?>
-                                <option value="<?= $m ?>" <?= $filterMonth == $m ? 'selected' : '' ?>><?= $m ?></option>
-                                <?php endfor; ?>
-                            </select>
-                            <select class="form-select form-select-sm" name="year" style="width:90px">
-                                <?php foreach ($availableYears as $y): ?>
-                                <option value="<?= $y ?>" <?= $filterYear == $y ? 'selected' : '' ?>><?= $y ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                            <?php if ($filterCat): ?><input type="hidden" name="category" value="<?= htmlspecialchars($filterCat) ?>"><?php endif; ?>
-                            <button type="submit" class="btn btn-sm btn-primary"><?= __('Xem') ?></button>
+                    <div class="card-body">
+                        <form method="GET" action="<?= base_url('staffcn/expenses') ?>">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-2">
+                                    <label class="form-label"><?= __('Tháng') ?></label>
+                                    <select class="form-select form-select-sm" name="month">
+                                        <?php for ($m = 1; $m <= 12; $m++): ?>
+                                        <option value="<?= $m ?>" <?= $filterMonth == $m ? 'selected' : '' ?>>Tháng <?= $m ?></option>
+                                        <?php endfor; ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label"><?= __('Năm') ?></label>
+                                    <select class="form-select form-select-sm" name="year">
+                                        <?php foreach ($availableYears as $y): ?>
+                                        <option value="<?= $y ?>" <?= $filterYear == $y ? 'selected' : '' ?>><?= $y ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label"><?= __('Danh mục') ?></label>
+                                    <select class="form-select form-select-sm" name="category">
+                                        <option value=""><?= __('Tất cả') ?></option>
+                                        <?php foreach ($catList as $c): ?>
+                                        <option value="<?= htmlspecialchars($c) ?>" <?= $filterCat === $c ? 'selected' : '' ?>><?= htmlspecialchars($c) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="submit" class="btn btn-sm btn-primary"><i class="ri-search-line"></i> <?= __('Lọc') ?></button>
+                                    <a href="<?= base_url('staffcn/expenses') ?>" class="btn btn-sm btn-outline-secondary"><?= __('Reset') ?></a>
+                                </div>
+                            </div>
                         </form>
                     </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0 align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th><?= __('Tháng') ?></th>
-                                        <th class="text-end"><?= __('Số khoản') ?></th>
-                                        <th class="text-end"><?= __('Tổng chi') ?></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($monthlySummary as $ms):
-                                        $isActive = ($ms['m'] == $filterMonth && $ms['y'] == $filterYear);
-                                    ?>
-                                    <tr class="<?= $isActive ? 'table-active fw-bold' : '' ?>" style="cursor:pointer" onclick="location.href='<?= base_url('staffcn/expenses&month='.$ms['m'].'&year='.$ms['y']) ?>'">
-                                        <td><?= $ms['m'] ?>/<?= $ms['y'] ?></td>
-                                        <td class="text-end"><?= $ms['cnt'] ?></td>
-                                        <td class="text-end text-danger"><?= format_vnd($ms['total']) ?></td>
-                                    </tr>
-                                    <?php endforeach; ?>
-                                    <?php if (empty($monthlySummary)): ?>
-                                    <tr><td colspan="3" class="text-center text-muted py-3"><?= __('Chưa có dữ liệu') ?></td></tr>
-                                    <?php endif; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Chi tiết theo danh mục -->
-            <div class="col-xl-5">
+        <!-- Category Summary (inline badges) -->
+        <?php if (!empty($catSums)): ?>
+        <div class="row">
+            <div class="col-12">
                 <div class="card">
-                    <div class="card-header d-flex align-items-center justify-content-between">
-                        <h5 class="card-title mb-0"><?= __('Danh mục') ?> — <?= $filterMonth ?>/<?= $filterYear ?></h5>
-                        <?php if ($filterCat): ?>
-                        <a href="<?= base_url('staffcn/expenses&month='.$filterMonth.'&year='.$filterYear) ?>" class="btn btn-sm btn-outline-secondary"><?= __('Bỏ lọc') ?></a>
-                        <?php endif; ?>
+                    <div class="card-header py-2">
+                        <h6 class="card-title mb-0"><?= __('Phân bổ theo danh mục') ?> — <?= $filterMonth ?>/<?= $filterYear ?></h6>
                     </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0 align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th><?= __('Danh mục') ?></th>
-                                        <th class="text-end"><?= __('Khoản') ?></th>
-                                        <th class="text-end"><?= __('Tổng') ?></th>
-                                        <th class="text-end">%</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($catSumMap as $catName => $catData):
-                                        $pct = $totalMonth > 0 ? round($catData['total'] / $totalMonth * 100, 1) : 0;
-                                        $isActiveCat = ($filterCat === $catName);
-                                    ?>
-                                    <tr class="<?= $isActiveCat ? 'table-active' : '' ?>" style="cursor:pointer" onclick="location.href='<?= base_url('staffcn/expenses&month='.$filterMonth.'&year='.$filterYear.'&category='.urlencode($catName)) ?>'">
-                                        <td><?= htmlspecialchars($catName) ?></td>
-                                        <td class="text-end"><?= $catData['count'] ?></td>
-                                        <td class="text-end text-danger fw-semibold"><?= format_vnd($catData['total']) ?></td>
-                                        <td class="text-end text-muted"><?= $pct ?>%</td>
-                                    </tr>
-                                    <?php endforeach; ?>
-                                    <?php if (empty($catSumMap)): ?>
-                                    <tr><td colspan="4" class="text-center text-muted py-3"><?= __('Chưa có dữ liệu') ?></td></tr>
-                                    <?php endif; ?>
-                                </tbody>
-                            </table>
+                    <div class="card-body py-2">
+                        <div class="d-flex flex-wrap gap-2">
+                            <?php foreach ($catSums as $cs):
+                                $pct = $totalMonth > 0 ? round(floatval($cs['total']) / $totalMonth * 100, 1) : 0;
+                            ?>
+                            <a href="<?= base_url('staffcn/expenses&month='.$filterMonth.'&year='.$filterYear.'&category='.urlencode($cs['category'])) ?>"
+                               class="badge rounded-pill fs-13 py-2 px-3 <?= $filterCat === $cs['category'] ? 'bg-danger' : 'bg-secondary-subtle text-secondary' ?>">
+                                <?= htmlspecialchars($cs['category']) ?>: <?= format_vnd($cs['total']) ?> (<?= $pct ?>%)
+                            </a>
+                            <?php endforeach; ?>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        <?php endif; ?>
 
         <!-- Expenses Table -->
         <div class="row">
             <div class="col-lg-12">
                 <div class="card">
-                    <div class="card-header d-flex align-items-center justify-content-between">
-                        <h5 class="card-title mb-0"><?= __('Danh sách chi phí') ?></h5>
-                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalAddExpense">
-                            <i class="ri-add-line"></i> <?= __('Thêm chi phí') ?>
-                        </button>
+                    <div class="card-header">
+                        <h5 class="card-title mb-0"><?= __('Danh sách chi phí') ?><?= $filterCat ? ' — ' . htmlspecialchars($filterCat) : '' ?></h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table data-table table-hover mb-0">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
+                                        <th>#</th>
                                         <th><?= __('Danh mục') ?></th>
                                         <th><?= __('Số tiền') ?></th>
                                         <th><?= __('Mô tả') ?></th>
                                         <th><?= __('Ngày chi') ?></th>
                                         <th><?= __('Người tạo') ?></th>
-                                        <th><?= __('Ngày tạo') ?></th>
                                         <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php foreach ($expenses as $exp): ?>
+                                    <?php $stt = 0; foreach ($expenses as $exp): $stt++; ?>
                                     <tr>
-                                        <td><?= $exp['id'] ?></td>
-                                        <td><span class="badge bg-secondary"><?= htmlspecialchars($exp['category']) ?></span></td>
+                                        <td><?= $stt ?></td>
+                                        <td><span class="badge bg-secondary-subtle text-secondary"><?= htmlspecialchars($exp['category']) ?></span></td>
                                         <td class="text-danger fw-bold"><?= format_vnd($exp['amount']) ?></td>
                                         <td><?= htmlspecialchars($exp['description'] ?? '') ?></td>
                                         <td><?= $exp['expense_date'] ?></td>
                                         <td><?= htmlspecialchars($exp['created_by_name'] ?? '') ?></td>
-                                        <td><?= $exp['create_date'] ?></td>
                                         <td>
                                             <button class="btn btn-sm btn-soft-info btn-edit-expense" data-id="<?= $exp['id'] ?>" data-category="<?= htmlspecialchars($exp['category']) ?>" data-amount="<?= $exp['amount'] ?>" data-date="<?= $exp['expense_date'] ?>" data-description="<?= htmlspecialchars($exp['description'] ?? '') ?>">
                                                 <i class="ri-pencil-line"></i>
