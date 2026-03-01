@@ -27,6 +27,7 @@ $orderShipData = $ToryHub->get_list_safe(
      GROUP BY o.id", []
 );
 $totalShipMap = [];
+$orderCountMap = [];
 foreach ($orderShipData as $od) {
     $cid = $od['customer_id'];
     $wC = floatval($od['order_weight_charged'] ?? 0);
@@ -42,11 +43,28 @@ foreach ($orderShipData as $od) {
     $cost = max($w * $rkg, $cbm * $rcbm);
     if (!isset($totalShipMap[$cid])) $totalShipMap[$cid] = 0;
     $totalShipMap[$cid] += $cost;
+    if (!isset($orderCountMap[$cid])) $orderCountMap[$cid] = 0;
+    $orderCountMap[$cid]++;
+}
+
+// Đếm số kiện theo customer
+$pkgCountData = $ToryHub->get_list_safe(
+    "SELECT o.customer_id, COUNT(DISTINCT p.id) as pkg_count
+     FROM `orders` o
+     JOIN `package_orders` po ON o.id = po.order_id
+     JOIN `packages` p ON po.package_id = p.id
+     WHERE o.status != 'cancelled'
+     GROUP BY o.customer_id", []
+);
+$pkgCountMap = [];
+foreach ($pkgCountData as $row) {
+    $pkgCountMap[$row['customer_id']] = intval($row['pkg_count']);
 }
 
 // KPI totals
 $kpiTotalCustomers = count($customers);
 $kpiTotalOrders = 0;
+$kpiTotalPkgs = 0;
 $kpiTotalShip = 0;
 $kpiTotalPaid = 0;
 $kpiTotalDebt = 0;
@@ -56,7 +74,8 @@ foreach ($customers as $c) {
     $ship = $totalShipMap[$cid] ?? 0;
     $paid = floatval($c['total_spent'] ?? 0);
     $debt = max(0, $ship - $paid);
-    $kpiTotalOrders += intval($c['total_orders'] ?? 0);
+    $kpiTotalOrders += $orderCountMap[$cid] ?? 0;
+    $kpiTotalPkgs += $pkgCountMap[$cid] ?? 0;
     $kpiTotalShip += $ship;
     $kpiTotalPaid += $paid;
     $kpiTotalDebt += $debt;
@@ -98,7 +117,7 @@ require_once(__DIR__.'/sidebar.php');
                         <div class="d-flex align-items-end justify-content-between mt-2">
                             <div>
                                 <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Đơn hàng') ?></p>
-                                <h4 class="fs-22 fw-semibold mt-4 mb-0"><?= $kpiTotalOrders ?></h4>
+                                <h4 class="fs-22 fw-semibold mt-4 mb-0"><?= $kpiTotalOrders ?> mã / <?= $kpiTotalPkgs ?> kiện</h4>
                             </div>
                             <div class="avatar-sm flex-shrink-0">
                                 <span class="avatar-title bg-primary-subtle rounded fs-3"><i class="ri-shopping-bag-line text-primary"></i></span>
@@ -172,7 +191,7 @@ require_once(__DIR__.'/sidebar.php');
                                         <th><?= __('Họ tên') ?></th>
                                         <th><?= __('Điện thoại') ?></th>
                                         <th><?= __('Loại') ?></th>
-                                        <th><?= __('Đơn') ?></th>
+                                        <th><?= __('Đơn (mã/kiện)') ?></th>
                                         <th><?= __('Tổng cước') ?></th>
                                         <th><?= __('Đã thanh toán') ?></th>
                                         <th><?= __('Đang nợ') ?></th>
@@ -192,7 +211,8 @@ require_once(__DIR__.'/sidebar.php');
                                         <td><?= htmlspecialchars($cust['fullname']) ?></td>
                                         <td><?= htmlspecialchars($cust['phone'] ?? '') ?></td>
                                         <td><?= display_customer_type($cust['customer_type']) ?></td>
-                                        <td><span class="badge bg-info-subtle text-info"><?= $cust['total_orders'] ?></span></td>
+                                        <?php $oCount = $orderCountMap[$cid] ?? 0; $pCount = $pkgCountMap[$cid] ?? 0; ?>
+                                        <td><span class="badge bg-info-subtle text-info"><?= $oCount ?> mã</span> / <span class="badge bg-secondary-subtle text-secondary"><?= $pCount ?> kiện</span></td>
                                         <td class="text-primary fw-bold"><?= format_vnd($totalShip) ?></td>
                                         <td class="text-success"><?= format_vnd($cust['total_spent']) ?></td>
                                         <td>
