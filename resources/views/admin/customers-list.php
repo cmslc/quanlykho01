@@ -116,8 +116,8 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="card-body">
                         <div class="d-flex align-items-end justify-content-between mt-2">
                             <div>
-                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Đơn hàng') ?></p>
-                                <h4 class="fs-22 fw-semibold mt-4 mb-0"><?= $kpiTotalOrders ?> mã / <?= $kpiTotalPkgs ?> kiện</h4>
+                                <p class="text-uppercase fw-medium text-muted mb-0"><?= __('Mã hàng / Kiện') ?></p>
+                                <h4 class="fs-22 fw-semibold mt-4 mb-0"><?= $kpiTotalOrders ?> / <?= $kpiTotalPkgs ?></h4>
                             </div>
                             <div class="avatar-sm flex-shrink-0">
                                 <span class="avatar-title bg-primary-subtle rounded fs-3"><i class="ri-shopping-bag-line text-primary"></i></span>
