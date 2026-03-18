@@ -782,7 +782,6 @@ $('#form-add-order').on('submit', function(e){
 // ===== Barcode Camera Scanner =====
 (function(){
     var scanId = 0;
-    var h5Lib = null; // html5-qrcode loaded instance
 
     function ensureLib(cb) {
         if (typeof Html5Qrcode !== 'undefined') return cb();
@@ -793,17 +792,15 @@ $('#form-add-order').on('submit', function(e){
     }
 
     $('#btn-scan-tracking').on('click', function(){
-        openScanner();
+        ensureLib(openScanner);
     });
 
     function openScanner() {
         scanId++;
         var myId = scanId;
-        var videoId = 'scan-video-' + myId;
-        var stream = null;
-        var scanTimer = null;
+        var readerId = 'qr-reader-' + myId;
+        var scanner = null;
         var found = false;
-        var useNative = 'BarcodeDetector' in window;
 
         $('.qr-scan-modal').each(function(){ $(this).remove(); });
         $('.modal-backdrop').remove();
@@ -816,9 +813,8 @@ $('#form-add-order').on('submit', function(e){
             '<h6 class="modal-title"><i class="ri-camera-line me-1"></i><?= __('Quét mã vận đơn') ?></h6>' +
             '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>' +
             '</div>' +
-            '<div class="modal-body p-0 position-relative">' +
-            '<video id="' + videoId + '" autoplay playsinline muted style="width:100%;display:block;"></video>' +
-            '<div style="position:absolute;top:50%;left:5%;right:5%;height:2px;background:#00ff00;opacity:0.7;box-shadow:0 0 8px #00ff00;"></div>' +
+            '<div class="modal-body p-2">' +
+            '<div id="' + readerId + '" style="width:100%;min-height:250px;"></div>' +
             '</div></div></div></div>');
         $('body').append($modal);
 
@@ -826,69 +822,33 @@ $('#form-add-order').on('submit', function(e){
 
         $modal.on('shown.bs.modal', function(){
             if (myId !== scanId) return;
-            var video = document.getElementById(videoId);
-            navigator.mediaDevices.getUserMedia({
-                video: { facingMode:'environment', width:{ideal:1280}, height:{ideal:720} }
-            }).then(function(s){
-                stream = s;
-                video.srcObject = s;
-                video.play();
-
-                var canvas = document.createElement('canvas');
-                var ctx = canvas.getContext('2d', {willReadFrequently: true});
-
-                if (useNative) {
-                    // Chrome/Android: native BarcodeDetector (nhanh)
-                    var detector = new BarcodeDetector({formats:['code_128','code_39','qr_code','ean_13']});
-                    function nativeScan() {
-                        if (found || myId !== scanId) return;
-                        if (video.readyState < video.HAVE_ENOUGH_DATA) { requestAnimationFrame(nativeScan); return; }
-                        detector.detect(video).then(function(codes){
-                            if (codes.length > 0 && !found) { onFound(codes[0].rawValue); return; }
-                            requestAnimationFrame(nativeScan);
-                        }).catch(function(){ requestAnimationFrame(nativeScan); });
-                    }
-                    requestAnimationFrame(nativeScan);
-                } else {
-                    // iOS/Safari: html5-qrcode decode canvas blob
-                    ensureLib(function(){
-                        if (!h5Lib) {
-                            h5Lib = new Html5Qrcode('__h5qr_hidden__', {verbose: false});
-                        }
-                        scanTimer = setInterval(function(){
-                            if (found || myId !== scanId || video.readyState < video.HAVE_ENOUGH_DATA) return;
-                            canvas.width = video.videoWidth;
-                            canvas.height = video.videoHeight;
-                            ctx.drawImage(video, 0, 0);
-                            canvas.toBlob(function(blob){
-                                if (!blob || found) return;
-                                var file = new File([blob], 'frame.jpg', {type:'image/jpeg'});
-                                Html5Qrcode.scanFileV2(file, false).then(function(result){
-                                    if (!found && result && result.decodedText) {
-                                        onFound(result.decodedText);
-                                    }
-                                }).catch(function(){});
-                            }, 'image/jpeg', 0.8);
-                        }, 200);
-                    });
-                }
-            }).catch(function(){
-                bsModal.hide();
+            scanner = new Html5Qrcode(readerId, {
+                formatsToSupport: [Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.CODE_39, Html5QrcodeSupportedFormats.QR_CODE, Html5QrcodeSupportedFormats.EAN_13],
+                verbose: false
+            });
+            scanner.start(
+                { facingMode: 'environment' },
+                { fps: 20, qrbox: function(vw, vh){ return { width: Math.floor(vw*0.9), height: Math.floor(vh*0.4) }; } },
+                function(text){
+                    if (found) return;
+                    found = true;
+                    var val = text.trim().toUpperCase();
+                    $('#tracking-number-input').val(val).trigger('change');
+                    cleanup();
+                    Swal.fire({icon:'success', title: val, timer:1500, showConfirmButton:false});
+                },
+                function(){}
+            ).catch(function(){
+                cleanup();
                 Swal.fire({icon:'error', text:'<?= __('Không thể truy cập camera') ?>'});
             });
         });
 
-        function onFound(text) {
-            found = true;
-            var val = text.trim().toUpperCase();
-            $('#tracking-number-input').val(val).trigger('change');
-            cleanup();
-            Swal.fire({icon:'success', title: val, timer:1500, showConfirmButton:false});
-        }
-
         function cleanup() {
-            if (scanTimer) { clearInterval(scanTimer); scanTimer = null; }
-            if (stream) { stream.getTracks().forEach(function(t){ t.stop(); }); stream = null; }
+            if (scanner) {
+                try { scanner.stop().catch(function(){}); } catch(e){}
+                scanner = null;
+            }
             try { bsModal.hide(); } catch(e){}
             setTimeout(function(){
                 $modal.remove();
@@ -899,11 +859,6 @@ $('#form-add-order').on('submit', function(e){
 
         $modal.on('hidden.bs.modal', cleanup);
         bsModal.show();
-    }
-
-    // Hidden div for html5-qrcode (required but not visible)
-    if (!document.getElementById('__h5qr_hidden__')) {
-        $('body').append('<div id="__h5qr_hidden__" style="display:none;"></div>');
     }
 })();
 </script>
