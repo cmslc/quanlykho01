@@ -779,31 +779,39 @@ $('#form-add-order').on('submit', function(e){
     });
 });
 
-// ===== Barcode Camera Scanner for Tracking Number =====
+// ===== Barcode Camera Scanner (ZXing - nhanh) =====
 (function(){
-    var libReady = typeof Html5Qrcode !== 'undefined';
+    var libReady = typeof ZXing !== 'undefined';
     var scanId = 0;
 
     function loadLib(cb) {
         if (libReady) return cb();
         var s = document.createElement('script');
-        s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+        s.src = 'https://unpkg.com/@aspect-build/aspect-zxing-browser@0.0.2/umd/index.min.js';
+        s.onerror = function(){
+            // Fallback to unpkg zxing-js
+            var s2 = document.createElement('script');
+            s2.src = 'https://unpkg.com/@nicolo-ribaudo/zxing-library@0.20.1-0/umd/index.min.js';
+            s2.onload = function(){ libReady = true; cb(); };
+            s2.onerror = function(){ Swal.fire({icon:'error', text:'<?= __('Không thể tải thư viện quét mã') ?>'}); };
+            document.head.appendChild(s2);
+        };
         s.onload = function(){ libReady = true; cb(); };
         document.head.appendChild(s);
     }
 
     $('#btn-scan-tracking').on('click', function(){
-        loadLib(openScanner);
+        openScanner();
     });
 
     function openScanner() {
         scanId++;
         var myId = scanId;
-        var readerId = 'qr-reader-' + myId;
-        var scanner = null;
+        var videoId = 'scan-video-' + myId;
+        var stream = null;
+        var animId = null;
         var found = false;
 
-        // Dọn modal cũ
         $('.qr-scan-modal').each(function(){ $(this).remove(); });
         $('.modal-backdrop').remove();
         $('body').removeClass('modal-open').css('overflow','');
@@ -815,48 +823,90 @@ $('#form-add-order').on('submit', function(e){
             '<h6 class="modal-title"><i class="ri-camera-line me-1"></i><?= __('Quét mã vận đơn') ?></h6>' +
             '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>' +
             '</div>' +
-            '<div class="modal-body p-2">' +
-            '<div id="' + readerId + '" style="width:100%;min-height:200px;"></div>' +
+            '<div class="modal-body p-0 position-relative">' +
+            '<video id="' + videoId + '" autoplay playsinline muted style="width:100%;display:block;"></video>' +
+            '<div style="position:absolute;top:50%;left:5%;right:5%;height:2px;background:#00ff00;opacity:0.7;box-shadow:0 0 8px #00ff00;"></div>' +
             '</div></div></div></div>');
         $('body').append($modal);
 
         var bsModal = new bootstrap.Modal($modal[0]);
 
-        // Start camera SAU KHI modal đã hiện hoàn toàn
         $modal.on('shown.bs.modal', function(){
             if (myId !== scanId) return;
-            scanner = new Html5Qrcode(readerId, {
-                formatsToSupport: [Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.CODE_39, Html5QrcodeSupportedFormats.QR_CODE, Html5QrcodeSupportedFormats.EAN_13],
-                verbose: false
-            });
-            scanner.start(
-                { facingMode: 'environment' },
-                { fps: 30, qrbox: function(vw, vh){ var s = Math.min(vw, vh); return { width: Math.floor(s*0.9), height: Math.floor(s*0.5) }; } },
-                function(text){
-                    if (found) return;
-                    found = true;
-                    var val = text.trim().toUpperCase();
-                    $('#tracking-number-input').val(val).trigger('change');
-                    try { scanner.stop().catch(function(){}); } catch(e){}
-                    scanner = null;
-                    bsModal.hide();
-                    Swal.fire({icon:'success', title: val, timer:1500, showConfirmButton:false});
-                },
-                function(){}
-            ).catch(function(){
+            var video = document.getElementById(videoId);
+            navigator.mediaDevices.getUserMedia({
+                video: { facingMode:'environment', width:{ideal:1280}, height:{ideal:720} }
+            }).then(function(s){
+                stream = s;
+                video.srcObject = s;
+                video.play();
+                // Dùng canvas decode nhanh bằng BarcodeDetector hoặc ZXing
+                var canvas = document.createElement('canvas');
+                var ctx = canvas.getContext('2d', {willReadFrequently: true});
+                var useNative = 'BarcodeDetector' in window;
+                var detector = useNative ? new BarcodeDetector({formats:['code_128','code_39','qr_code','ean_13']}) : null;
+
+                function scanFrame() {
+                    if (found || myId !== scanId) return;
+                    if (video.readyState < video.HAVE_ENOUGH_DATA) { animId = requestAnimationFrame(scanFrame); return; }
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    ctx.drawImage(video, 0, 0);
+
+                    if (useNative && detector) {
+                        detector.detect(canvas).then(function(codes){
+                            if (codes.length > 0 && !found) { onFound(codes[0].rawValue); return; }
+                            animId = requestAnimationFrame(scanFrame);
+                        }).catch(function(){ animId = requestAnimationFrame(scanFrame); });
+                    } else {
+                        // ZXing fallback
+                        try {
+                            var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                            var hints = new Map();
+                            hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+                                ZXing.BarcodeFormat.CODE_128,
+                                ZXing.BarcodeFormat.CODE_39,
+                                ZXing.BarcodeFormat.QR_CODE,
+                                ZXing.BarcodeFormat.EAN_13
+                            ]);
+                            hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+                            var luminance = new ZXing.RGBLuminanceSource(imageData.data, canvas.width, canvas.height);
+                            var binary = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminance));
+                            var reader = new ZXing.MultiFormatReader();
+                            reader.setHints(hints);
+                            var result = reader.decode(binary);
+                            if (result && result.getText()) { onFound(result.getText()); return; }
+                        } catch(e) {}
+                        animId = requestAnimationFrame(scanFrame);
+                    }
+                }
+                animId = requestAnimationFrame(scanFrame);
+            }).catch(function(){
                 bsModal.hide();
                 Swal.fire({icon:'error', text:'<?= __('Không thể truy cập camera') ?>'});
             });
         });
 
-        // Dọn dẹp khi đóng modal
-        $modal.on('hidden.bs.modal', function(){
-            if (scanner) { try { scanner.stop().catch(function(){}); } catch(e){} scanner = null; }
-            $modal.remove();
-            $('.modal-backdrop').remove();
-            $('body').removeClass('modal-open').css('overflow','');
-        });
+        function onFound(text) {
+            found = true;
+            var val = text.trim().toUpperCase();
+            $('#tracking-number-input').val(val).trigger('change');
+            cleanup();
+            Swal.fire({icon:'success', title: val, timer:1500, showConfirmButton:false});
+        }
 
+        function cleanup() {
+            if (animId) { cancelAnimationFrame(animId); animId = null; }
+            if (stream) { stream.getTracks().forEach(function(t){ t.stop(); }); stream = null; }
+            try { bsModal.hide(); } catch(e){}
+            setTimeout(function(){
+                $modal.remove();
+                $('.modal-backdrop').remove();
+                $('body').removeClass('modal-open').css('overflow','');
+            }, 300);
+        }
+
+        $modal.on('hidden.bs.modal', cleanup);
         bsModal.show();
     }
 })();
