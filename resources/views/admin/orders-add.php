@@ -817,10 +817,18 @@ var scannerBusy = false;
 function startHtml5Scanner() {
     if (html5QrScanner) return;
     scannerBusy = false;
-    html5QrScanner = new Html5Qrcode('html5-qr-reader');
+    html5QrScanner = new Html5Qrcode('html5-qr-reader', {
+        formatsToSupport: [
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.QR_CODE,
+            Html5QrcodeSupportedFormats.EAN_13
+        ],
+        verbose: false
+    });
     html5QrScanner.start(
         { facingMode: 'environment' },
-        { fps: 15, qrbox: function(vw, vh){ var s = Math.min(vw, vh); return { width: Math.floor(s * 0.8), height: Math.floor(s * 0.4) }; } },
+        { fps: 30, qrbox: function(vw, vh){ var s = Math.min(vw, vh); return { width: Math.floor(s * 0.9), height: Math.floor(s * 0.5) }; }, disableFlip: false },
         function(decodedText) {
             if (scannerBusy) return;
             scannerBusy = true;
