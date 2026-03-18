@@ -813,19 +813,31 @@ $('#btn-scan-tracking').on('click', function(){
     }
 });
 
+var scannerBusy = false;
 function startHtml5Scanner() {
     if (html5QrScanner) return;
+    scannerBusy = false;
     html5QrScanner = new Html5Qrcode('html5-qr-reader');
     html5QrScanner.start(
         { facingMode: 'environment' },
         { fps: 15, qrbox: function(vw, vh){ var s = Math.min(vw, vh); return { width: Math.floor(s * 0.8), height: Math.floor(s * 0.4) }; } },
         function(decodedText) {
-            $('#tracking-number-input').val(decodedText.trim().toUpperCase()).trigger('change');
-            stopHtml5Scanner();
-            bootstrap.Modal.getInstance(document.getElementById('scan-modal-tracking')).hide();
-            Swal.fire({icon:'success', title: decodedText.trim(), timer:1500, showConfirmButton:false});
+            if (scannerBusy) return;
+            scannerBusy = true;
+            var val = decodedText.trim().toUpperCase();
+            $('#tracking-number-input').val(val).trigger('change');
+            html5QrScanner.stop().then(function(){
+                html5QrScanner.clear();
+                html5QrScanner = null;
+                bootstrap.Modal.getInstance(document.getElementById('scan-modal-tracking')).hide();
+                Swal.fire({icon:'success', title: val, timer:1500, showConfirmButton:false});
+            }).catch(function(){
+                html5QrScanner = null;
+                bootstrap.Modal.getInstance(document.getElementById('scan-modal-tracking')).hide();
+                Swal.fire({icon:'success', title: val, timer:1500, showConfirmButton:false});
+            });
         },
-        function() {} // ignore errors
+        function() {}
     ).catch(function(err) {
         Swal.fire({icon:'error', text:'<?= __('Không thể truy cập camera') ?>: ' + err});
     });
@@ -833,9 +845,13 @@ function startHtml5Scanner() {
 
 function stopHtml5Scanner() {
     if (html5QrScanner) {
-        try { html5QrScanner.stop(); } catch(e){}
-        html5QrScanner.clear();
-        html5QrScanner = null;
+        html5QrScanner.stop().then(function(){
+            html5QrScanner.clear();
+            html5QrScanner = null;
+        }).catch(function(){
+            try { html5QrScanner.clear(); } catch(e){}
+            html5QrScanner = null;
+        });
     }
 }
 </script>
