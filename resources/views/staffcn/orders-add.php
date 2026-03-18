@@ -765,9 +765,18 @@ $('#form-add-order').on('submit', function(e){
     });
 });
 
-// ===== Barcode Camera Scanner (native + ZXing fallback) =====
+// ===== Barcode Camera Scanner =====
 (function(){
     var scanId = 0;
+    var h5Lib = null;
+
+    function ensureLib(cb) {
+        if (typeof Html5Qrcode !== 'undefined') return cb();
+        var s = document.createElement('script');
+        s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+        s.onload = cb;
+        document.head.appendChild(s);
+    }
 
     $('#btn-scan-tracking').on('click', function(){
         openScanner();
@@ -778,8 +787,9 @@ $('#form-add-order').on('submit', function(e){
         var myId = scanId;
         var videoId = 'scan-video-' + myId;
         var stream = null;
-        var animId = null;
+        var scanTimer = null;
         var found = false;
+        var useNative = 'BarcodeDetector' in window;
 
         $('.qr-scan-modal').each(function(){ $(this).remove(); });
         $('.modal-backdrop').remove();
@@ -809,44 +819,40 @@ $('#form-add-order').on('submit', function(e){
                 stream = s;
                 video.srcObject = s;
                 video.play();
+
                 var canvas = document.createElement('canvas');
                 var ctx = canvas.getContext('2d', {willReadFrequently: true});
-                var useNative = 'BarcodeDetector' in window;
-                var detector = useNative ? new BarcodeDetector({formats:['code_128','code_39','qr_code','ean_13']}) : null;
 
-                function scanFrame() {
-                    if (found || myId !== scanId) return;
-                    if (video.readyState < video.HAVE_ENOUGH_DATA) { animId = requestAnimationFrame(scanFrame); return; }
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    ctx.drawImage(video, 0, 0);
-
-                    if (useNative && detector) {
-                        detector.detect(canvas).then(function(codes){
+                if (useNative) {
+                    var detector = new BarcodeDetector({formats:['code_128','code_39','qr_code','ean_13']});
+                    function nativeScan() {
+                        if (found || myId !== scanId) return;
+                        if (video.readyState < video.HAVE_ENOUGH_DATA) { requestAnimationFrame(nativeScan); return; }
+                        detector.detect(video).then(function(codes){
                             if (codes.length > 0 && !found) { onFound(codes[0].rawValue); return; }
-                            animId = requestAnimationFrame(scanFrame);
-                        }).catch(function(){ animId = requestAnimationFrame(scanFrame); });
-                    } else {
-                        // ZXing fallback
-                        try {
-                            var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                            var hints = new Map();
-                            hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
-                                ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.CODE_39,
-                                ZXing.BarcodeFormat.QR_CODE, ZXing.BarcodeFormat.EAN_13
-                            ]);
-                            hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-                            var luminance = new ZXing.RGBLuminanceSource(imageData.data, canvas.width, canvas.height);
-                            var binary = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminance));
-                            var reader = new ZXing.MultiFormatReader();
-                            reader.setHints(hints);
-                            var result = reader.decode(binary);
-                            if (result && result.getText()) { onFound(result.getText()); return; }
-                        } catch(e) {}
-                        animId = requestAnimationFrame(scanFrame);
+                            requestAnimationFrame(nativeScan);
+                        }).catch(function(){ requestAnimationFrame(nativeScan); });
                     }
+                    requestAnimationFrame(nativeScan);
+                } else {
+                    ensureLib(function(){
+                        scanTimer = setInterval(function(){
+                            if (found || myId !== scanId || video.readyState < video.HAVE_ENOUGH_DATA) return;
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                            ctx.drawImage(video, 0, 0);
+                            canvas.toBlob(function(blob){
+                                if (!blob || found) return;
+                                var file = new File([blob], 'frame.jpg', {type:'image/jpeg'});
+                                Html5Qrcode.scanFileV2(file, false).then(function(result){
+                                    if (!found && result && result.decodedText) {
+                                        onFound(result.decodedText);
+                                    }
+                                }).catch(function(){});
+                            }, 'image/jpeg', 0.8);
+                        }, 200);
+                    });
                 }
-                animId = requestAnimationFrame(scanFrame);
             }).catch(function(){
                 bsModal.hide();
                 Swal.fire({icon:'error', text:'<?= __('Không thể truy cập camera') ?>'});
@@ -862,7 +868,7 @@ $('#form-add-order').on('submit', function(e){
         }
 
         function cleanup() {
-            if (animId) { cancelAnimationFrame(animId); animId = null; }
+            if (scanTimer) { clearInterval(scanTimer); scanTimer = null; }
             if (stream) { stream.getTracks().forEach(function(t){ t.stop(); }); stream = null; }
             try { bsModal.hide(); } catch(e){}
             setTimeout(function(){
@@ -874,6 +880,10 @@ $('#form-add-order').on('submit', function(e){
 
         $modal.on('hidden.bs.modal', cleanup);
         bsModal.show();
+    }
+
+    if (!document.getElementById('__h5qr_hidden__')) {
+        $('body').append('<div id="__h5qr_hidden__" style="display:none;"></div>');
     }
 })();
 </script>
