@@ -233,7 +233,7 @@ class Shipments extends DB
     {
         return $this->get_list_safe(
             "SELECT p.*, sp.added_at, sp.added_by,
-                    o.order_code, o.product_name, o.product_code, o.cargo_type, o.product_image, o.status as order_status, o.product_type,
+                    o.order_code, o.product_name, o.product_code, o.cn_tracking, o.cargo_type, o.product_image, o.status as order_status, o.product_type,
                     c.fullname as customer_name, c.customer_code,
                     b.bag_code, b.status as bag_status, b.total_weight as bag_weight,
                     b.length_cm as bag_length, b.width_cm as bag_width, b.height_cm as bag_height

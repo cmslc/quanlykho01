@@ -339,6 +339,9 @@ require_once(__DIR__.'/sidebar.php');
                                     <?php if (!$isRetail && !empty($order['product_code'])): ?>
                                     <tr><td class="text-muted"><?= __('Mã hàng') ?></td><td class="fw-bold"><?= htmlspecialchars($order['product_code']) ?></td></tr>
                                     <?php endif; ?>
+                                    <?php if (!$isRetail && !empty($order['cn_tracking'])): ?>
+                                    <tr><td class="text-muted"><?= __('Mã vận đơn') ?></td><td class="fw-bold"><?= htmlspecialchars($order['cn_tracking']) ?></td></tr>
+                                    <?php endif; ?>
                                     <tr>
                                         <td class="text-muted"><?= __('Khách hàng') ?></td>
                                         <td>

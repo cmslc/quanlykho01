@@ -32,6 +32,7 @@ foreach ($packages as $pkg) {
             'customer' => $pkg['customer_name'] ?: '',
             'is_bag' => !empty($pkg['bag_code']),
             'is_wholesale' => ($pkg['product_type'] ?? '') === 'wholesale',
+            'cn_tracking' => $pkg['cn_tracking'] ?? '',
             'order_status' => $pkg['order_status'] ?? '',
             'bag_weight' => $pkg['bag_weight'] ?? 0,
             'bag_cbm' => (($pkg['bag_length'] ?? 0) * ($pkg['bag_width'] ?? 0) * ($pkg['bag_height'] ?? 0)) / 1000000,
@@ -116,6 +117,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <tr>
                                         <th>#</th>
                                         <th><?= __('Mã hàng') ?></th>
+                                        <th><?= __('Mã vận đơn') ?></th>
                                         <th><?= __('Loại hàng') ?></th>
                                         <th><?= __('Khách hàng') ?></th>
                                         <th><?= __('Số kiện') ?></th>
@@ -126,7 +128,7 @@ require_once(__DIR__.'/sidebar.php');
                                 </thead>
                                 <tbody>
                                     <?php if (empty($grouped)): ?>
-                                    <tr><td colspan="8" class="text-center text-muted py-4"><?= __('Chưa có kiện hàng nào') ?></td></tr>
+                                    <tr><td colspan="9" class="text-center text-muted py-4"><?= __('Chưa có kiện hàng nào') ?></td></tr>
                                     <?php endif; ?>
                                     <?php $gIdx = 0; foreach ($grouped as $maHang => $group): $gIdx++;
                                         $pkgList = $group['pkgs'];
@@ -146,6 +148,7 @@ require_once(__DIR__.'/sidebar.php');
                                             <strong><?= htmlspecialchars($maHang) ?></strong>
                                             <i class="ri-arrow-right-s-line fs-14 expand-icon-<?= $groupId ?> text-muted ms-1"></i>
                                         </td>
+                                        <td class="align-middle"><?= !empty($group['cn_tracking']) ? htmlspecialchars($group['cn_tracking']) : '<span class="text-muted">-</span>' ?></td>
                                         <td class="align-middle"><?php if ($group['is_bag']): ?><span class="badge bg-info-subtle text-info"><?= __('Hàng lẻ') ?></span><?php else: ?><span class="badge bg-warning-subtle text-warning"><?= __('Hàng lô') ?></span><?php endif; ?></td>
                                         <td class="align-middle"><?= htmlspecialchars($group['customer']) ?></td>
                                         <td class="align-middle"><?= count($pkgList) ?></td>
@@ -154,7 +157,7 @@ require_once(__DIR__.'/sidebar.php');
                                         <td class="align-middle"><?= $group['is_wholesale'] && $group['order_status'] ? display_order_status($group['order_status']) : display_package_status($pkgList[0]['status']) ?></td>
                                     </tr>
                                     <tr class="d-none" id="expand-<?= $groupId ?>">
-                                        <td colspan="8" class="p-0">
+                                        <td colspan="9" class="p-0">
                                             <div class="px-4 py-2 bg-light">
                                                 <table class="table table-sm table-borderless mb-0 text-muted">
                                                     <thead><tr>

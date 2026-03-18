@@ -324,6 +324,9 @@ require_once(__DIR__.'/sidebar.php');
                                                 <?php else: ?>
                                                 <a href="<?= base_url('staffcn/orders-detail?id=' . $order['id']) ?>" class="text-muted">#<?= $order['id'] ?></a>
                                                 <?php endif; ?>
+                                                <?php if (!empty($order['cn_tracking'])): ?>
+                                                <div><small class="text-muted"><i class="ri-truck-line"></i> <?= htmlspecialchars($order['cn_tracking']) ?></small></div>
+                                                <?php endif; ?>
                                             <?php endif; ?>
                                             <?php if ($pkgCount > 0): ?>
                                             <div class="mt-1"><a href="#" class="btn-expand-pkgs text-muted text-decoration-none" data-order-id="<?= $order['id'] ?>"><i class="ri-archive-line"></i> <?= $pkgCount ?> <?= __('kiện') ?> <i class="ri-arrow-down-s-line expand-icon fs-14"></i></a></div>
