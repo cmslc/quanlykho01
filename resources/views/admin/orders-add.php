@@ -818,7 +818,7 @@ function startHtml5Scanner() {
     html5QrScanner = new Html5Qrcode('html5-qr-reader');
     html5QrScanner.start(
         { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 250, height: 100 }, aspectRatio: 1.5 },
+        { fps: 15, qrbox: function(vw, vh){ var s = Math.min(vw, vh); return { width: Math.floor(s * 0.8), height: Math.floor(s * 0.4) }; } },
         function(decodedText) {
             $('#tracking-number-input').val(decodedText.trim().toUpperCase()).trigger('change');
             stopHtml5Scanner();
