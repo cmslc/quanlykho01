@@ -1,0 +1,1 @@
+cd /home/mcmqcsephosting/public_html && git pull origin main

@@ -1,0 +1,9 @@
+{
+    "name": "cms01/warehouse-shipping",
+    "description": "CMS Warehouse & Shipping Management System",
+    "require": {
+        "vlucas/phpdotenv": "^5.3",
+        "phpmailer/phpmailer": "^6.5",
+        "phpoffice/phpspreadsheet": "^1.29"
+    }
+}

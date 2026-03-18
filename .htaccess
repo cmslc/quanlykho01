@@ -1,0 +1,18 @@
+DirectoryIndex index.php
+
+# Block access to sensitive files
+<FilesMatch "\.(env|sql|md)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+RewriteEngine On
+RewriteBase /
+
+# Block access to libs, models, cron, vendor directories
+RewriteRule ^(libs|models|cron|vendor)/ - [F,L]
+
+# Route all requests to index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ /index.php [QSA,L]
