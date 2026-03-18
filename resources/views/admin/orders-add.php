@@ -98,7 +98,10 @@ require_once(__DIR__.'/sidebar.php');
                         <div class="col-md-4 wholesale-only">
                             <div class="mb-3">
                                 <label class="form-label"><?= __('Mã vận đơn') ?></label>
-                                <input type="text" class="form-control" name="tracking_number" placeholder="<?= __('Nhập mã vận đơn') ?>">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="tracking_number" id="tracking-number-input" placeholder="<?= __('Quét hoặc nhập mã vận đơn') ?>" style="text-transform:uppercase">
+                                    <button type="button" class="btn btn-outline-primary" id="btn-scan-tracking" title="<?= __('Quét mã') ?>"><i class="ri-barcode-line"></i></button>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -752,4 +755,74 @@ $('#form-add-order').on('submit', function(e){
         }
     });
 });
+
+// ===== Barcode Camera Scanner for Tracking Number =====
+$('#btn-scan-tracking').on('click', function(){
+    if ($('#scan-modal-tracking').length) {
+        var m = bootstrap.Modal.getOrCreateInstance(document.getElementById('scan-modal-tracking'));
+        m.show();
+        startTrackingScanner();
+        return;
+    }
+    var modalHtml = '<div class="modal fade" id="scan-modal-tracking" tabindex="-1">'
+        + '<div class="modal-dialog modal-dialog-centered">'
+        + '<div class="modal-content">'
+        + '<div class="modal-header py-2">'
+        + '<h6 class="modal-title"><i class="ri-camera-line me-1"></i><?= __('Quét mã vận đơn') ?></h6>'
+        + '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>'
+        + '</div>'
+        + '<div class="modal-body p-0 position-relative">'
+        + '<video id="scan-video-tracking" autoplay playsinline style="width:100%;display:block;"></video>'
+        + '<div style="position:absolute;top:50%;left:10%;right:10%;height:2px;background:red;opacity:0.6;"></div>'
+        + '</div>'
+        + '</div></div></div>';
+    $('body').append(modalHtml);
+    var m = new bootstrap.Modal(document.getElementById('scan-modal-tracking'));
+    m.show();
+    document.getElementById('scan-modal-tracking').addEventListener('hidden.bs.modal', stopTrackingScanner);
+    startTrackingScanner();
+});
+
+var trackingScanStream = null;
+var trackingScanInterval = null;
+
+function startTrackingScanner() {
+    var video = document.getElementById('scan-video-tracking');
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        Swal.fire({icon:'error', text:'<?= __('Trình duyệt không hỗ trợ camera') ?>'});
+        return;
+    }
+    navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}}).then(function(stream){
+        trackingScanStream = stream;
+        video.srcObject = stream;
+        if (!('BarcodeDetector' in window)) {
+            // Fallback: focus input for manual entry
+            bootstrap.Modal.getInstance(document.getElementById('scan-modal-tracking')).hide();
+            $('#tracking-number-input').focus();
+            Swal.fire({icon:'info', text:'<?= __('Trình duyệt không hỗ trợ quét mã. Vui lòng nhập tay.') ?>', timer: 2000, showConfirmButton: false});
+            return;
+        }
+        var detector = new BarcodeDetector({formats: ['qr_code','code_128','code_39','ean_13','ean_8','codabar','itf']});
+        trackingScanInterval = setInterval(function(){
+            if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+            detector.detect(video).then(function(codes){
+                if (codes.length > 0) {
+                    var val = codes[0].rawValue.trim();
+                    if (val) {
+                        $('#tracking-number-input').val(val.toUpperCase()).trigger('change');
+                        bootstrap.Modal.getInstance(document.getElementById('scan-modal-tracking')).hide();
+                        Swal.fire({icon:'success', title: val, timer:1500, showConfirmButton:false});
+                    }
+                }
+            }).catch(function(){});
+        }, 300);
+    }).catch(function(){
+        Swal.fire({icon:'error', text:'<?= __('Không thể truy cập camera') ?>'});
+    });
+}
+
+function stopTrackingScanner() {
+    if (trackingScanInterval) { clearInterval(trackingScanInterval); trackingScanInterval = null; }
+    if (trackingScanStream) { trackingScanStream.getTracks().forEach(function(t){ t.stop(); }); trackingScanStream = null; }
+}
 </script>
