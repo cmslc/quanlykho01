@@ -96,6 +96,12 @@ require_once(__DIR__.'/sidebar.php');
                                 <input type="text" class="form-control" name="product_code" placeholder="<?= __('Nhập mã hàng') ?>">
                             </div>
                         </div>
+                        <div class="col-md-4 wholesale-only">
+                            <div class="mb-3">
+                                <label class="form-label"><?= __('Mã vận đơn') ?></label>
+                                <input type="text" class="form-control" name="tracking_number" placeholder="<?= __('Nhập mã vận đơn') ?>">
+                            </div>
+                        </div>
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label"><?= __('Tên sản phẩm') ?></label>
