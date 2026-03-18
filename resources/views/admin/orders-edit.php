@@ -110,7 +110,10 @@ require_once(__DIR__.'/sidebar.php');
                         <div class="col-md-4 wholesale-only">
                             <div class="mb-3">
                                 <label class="form-label"><?= __('Mã vận đơn') ?></label>
-                                <input type="text" class="form-control" name="tracking_number" value="<?= htmlspecialchars($order['cn_tracking'] ?? '') ?>" placeholder="<?= __('Nhập mã vận đơn') ?>">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="tracking_number" id="tracking-number-input" value="<?= htmlspecialchars($order['cn_tracking'] ?? '') ?>" placeholder="<?= __('Quét hoặc nhập mã vận đơn') ?>" style="text-transform:uppercase">
+                                    <button type="button" class="btn btn-outline-primary" id="btn-scan-tracking" title="<?= __('Quét mã') ?>"><i class="ri-barcode-line"></i></button>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -701,4 +704,57 @@ $('#btn-toggle-group').on('click', function() {
 });
 applyPkgView();
 <?php endif; ?>
+
+// ===== Barcode Camera Scanner (QuaggaJS) =====
+$('#btn-scan-tracking').on('click', function(){
+    if ($('#scan-fullscreen').length) return;
+
+    function start() {
+        var $overlay = $('<div id="scan-fullscreen" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:#000;">' +
+            '<div style="position:absolute;top:0;left:0;right:0;padding:10px 12px;background:rgba(0,0,0,0.7);z-index:10;display:flex;align-items:center;justify-content:space-between;">' +
+            '<strong style="color:#fff;"><i class="ri-barcode-line me-1"></i><?= __('Quét mã vận đơn') ?></strong>' +
+            '<button type="button" id="btn-close-scan" class="btn btn-sm btn-outline-light"><i class="ri-close-line"></i> <?= __('Đóng') ?></button>' +
+            '</div>' +
+            '<div id="scan-viewport" style="width:100%;height:100%;"></div>' +
+            '</div>');
+        $('body').append($overlay);
+
+        Quagga.init({
+            inputStream: {
+                name: 'Live', type: 'LiveStream',
+                target: document.querySelector('#scan-viewport'),
+                constraints: { facingMode: 'environment', width: {ideal:1280}, height: {ideal:720} }
+            },
+            frequency: 15,
+            decoder: { readers: ['code_128_reader','code_39_reader','ean_reader','ean_8_reader'] },
+            locate: true,
+            locator: { halfSample: true, patchSize: 'medium' }
+        }, function(err) {
+            if (err) { $('#scan-fullscreen').remove(); Swal.fire({icon:'error', text:'<?= __('Không thể truy cập camera') ?>'}); return; }
+            Quagga.start();
+        });
+
+        var found = false;
+        Quagga.onDetected(function(result) {
+            if (found) return;
+            var code = result.codeResult.code;
+            if (!code) return;
+            found = true;
+            Quagga.stop();
+            $('#scan-fullscreen').remove();
+            var val = code.trim().toUpperCase();
+            $('#tracking-number-input').val(val).trigger('change');
+            Swal.fire({icon:'success', title: val, timer:1500, showConfirmButton:false});
+        });
+
+        $('#btn-close-scan').on('click', function(){ Quagga.stop(); $('#scan-fullscreen').remove(); });
+    }
+
+    if (typeof Quagga === 'undefined') {
+        var s = document.createElement('script');
+        s.src = 'https://unpkg.com/@ericblade/quagga2@1.8.4/dist/quagga.min.js';
+        s.onload = start;
+        document.head.appendChild(s);
+    } else { start(); }
+});
 </script>
