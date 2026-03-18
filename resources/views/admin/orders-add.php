@@ -141,6 +141,7 @@ require_once(__DIR__.'/sidebar.php');
                         <div class="col-lg-8">
                             <div class="input-group input-group-lg">
                                 <input type="text" class="form-control" id="retail-scan-input" placeholder="<?= __('Quét hoặc nhập mã vận đơn rồi nhấn Enter') ?>" autofocus>
+                                <button type="button" class="btn btn-outline-primary" id="btn-scan-retail" title="<?= __('Quét bằng camera') ?>"><i class="ri-camera-line"></i></button>
                                 <button type="button" class="btn btn-primary" id="btn-scan-submit"><i class="ri-send-plane-line"></i></button>
                             </div>
                         </div>
@@ -849,5 +850,58 @@ $('#btn-scan-tracking').on('click', function(){
     } else {
         start();
     }
+});
+
+// ===== Quét camera cho hàng lẻ =====
+$('#btn-scan-retail').on('click', function(){
+    if ($('#scan-fullscreen').length) return;
+
+    function start() {
+        var $overlay = $('<div id="scan-fullscreen" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:#000;">' +
+            '<div style="position:absolute;top:0;left:0;right:0;padding:10px 12px;background:rgba(0,0,0,0.7);z-index:10;display:flex;align-items:center;justify-content:space-between;">' +
+            '<strong style="color:#fff;"><i class="ri-barcode-line me-1"></i><?= __('Quét mã vận đơn') ?></strong>' +
+            '<button type="button" id="btn-close-scan" class="btn btn-sm btn-outline-light"><i class="ri-close-line"></i> <?= __('Đóng') ?></button>' +
+            '</div>' +
+            '<div id="scan-viewport" style="width:100%;height:100%;"></div>' +
+            '</div>');
+        $('body').append($overlay);
+
+        Quagga.init({
+            inputStream: {
+                name: 'Live', type: 'LiveStream',
+                target: document.querySelector('#scan-viewport'),
+                constraints: { facingMode: 'environment', width: {ideal:1280}, height: {ideal:720} }
+            },
+            frequency: 15,
+            decoder: { readers: ['code_128_reader','code_39_reader','ean_reader','ean_8_reader'] },
+            locate: true,
+            locator: { halfSample: true, patchSize: 'medium' }
+        }, function(err) {
+            if (err) { $('#scan-fullscreen').remove(); Swal.fire({icon:'error', text:'<?= __('Không thể truy cập camera') ?>'}); return; }
+            Quagga.start();
+        });
+
+        var found = false;
+        Quagga.onDetected(function(result) {
+            if (found) return;
+            var code = result.codeResult.code;
+            if (!code) return;
+            found = true;
+            Quagga.stop();
+            $('#scan-fullscreen').remove();
+            var val = code.trim().toUpperCase();
+            $('#retail-scan-input').val(val);
+            submitRetailScan();
+        });
+
+        $('#btn-close-scan').on('click', function(){ Quagga.stop(); $('#scan-fullscreen').remove(); });
+    }
+
+    if (typeof Quagga === 'undefined') {
+        var s = document.createElement('script');
+        s.src = 'https://unpkg.com/@ericblade/quagga2@1.8.4/dist/quagga.min.js';
+        s.onload = start;
+        document.head.appendChild(s);
+    } else { start(); }
 });
 </script>
