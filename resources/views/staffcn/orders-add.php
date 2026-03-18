@@ -767,10 +767,8 @@ $('#form-add-order').on('submit', function(e){
 
 // ===== Barcode Camera Scanner =====
 (function(){
-    var scanId = 0;
-
     function ensureLib(cb) {
-        if (typeof Html5Qrcode !== 'undefined') return cb();
+        if (typeof Html5QrcodeScanner !== 'undefined') return cb();
         var s = document.createElement('script');
         s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
         s.onload = cb;
@@ -782,69 +780,37 @@ $('#form-add-order').on('submit', function(e){
     });
 
     function openScanner() {
-        scanId++;
-        var myId = scanId;
-        var readerId = 'qr-reader-' + myId;
-        var scanner = null;
-        var found = false;
+        if ($('#scan-fullscreen').length) return;
 
-        $('.qr-scan-modal').each(function(){ $(this).remove(); });
-        $('.modal-backdrop').remove();
-        $('body').removeClass('modal-open').css('overflow','');
-
-        var $modal = $('<div class="modal fade qr-scan-modal" tabindex="-1">' +
-            '<div class="modal-dialog modal-dialog-centered">' +
-            '<div class="modal-content">' +
-            '<div class="modal-header py-2">' +
-            '<h6 class="modal-title"><i class="ri-camera-line me-1"></i><?= __('Quét mã vận đơn') ?></h6>' +
-            '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>' +
+        var $overlay = $('<div id="scan-fullscreen" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:#000;">' +
+            '<div style="position:absolute;top:0;left:0;right:0;padding:8px 12px;background:rgba(0,0,0,0.7);z-index:10;display:flex;align-items:center;justify-content:space-between;">' +
+            '<span style="color:#fff;font-size:14px;"><i class="ri-camera-line"></i> <?= __('Quét mã vận đơn') ?></span>' +
+            '<button type="button" id="btn-close-scan" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;"><i class="ri-close-line"></i></button>' +
             '</div>' +
-            '<div class="modal-body p-2">' +
-            '<div id="' + readerId + '" style="width:100%;min-height:250px;"></div>' +
-            '</div></div></div></div>');
-        $('body').append($modal);
+            '<div id="scan-reader" style="width:100%;height:100%;"></div>' +
+            '</div>');
+        $('body').append($overlay);
 
-        var bsModal = new bootstrap.Modal($modal[0]);
+        var scanner = new Html5QrcodeScanner('scan-reader', {
+            fps: 15,
+            qrbox: function(vw, vh){ return { width: Math.floor(vw*0.8), height: Math.floor(Math.min(vh*0.3, 150)) }; },
+            rememberLastUsedCamera: true,
+            showTorchButtonIfSupported: true,
+            formatsToSupport: [Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.CODE_39, Html5QrcodeSupportedFormats.QR_CODE, Html5QrcodeSupportedFormats.EAN_13]
+        }, false);
 
-        $modal.on('shown.bs.modal', function(){
-            if (myId !== scanId) return;
-            scanner = new Html5Qrcode(readerId, {
-                formatsToSupport: [Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.CODE_39, Html5QrcodeSupportedFormats.QR_CODE, Html5QrcodeSupportedFormats.EAN_13],
-                verbose: false
-            });
-            scanner.start(
-                { facingMode: 'environment' },
-                { fps: 20, qrbox: function(vw, vh){ return { width: Math.floor(vw*0.9), height: Math.floor(vh*0.4) }; } },
-                function(text){
-                    if (found) return;
-                    found = true;
-                    var val = text.trim().toUpperCase();
-                    $('#tracking-number-input').val(val).trigger('change');
-                    cleanup();
-                    Swal.fire({icon:'success', title: val, timer:1500, showConfirmButton:false});
-                },
-                function(){}
-            ).catch(function(){
-                cleanup();
-                Swal.fire({icon:'error', text:'<?= __('Không thể truy cập camera') ?>'});
-            });
+        scanner.render(function(text){
+            var val = text.trim().toUpperCase();
+            $('#tracking-number-input').val(val).trigger('change');
+            scanner.clear();
+            $('#scan-fullscreen').remove();
+            Swal.fire({icon:'success', title: val, timer:1500, showConfirmButton:false});
+        }, function(){});
+
+        $('#btn-close-scan').on('click', function(){
+            scanner.clear();
+            $('#scan-fullscreen').remove();
         });
-
-        function cleanup() {
-            if (scanner) {
-                try { scanner.stop().catch(function(){}); } catch(e){}
-                scanner = null;
-            }
-            try { bsModal.hide(); } catch(e){}
-            setTimeout(function(){
-                $modal.remove();
-                $('.modal-backdrop').remove();
-                $('body').removeClass('modal-open').css('overflow','');
-            }, 300);
-        }
-
-        $modal.on('hidden.bs.modal', cleanup);
-        bsModal.show();
     }
 })();
 </script>
