@@ -765,51 +765,71 @@ $('#form-add-order').on('submit', function(e){
     });
 });
 
-// ===== Barcode Camera Scanner =====
+// ===== Barcode Camera Scanner (QuaggaJS - nhanh cho barcode 1D) =====
 $('#btn-scan-tracking').on('click', function(){
     if ($('#scan-fullscreen').length) return;
+
     function start() {
-        var $overlay = $('<div id="scan-fullscreen" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:#fff;">' +
-            '<div style="padding:10px;display:flex;align-items:center;justify-content:space-between;background:#f8f9fa;border-bottom:1px solid #ddd;">' +
-            '<strong><i class="ri-barcode-line me-1"></i><?= __('Quét mã vận đơn') ?></strong>' +
-            '<button type="button" id="btn-close-scan" class="btn btn-sm btn-outline-danger"><i class="ri-close-line"></i> <?= __('Đóng') ?></button>' +
+        var $overlay = $('<div id="scan-fullscreen" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:#000;">' +
+            '<div style="position:absolute;top:0;left:0;right:0;padding:10px 12px;background:rgba(0,0,0,0.7);z-index:10;display:flex;align-items:center;justify-content:space-between;">' +
+            '<strong style="color:#fff;"><i class="ri-barcode-line me-1"></i><?= __('Quét mã vận đơn') ?></strong>' +
+            '<button type="button" id="btn-close-scan" class="btn btn-sm btn-outline-light"><i class="ri-close-line"></i> <?= __('Đóng') ?></button>' +
             '</div>' +
-            '<div id="scan-reader-area"></div>' +
+            '<div id="scan-viewport" style="width:100%;height:100%;"></div>' +
             '</div>');
         $('body').append($overlay);
 
-        var html5QrCode = new Html5Qrcode('scan-reader-area');
-        html5QrCode.start(
-            { facingMode: 'environment' },
-            { fps: 10, qrbox: 250 },
-            function(text) {
-                var val = text.trim().toUpperCase();
-                $('#tracking-number-input').val(val).trigger('change');
-                html5QrCode.stop().then(function(){
-                    html5QrCode.clear();
-                    $('#scan-fullscreen').remove();
-                    Swal.fire({icon:'success', title: val, timer:1500, showConfirmButton:false});
-                });
+        Quagga.init({
+            inputStream: {
+                name: 'Live',
+                type: 'LiveStream',
+                target: document.querySelector('#scan-viewport'),
+                constraints: {
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
             },
-            function(){}
-        ).catch(function(err){
+            frequency: 15,
+            decoder: {
+                readers: ['code_128_reader', 'code_39_reader', 'ean_reader', 'ean_8_reader']
+            },
+            locate: true,
+            locator: {
+                halfSample: true,
+                patchSize: 'medium'
+            }
+        }, function(err) {
+            if (err) {
+                $('#scan-fullscreen').remove();
+                Swal.fire({icon:'error', text:'<?= __('Không thể truy cập camera') ?>'});
+                return;
+            }
+            Quagga.start();
+        });
+
+        var found = false;
+        Quagga.onDetected(function(result) {
+            if (found) return;
+            var code = result.codeResult.code;
+            if (!code) return;
+            found = true;
+            Quagga.stop();
             $('#scan-fullscreen').remove();
-            Swal.fire({icon:'error', text:'<?= __('Không thể truy cập camera') ?>'});
+            var val = code.trim().toUpperCase();
+            $('#tracking-number-input').val(val).trigger('change');
+            Swal.fire({icon:'success', title: val, timer:1500, showConfirmButton:false});
         });
 
         $('#btn-close-scan').on('click', function(){
-            html5QrCode.stop().then(function(){
-                html5QrCode.clear();
-                $('#scan-fullscreen').remove();
-            }).catch(function(){
-                $('#scan-fullscreen').remove();
-            });
+            Quagga.stop();
+            $('#scan-fullscreen').remove();
         });
     }
 
-    if (typeof Html5Qrcode === 'undefined') {
+    if (typeof Quagga === 'undefined') {
         var s = document.createElement('script');
-        s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+        s.src = 'https://unpkg.com/@ericblade/quagga2@1.8.4/dist/quagga.min.js';
         s.onload = start;
         document.head.appendChild(s);
     } else {
