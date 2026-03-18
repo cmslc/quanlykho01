@@ -512,7 +512,30 @@ function toggleProductType() {
     }
 }
 $('select[name="product_type"]').on('change', toggleProductType);
-toggleProductType();
+
+// Popup chọn loại hàng khi mở trang
+$('#form-add-order').hide();
+Swal.fire({
+    title: '<?= __('Chọn loại hàng') ?>',
+    html: '<div class="d-flex gap-3 justify-content-center mt-2">'
+        + '<button type="button" class="btn btn-lg btn-outline-primary px-4 py-3 swal-type-btn" data-type="retail">'
+        + '<i class="ri-shopping-bag-line d-block fs-1 mb-2"></i><?= __('Hàng lẻ') ?></button>'
+        + '<button type="button" class="btn btn-lg btn-outline-success px-4 py-3 swal-type-btn" data-type="wholesale">'
+        + '<i class="ri-stack-line d-block fs-1 mb-2"></i><?= __('Hàng lô') ?></button>'
+        + '</div>',
+    showConfirmButton: false,
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: function(){
+        $('.swal-type-btn').on('click', function(){
+            var type = $(this).data('type');
+            $('select[name="product_type"]').val(type);
+            toggleProductType();
+            $('#form-add-order').show();
+            Swal.close();
+        });
+    }
+});
 
 
 // Compress image using canvas
