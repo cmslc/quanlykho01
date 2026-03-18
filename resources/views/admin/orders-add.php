@@ -781,13 +781,12 @@ $('#form-add-order').on('submit', function(e){
 
 // ===== Barcode Camera Scanner for Tracking Number =====
 var html5QrScanner = null;
+var scannerBusy = false;
 
 $('#btn-scan-tracking').on('click', function(){
-    if ($('#scan-modal-tracking').length) {
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('scan-modal-tracking')).show();
-        startHtml5Scanner();
-        return;
-    }
+    // Xóa modal cũ nếu có
+    $('#scan-modal-tracking').remove();
+    // Tạo modal mới
     var modalHtml = '<div class="modal fade" id="scan-modal-tracking" tabindex="-1">'
         + '<div class="modal-dialog modal-dialog-centered">'
         + '<div class="modal-content">'
@@ -800,9 +799,13 @@ $('#btn-scan-tracking').on('click', function(){
         + '</div>'
         + '</div></div></div>';
     $('body').append(modalHtml);
-    bootstrap.Modal.getOrCreateInstance(document.getElementById('scan-modal-tracking')).show();
-    document.getElementById('scan-modal-tracking').addEventListener('hidden.bs.modal', stopHtml5Scanner);
-    // Load library then start
+    var modalEl = document.getElementById('scan-modal-tracking');
+    var m = new bootstrap.Modal(modalEl);
+    modalEl.addEventListener('hidden.bs.modal', function(){
+        stopHtml5Scanner();
+        $('#scan-modal-tracking').remove();
+    });
+    m.show();
     if (typeof Html5Qrcode === 'undefined') {
         var s = document.createElement('script');
         s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
@@ -813,7 +816,6 @@ $('#btn-scan-tracking').on('click', function(){
     }
 });
 
-var scannerBusy = false;
 function startHtml5Scanner() {
     if (html5QrScanner) return;
     scannerBusy = false;
@@ -835,13 +837,12 @@ function startHtml5Scanner() {
             var val = decodedText.trim().toUpperCase();
             $('#tracking-number-input').val(val).trigger('change');
             html5QrScanner.stop().then(function(){
-                html5QrScanner.clear();
                 html5QrScanner = null;
                 bootstrap.Modal.getInstance(document.getElementById('scan-modal-tracking')).hide();
                 Swal.fire({icon:'success', title: val, timer:1500, showConfirmButton:false});
             }).catch(function(){
                 html5QrScanner = null;
-                bootstrap.Modal.getInstance(document.getElementById('scan-modal-tracking')).hide();
+                try { bootstrap.Modal.getInstance(document.getElementById('scan-modal-tracking')).hide(); } catch(e){}
                 Swal.fire({icon:'success', title: val, timer:1500, showConfirmButton:false});
             });
         },
