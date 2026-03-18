@@ -766,51 +766,54 @@ $('#form-add-order').on('submit', function(e){
 });
 
 // ===== Barcode Camera Scanner =====
-(function(){
-    function ensureLib(cb) {
-        if (typeof Html5QrcodeScanner !== 'undefined') return cb();
-        var s = document.createElement('script');
-        s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
-        s.onload = cb;
-        document.head.appendChild(s);
-    }
-
-    $('#btn-scan-tracking').on('click', function(){
-        ensureLib(openScanner);
-    });
-
-    function openScanner() {
-        if ($('#scan-fullscreen').length) return;
-
-        var $overlay = $('<div id="scan-fullscreen" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:#000;">' +
-            '<div style="position:absolute;top:0;left:0;right:0;padding:8px 12px;background:rgba(0,0,0,0.7);z-index:10;display:flex;align-items:center;justify-content:space-between;">' +
-            '<span style="color:#fff;font-size:14px;"><i class="ri-camera-line"></i> <?= __('Quét mã vận đơn') ?></span>' +
-            '<button type="button" id="btn-close-scan" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;"><i class="ri-close-line"></i></button>' +
+$('#btn-scan-tracking').on('click', function(){
+    if ($('#scan-fullscreen').length) return;
+    function start() {
+        var $overlay = $('<div id="scan-fullscreen" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:#fff;">' +
+            '<div style="padding:10px;display:flex;align-items:center;justify-content:space-between;background:#f8f9fa;border-bottom:1px solid #ddd;">' +
+            '<strong><i class="ri-barcode-line me-1"></i><?= __('Quét mã vận đơn') ?></strong>' +
+            '<button type="button" id="btn-close-scan" class="btn btn-sm btn-outline-danger"><i class="ri-close-line"></i> <?= __('Đóng') ?></button>' +
             '</div>' +
-            '<div id="scan-reader" style="width:100%;height:100%;"></div>' +
+            '<div id="scan-reader-area"></div>' +
             '</div>');
         $('body').append($overlay);
 
-        var scanner = new Html5QrcodeScanner('scan-reader', {
-            fps: 15,
-            qrbox: function(vw, vh){ return { width: Math.floor(vw*0.8), height: Math.floor(Math.min(vh*0.3, 150)) }; },
-            rememberLastUsedCamera: true,
-            showTorchButtonIfSupported: true,
-            formatsToSupport: [Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.CODE_39, Html5QrcodeSupportedFormats.QR_CODE, Html5QrcodeSupportedFormats.EAN_13]
-        }, false);
-
-        scanner.render(function(text){
-            var val = text.trim().toUpperCase();
-            $('#tracking-number-input').val(val).trigger('change');
-            scanner.clear();
+        var html5QrCode = new Html5Qrcode('scan-reader-area');
+        html5QrCode.start(
+            { facingMode: 'environment' },
+            { fps: 10, qrbox: 250 },
+            function(text) {
+                var val = text.trim().toUpperCase();
+                $('#tracking-number-input').val(val).trigger('change');
+                html5QrCode.stop().then(function(){
+                    html5QrCode.clear();
+                    $('#scan-fullscreen').remove();
+                    Swal.fire({icon:'success', title: val, timer:1500, showConfirmButton:false});
+                });
+            },
+            function(){}
+        ).catch(function(err){
             $('#scan-fullscreen').remove();
-            Swal.fire({icon:'success', title: val, timer:1500, showConfirmButton:false});
-        }, function(){});
+            Swal.fire({icon:'error', text:'<?= __('Không thể truy cập camera') ?>'});
+        });
 
         $('#btn-close-scan').on('click', function(){
-            scanner.clear();
-            $('#scan-fullscreen').remove();
+            html5QrCode.stop().then(function(){
+                html5QrCode.clear();
+                $('#scan-fullscreen').remove();
+            }).catch(function(){
+                $('#scan-fullscreen').remove();
+            });
         });
     }
-})();
+
+    if (typeof Html5Qrcode === 'undefined') {
+        var s = document.createElement('script');
+        s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+        s.onload = start;
+        document.head.appendChild(s);
+    } else {
+        start();
+    }
+});
 </script>
