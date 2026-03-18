@@ -780,87 +780,84 @@ $('#form-add-order').on('submit', function(e){
 });
 
 // ===== Barcode Camera Scanner for Tracking Number =====
-var html5QrScanner = null;
-var scannerBusy = false;
+(function(){
+    var libReady = typeof Html5Qrcode !== 'undefined';
+    var scanId = 0;
 
-$('#btn-scan-tracking').on('click', function(){
-    // Xóa modal cũ nếu có
-    $('#scan-modal-tracking').remove();
-    // Tạo modal mới
-    var modalHtml = '<div class="modal fade" id="scan-modal-tracking" tabindex="-1">'
-        + '<div class="modal-dialog modal-dialog-centered">'
-        + '<div class="modal-content">'
-        + '<div class="modal-header py-2">'
-        + '<h6 class="modal-title"><i class="ri-camera-line me-1"></i><?= __('Quét mã vận đơn') ?></h6>'
-        + '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>'
-        + '</div>'
-        + '<div class="modal-body p-2">'
-        + '<div id="html5-qr-reader" style="width:100%;"></div>'
-        + '</div>'
-        + '</div></div></div>';
-    $('body').append(modalHtml);
-    var modalEl = document.getElementById('scan-modal-tracking');
-    var m = new bootstrap.Modal(modalEl);
-    modalEl.addEventListener('hidden.bs.modal', function(){
-        stopHtml5Scanner();
-        $('#scan-modal-tracking').remove();
-    });
-    m.show();
-    if (typeof Html5Qrcode === 'undefined') {
+    function loadLib(cb) {
+        if (libReady) return cb();
         var s = document.createElement('script');
         s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
-        s.onload = startHtml5Scanner;
+        s.onload = function(){ libReady = true; cb(); };
         document.head.appendChild(s);
-    } else {
-        startHtml5Scanner();
     }
-});
 
-function startHtml5Scanner() {
-    if (html5QrScanner) return;
-    scannerBusy = false;
-    html5QrScanner = new Html5Qrcode('html5-qr-reader', {
-        formatsToSupport: [
-            Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.CODE_39,
-            Html5QrcodeSupportedFormats.QR_CODE,
-            Html5QrcodeSupportedFormats.EAN_13
-        ],
-        verbose: false
+    $('#btn-scan-tracking').on('click', function(){
+        loadLib(openScanner);
     });
-    html5QrScanner.start(
-        { facingMode: 'environment' },
-        { fps: 30, qrbox: function(vw, vh){ var s = Math.min(vw, vh); return { width: Math.floor(s * 0.9), height: Math.floor(s * 0.5) }; }, disableFlip: false },
-        function(decodedText) {
-            if (scannerBusy) return;
-            scannerBusy = true;
-            var val = decodedText.trim().toUpperCase();
-            $('#tracking-number-input').val(val).trigger('change');
-            html5QrScanner.stop().then(function(){
-                html5QrScanner = null;
-                bootstrap.Modal.getInstance(document.getElementById('scan-modal-tracking')).hide();
-                Swal.fire({icon:'success', title: val, timer:1500, showConfirmButton:false});
-            }).catch(function(){
-                html5QrScanner = null;
-                try { bootstrap.Modal.getInstance(document.getElementById('scan-modal-tracking')).hide(); } catch(e){}
-                Swal.fire({icon:'success', title: val, timer:1500, showConfirmButton:false});
+
+    function openScanner() {
+        scanId++;
+        var myId = scanId;
+        var readerId = 'qr-reader-' + myId;
+        var scanner = null;
+        var found = false;
+
+        // Dọn modal cũ
+        $('.qr-scan-modal').each(function(){ $(this).remove(); });
+        $('.modal-backdrop').remove();
+        $('body').removeClass('modal-open').css('overflow','');
+
+        var $modal = $('<div class="modal fade qr-scan-modal" tabindex="-1">' +
+            '<div class="modal-dialog modal-dialog-centered">' +
+            '<div class="modal-content">' +
+            '<div class="modal-header py-2">' +
+            '<h6 class="modal-title"><i class="ri-camera-line me-1"></i><?= __('Quét mã vận đơn') ?></h6>' +
+            '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>' +
+            '</div>' +
+            '<div class="modal-body p-2">' +
+            '<div id="' + readerId + '" style="width:100%;min-height:200px;"></div>' +
+            '</div></div></div></div>');
+        $('body').append($modal);
+
+        var bsModal = new bootstrap.Modal($modal[0]);
+
+        // Start camera SAU KHI modal đã hiện hoàn toàn
+        $modal.on('shown.bs.modal', function(){
+            if (myId !== scanId) return;
+            scanner = new Html5Qrcode(readerId, {
+                formatsToSupport: [Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.CODE_39, Html5QrcodeSupportedFormats.QR_CODE, Html5QrcodeSupportedFormats.EAN_13],
+                verbose: false
             });
-        },
-        function() {}
-    ).catch(function(err) {
-        Swal.fire({icon:'error', text:'<?= __('Không thể truy cập camera') ?>: ' + err});
-    });
-}
-
-function stopHtml5Scanner() {
-    if (html5QrScanner) {
-        html5QrScanner.stop().then(function(){
-            html5QrScanner.clear();
-            html5QrScanner = null;
-        }).catch(function(){
-            try { html5QrScanner.clear(); } catch(e){}
-            html5QrScanner = null;
+            scanner.start(
+                { facingMode: 'environment' },
+                { fps: 30, qrbox: function(vw, vh){ var s = Math.min(vw, vh); return { width: Math.floor(s*0.9), height: Math.floor(s*0.5) }; } },
+                function(text){
+                    if (found) return;
+                    found = true;
+                    var val = text.trim().toUpperCase();
+                    $('#tracking-number-input').val(val).trigger('change');
+                    try { scanner.stop().catch(function(){}); } catch(e){}
+                    scanner = null;
+                    bsModal.hide();
+                    Swal.fire({icon:'success', title: val, timer:1500, showConfirmButton:false});
+                },
+                function(){}
+            ).catch(function(){
+                bsModal.hide();
+                Swal.fire({icon:'error', text:'<?= __('Không thể truy cập camera') ?>'});
+            });
         });
+
+        // Dọn dẹp khi đóng modal
+        $modal.on('hidden.bs.modal', function(){
+            if (scanner) { try { scanner.stop().catch(function(){}); } catch(e){} scanner = null; }
+            $modal.remove();
+            $('.modal-backdrop').remove();
+            $('body').removeClass('modal-open').css('overflow','');
+        });
+
+        bsModal.show();
     }
-}
+})();
 </script>
