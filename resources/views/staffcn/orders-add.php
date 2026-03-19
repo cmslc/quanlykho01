@@ -25,117 +25,15 @@ require_once(__DIR__.'/sidebar.php');
             <input type="hidden" name="<?= $csrf->get_token_name() ?>" value="<?= $csrf->get_token_value() ?>">
             <input type="hidden" name="request_name" value="add">
             <input type="hidden" name="order_type" value="shipping">
+            <select class="d-none" name="product_type"><option value="retail"><?= __('Hàng lẻ') ?></option><option value="wholesale"><?= __('Hàng lô') ?></option></select>
 
             <div id="alert-box"></div>
 
-            <!-- Thông tin đơn hàng -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0"><?= __('Thông tin đơn hàng') ?></h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label"><?= __('Loại hàng') ?></label>
-                                <select class="form-select" name="product_type">
-                                    <option value="retail" <?= $preselect_type === 'retail' ? 'selected' : '' ?>><?= __('Hàng lẻ') ?></option>
-                                    <option value="wholesale" <?= $preselect_type === 'wholesale' ? 'selected' : '' ?>><?= __('Hàng lô') ?></option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-4 wholesale-only">
-                            <div class="mb-3">
-                                <label class="form-label"><?= __('Phân loại vận chuyển') ?></label>
-                                <select class="form-select" name="cargo_type">
-                                    <option value="easy"><?= __('Hàng dễ vận chuyển') ?></option>
-                                    <option value="difficult"><?= __('Hàng khó vận chuyển') ?></option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-4 wholesale-only">
-                            <div class="mb-3">
-                                <label class="form-label"><?= __('Khách hàng') ?> <span class="text-danger">*</span></label>
-                                <input type="hidden" name="customer_id" id="select-customer" value="<?= htmlspecialchars($preselect_customer) ?>">
-                                <div class="input-group position-relative">
-                                    <input type="text" class="form-control" id="customer-search"
-                                        placeholder="<?= __('Nhập mã hoặc tên khách hàng...') ?>"
-                                        autocomplete="off"
-                                        value="<?php
-                                            if ($preselect_customer) {
-                                                foreach ($customers as $c) {
-                                                    if ($c['id'] == $preselect_customer) {
-                                                        echo htmlspecialchars($c['fullname']);
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                        ?>">
-                                    <button type="button" class="btn btn-outline-secondary" id="btn-clear-customer" title="<?= __('Xóa chọn') ?>" style="display:none;"><i class="ri-close-line"></i></button>
-                                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAddCustomer" title="<?= __('Tạo khách hàng mới') ?>"><i class="ri-user-add-line"></i></button>
-                                    <div id="customer-dropdown" class="position-absolute top-100 start-0 w-100 bg-white border rounded shadow-sm" style="z-index:1055;max-height:220px;overflow-y:auto;display:none;"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label"><?= __('Trạng thái') ?></label>
-                                <select class="form-select" name="status">
-                                    <option value="cn_warehouse" selected><?= __('Đã về kho Trung Quốc') ?></option>
-                                    <option value="shipping"><?= __('Đang vận chuyển') ?></option>
-                                    <option value="vn_warehouse"><?= __('Đã về kho Việt Nam') ?></option>
-                                    <option value="delivered"><?= __('Đã giao hàng') ?></option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4 wholesale-only">
-                            <div class="mb-3">
-                                <label class="form-label"><?= __('Mã hàng') ?></label>
-                                <input type="text" class="form-control" name="product_code" placeholder="<?= __('Nhập mã hàng') ?>">
-                            </div>
-                        </div>
-                        <div class="col-md-4 wholesale-only">
-                            <div class="mb-3">
-                                <label class="form-label"><?= __('Mã vận đơn') ?></label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control" name="tracking_number" id="tracking-number-input" placeholder="<?= __('Quét hoặc nhập mã vận đơn') ?>" style="text-transform:uppercase">
-                                    <button type="button" class="btn btn-outline-primary" id="btn-scan-tracking" title="<?= __('Quét mã') ?>"><i class="ri-barcode-line"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label"><?= __('Tên sản phẩm') ?></label>
-                                <input type="text" class="form-control" name="product_name">
-                            </div>
-                        </div>
-                        <div class="col-md-4 wholesale-only">
-                            <div class="mb-3">
-                                <label class="form-label"><?= __('Tổng cân nặng mã hàng') ?> (kg)</label>
-                                <input type="number" class="form-control" name="weight_actual" value="0" step="0.01" min="0">
-                            </div>
-                        </div>
-                        <div class="col-md-4 wholesale-only">
-                            <div class="mb-3">
-                                <label class="form-label"><?= __('Tổng khối hàng') ?> (m³)</label>
-                                <input type="number" class="form-control" name="volume_actual" value="0" step="0.0001" min="0">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label"><?= __('Ảnh sản phẩm') ?></label>
-                        <input type="file" class="form-control" name="product_images[]" id="product_image_input" accept="image/*" multiple>
-                        <div id="image-preview" class="mt-2 d-flex flex-wrap gap-2"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quét mã vận đơn (hàng lẻ) -->
-            <div class="card retail-scan-card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0"><i class="ri-barcode-line"></i> <?= __('Quét mã vận đơn') ?></h5>
+            <!-- ===== HÀNG LẺ: Quét mã vận đơn ===== -->
+            <div class="card retail-scan-card" style="display:none;">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="card-title mb-0"><i class="ri-barcode-line me-1"></i> <?= __('Nhập hàng lẻ') ?></h5>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-change-type-retail"><i class="ri-arrow-left-line me-1"></i><?= __('Đổi loại hàng') ?></button>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -156,79 +54,233 @@ require_once(__DIR__.'/sidebar.php');
                 </div>
             </div>
 
-            <!-- Kiện hàng (hàng lô) -->
-            <div class="card wholesale-only">
-                <div class="card-header d-flex align-items-center justify-content-between">
-                    <h5 class="card-title mb-0"><?= __('Kiện hàng') ?></h5>
-                    <button type="button" class="btn btn-sm btn-primary" id="btn-add-package"><i class="ri-add-line"></i> <?= __('Thêm kiện') ?></button>
-                </div>
-                <div class="card-body">
-                    <div id="packages-container">
-                        <div class="package-item card card-body bg-light mb-3" data-index="0">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <strong class="package-label"><?= __('Kiện') ?> #1</strong>
-                                <button type="button" class="btn btn-sm btn-outline-danger btn-remove-package" style="display:none;" title="<?= __('Xóa kiện') ?>"><i class="ri-delete-bin-line"></i></button>
+            <!-- ===== HÀNG LÔ: Wizard ===== -->
+            <div id="wholesale-wizard" style="display:none;">
+                <!-- Step indicator -->
+                <div class="card mb-0 border-bottom-0 rounded-bottom-0">
+                    <div class="card-body py-3">
+                        <div class="d-flex align-items-center justify-content-center gap-2" id="wizard-steps">
+                            <div class="wizard-step active" data-step="1">
+                                <span class="wizard-step-num">1</span>
+                                <span class="wizard-step-label d-none d-sm-inline"><?= __('Khách hàng') ?></span>
                             </div>
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <div class="mb-2">
-                                        <label class="form-label"><?= __('Số kiện') ?></label>
-                                        <input type="number" class="form-control pkg-calc" name="packages[0][qty]" value="1" min="1">
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="mb-2">
-                                        <label class="form-label"><?= __('Cân nặng/kiện') ?> (kg)</label>
-                                        <input type="number" class="form-control pkg-calc" name="packages[0][weight]" value="0" step="0.01" min="0">
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="mb-2">
-                                        <label class="form-label"><?= __('Dài') ?> (cm)</label>
-                                        <input type="number" class="form-control pkg-calc" name="packages[0][length_cm]" value="0" step="0.1" min="0">
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="mb-2">
-                                        <label class="form-label"><?= __('Rộng') ?> (cm)</label>
-                                        <input type="number" class="form-control pkg-calc" name="packages[0][width_cm]" value="0" step="0.1" min="0">
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="mb-2">
-                                        <label class="form-label"><?= __('Cao') ?> (cm)</label>
-                                        <input type="number" class="form-control pkg-calc" name="packages[0][height_cm]" value="0" step="0.1" min="0">
-                                    </div>
-                                </div>
+                            <div class="wizard-step-line"></div>
+                            <div class="wizard-step" data-step="2">
+                                <span class="wizard-step-num">2</span>
+                                <span class="wizard-step-label d-none d-sm-inline"><?= __('Sản phẩm') ?></span>
                             </div>
-                        </div>
-                    </div>
-                    <div class="row g-2 pkg-summary-row">
-                        <div class="col-md-4">
-                            <div class="alert alert-info mb-0 py-2">
-                                <small class="text-muted"><?= __('Tổng kiện') ?>:</small> <strong id="sum-pkg-count">0</strong>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="alert alert-info mb-0 py-2">
-                                <small class="text-muted"><?= __('Tổng cân nặng') ?>:</small> <strong id="sum-pkg-weight">0 kg</strong>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="alert alert-info mb-0 py-2">
-                                <small class="text-muted"><?= __('Tổng số khối') ?>:</small> <strong id="sum-pkg-cbm">0 m³</strong>
+                            <div class="wizard-step-line"></div>
+                            <div class="wizard-step" data-step="3">
+                                <span class="wizard-step-num">3</span>
+                                <span class="wizard-step-label d-none d-sm-inline"><?= __('Xác nhận') ?></span>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Actions (wholesale only) -->
-            <div class="d-flex gap-2 mb-4 wholesale-only">
-                <button type="submit" class="btn btn-primary"><i class="ri-save-line"></i> <?= __('Tạo đơn hàng') ?></button>
-                <a href="<?= base_url('staffcn/orders-list') ?>" class="btn btn-secondary"><?= __('Hủy') ?></a>
+                <!-- Step 1: Khách hàng & Trạng thái -->
+                <div class="wizard-panel card rounded-top-0" data-step="1">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-3"><i class="ri-user-line me-1"></i><?= __('Thông tin cơ bản') ?></h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label"><?= __('Khách hàng') ?> <span class="text-danger">*</span></label>
+                                    <input type="hidden" name="customer_id" id="select-customer" value="<?= htmlspecialchars($preselect_customer) ?>">
+                                    <div class="input-group position-relative">
+                                        <input type="text" class="form-control" id="customer-search"
+                                            placeholder="<?= __('Nhập mã hoặc tên khách hàng...') ?>"
+                                            autocomplete="off"
+                                            value="<?php
+                                                if ($preselect_customer) {
+                                                    foreach ($customers as $c) {
+                                                        if ($c['id'] == $preselect_customer) {
+                                                            echo htmlspecialchars($c['fullname']);
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            ?>">
+                                        <button type="button" class="btn btn-outline-secondary" id="btn-clear-customer" title="<?= __('Xóa chọn') ?>" style="display:none;"><i class="ri-close-line"></i></button>
+                                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAddCustomer" title="<?= __('Tạo khách hàng mới') ?>"><i class="ri-user-add-line"></i></button>
+                                        <div id="customer-dropdown" class="position-absolute top-100 start-0 w-100 bg-white border rounded shadow-sm" style="z-index:1055;max-height:220px;overflow-y:auto;display:none;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label"><?= __('Phân loại vận chuyển') ?></label>
+                                    <select class="form-select" name="cargo_type">
+                                        <option value="easy"><?= __('Hàng dễ vận chuyển') ?></option>
+                                        <option value="difficult"><?= __('Hàng khó vận chuyển') ?></option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label"><?= __('Trạng thái') ?></label>
+                                    <select class="form-select" name="status">
+                                        <option value="cn_warehouse" selected><?= __('Đã về kho Trung Quốc') ?></option>
+                                        <option value="shipping"><?= __('Đang vận chuyển') ?></option>
+                                        <option value="vn_warehouse"><?= __('Đã về kho Việt Nam') ?></option>
+                                        <option value="delivered"><?= __('Đã giao hàng') ?></option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2">
+                            <button type="button" class="btn btn-outline-secondary" id="btn-change-type-wholesale"><i class="ri-arrow-left-line me-1"></i><?= __('Đổi loại hàng') ?></button>
+                            <button type="button" class="btn btn-primary btn-wizard-next" data-next="2"><?= __('Tiếp tục') ?> <i class="ri-arrow-right-line ms-1"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Sản phẩm & Kiện hàng -->
+                <div class="wizard-panel card rounded-top-0" data-step="2" style="display:none;">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-3"><i class="ri-box-3-line me-1"></i><?= __('Thông tin sản phẩm') ?></h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label"><?= __('Mã hàng') ?></label>
+                                    <input type="text" class="form-control" name="product_code" placeholder="<?= __('Nhập mã hàng') ?>">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label"><?= __('Mã vận đơn') ?></label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="tracking_number" id="tracking-number-input" placeholder="<?= __('Quét hoặc nhập mã vận đơn') ?>" style="text-transform:uppercase">
+                                        <button type="button" class="btn btn-outline-primary" id="btn-scan-tracking" title="<?= __('Quét mã') ?>"><i class="ri-barcode-line"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label"><?= __('Tên sản phẩm') ?></label>
+                                    <input type="text" class="form-control" name="product_name">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label"><?= __('Tổng cân nặng mã hàng') ?> (kg)</label>
+                                    <input type="number" class="form-control" name="weight_actual" value="0" step="0.01" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label"><?= __('Tổng khối hàng') ?> (m³)</label>
+                                    <input type="number" class="form-control" name="volume_actual" value="0" step="0.0001" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label"><?= __('Ảnh sản phẩm') ?></label>
+                                    <input type="file" class="form-control" name="product_images[]" id="product_image_input" accept="image/*" multiple>
+                                    <div id="image-preview" class="mt-2 d-flex flex-wrap gap-2"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h6 class="text-muted mb-0"><i class="ri-stack-line me-1"></i><?= __('Kiện hàng') ?></h6>
+                            <button type="button" class="btn btn-sm btn-primary" id="btn-add-package"><i class="ri-add-line"></i> <?= __('Thêm kiện') ?></button>
+                        </div>
+                        <div id="packages-container">
+                            <div class="package-item card card-body bg-light mb-3" data-index="0">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <strong class="package-label"><?= __('Kiện') ?> #1</strong>
+                                    <button type="button" class="btn btn-sm btn-outline-danger btn-remove-package" style="display:none;" title="<?= __('Xóa kiện') ?>"><i class="ri-delete-bin-line"></i></button>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="mb-2">
+                                            <label class="form-label"><?= __('Số kiện') ?></label>
+                                            <input type="number" class="form-control pkg-calc" name="packages[0][qty]" value="1" min="1">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-2">
+                                            <label class="form-label"><?= __('Cân nặng/kiện') ?> (kg)</label>
+                                            <input type="number" class="form-control pkg-calc" name="packages[0][weight]" value="0" step="0.01" min="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="mb-2">
+                                            <label class="form-label"><?= __('Dài') ?> (cm)</label>
+                                            <input type="number" class="form-control pkg-calc" name="packages[0][length_cm]" value="0" step="0.1" min="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="mb-2">
+                                            <label class="form-label"><?= __('Rộng') ?> (cm)</label>
+                                            <input type="number" class="form-control pkg-calc" name="packages[0][width_cm]" value="0" step="0.1" min="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="mb-2">
+                                            <label class="form-label"><?= __('Cao') ?> (cm)</label>
+                                            <input type="number" class="form-control pkg-calc" name="packages[0][height_cm]" value="0" step="0.1" min="0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-2 pkg-summary-row">
+                            <div class="col-md-4">
+                                <div class="alert alert-info mb-0 py-2">
+                                    <small class="text-muted"><?= __('Tổng kiện') ?>:</small> <strong id="sum-pkg-count">0</strong>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="alert alert-info mb-0 py-2">
+                                    <small class="text-muted"><?= __('Tổng cân nặng') ?>:</small> <strong id="sum-pkg-weight">0 kg</strong>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="alert alert-info mb-0 py-2">
+                                    <small class="text-muted"><?= __('Tổng số khối') ?>:</small> <strong id="sum-pkg-cbm">0 m³</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-3">
+                            <button type="button" class="btn btn-outline-secondary btn-wizard-prev" data-prev="1"><i class="ri-arrow-left-line me-1"></i><?= __('Quay lại') ?></button>
+                            <button type="button" class="btn btn-primary btn-wizard-next" data-next="3"><?= __('Tiếp tục') ?> <i class="ri-arrow-right-line ms-1"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Xác nhận -->
+                <div class="wizard-panel card rounded-top-0" data-step="3" style="display:none;">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-3"><i class="ri-checkbox-circle-line me-1"></i><?= __('Xác nhận thông tin') ?></h6>
+                        <div id="wizard-summary" class="table-responsive">
+                            <table class="table table-borderless mb-0">
+                                <tbody id="summary-body"></tbody>
+                            </table>
+                        </div>
+                        <div class="d-flex justify-content-between mt-3">
+                            <button type="button" class="btn btn-outline-secondary btn-wizard-prev" data-prev="2"><i class="ri-arrow-left-line me-1"></i><?= __('Quay lại') ?></button>
+                            <button type="submit" class="btn btn-success btn-lg"><i class="ri-check-line me-1"></i><?= __('Tạo đơn hàng') ?></button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </form>
+
+        <style>
+            .wizard-step { display:flex; align-items:center; gap:6px; color:#adb5bd; font-weight:500; }
+            .wizard-step.active { color:#405189; }
+            .wizard-step.done { color:#0ab39c; }
+            .wizard-step-num { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; background:#e9ecef; color:#6c757d; }
+            .wizard-step.active .wizard-step-num { background:#405189; color:#fff; }
+            .wizard-step.done .wizard-step-num { background:#0ab39c; color:#fff; }
+            .wizard-step-line { flex:1; height:2px; background:#e9ecef; max-width:80px; }
+            .wizard-step.done + .wizard-step-line { background:#0ab39c; }
+            #summary-body tr td:first-child { width:180px; color:#878a99; font-weight:500; }
+        </style>
 
 <!-- Modal: Tạo khách hàng nhanh -->
 <div class="modal fade" id="modalAddCustomer" tabindex="-1">
@@ -467,44 +519,107 @@ $('input[name="volume_actual"]').on('input change', function(){ toggleVolumeExcl
 $(document).on('input change', '[name$="[length_cm]"], [name$="[width_cm]"], [name$="[height_cm]"]', function(){ toggleVolumeExclusive('pkg'); });
 toggleVolumeExclusive();
 
-// Toggle retail/wholesale mode
-function toggleProductType() {
-    var isRetail = $('select[name="product_type"]').val() === 'retail';
-    if(isRetail){
-        $('.wholesale-only').hide();
+// ===== Wizard Navigation =====
+var currentStep = 1;
+
+function showWizardStep(step) {
+    currentStep = step;
+    $('.wizard-panel').hide();
+    $('.wizard-panel[data-step="' + step + '"]').show();
+    $('#wizard-steps .wizard-step').each(function(){
+        var s = parseInt($(this).data('step'));
+        $(this).removeClass('active done');
+        if (s < step) $(this).addClass('done');
+        else if (s === step) $(this).addClass('active');
+    });
+    if (step === 3) buildSummary();
+    $('html, body').animate({scrollTop: 0}, 200);
+}
+
+function buildSummary() {
+    var rows = '';
+    var customer = $('#customer-search').val() || '<em class="text-muted"><?= __('Chưa chọn') ?></em>';
+    var cargo = $('select[name="cargo_type"] option:selected').text();
+    var status = $('select[name="status"] option:selected').text();
+    var productCode = $('input[name="product_code"]').val() || '-';
+    var tracking = $('input[name="tracking_number"]').val() || '-';
+    var productName = $('input[name="product_name"]').val() || '-';
+    var weight = $('#sum-pkg-weight').text();
+    var cbm = $('#sum-pkg-cbm').text();
+    var pkgCount = $('#sum-pkg-count').text();
+    var imgCount = $('#product_image_input')[0].files.length;
+
+    rows += '<tr><td><?= __('Khách hàng') ?></td><td><strong>' + customer + '</strong></td></tr>';
+    rows += '<tr><td><?= __('Phân loại') ?></td><td>' + cargo + '</td></tr>';
+    rows += '<tr><td><?= __('Trạng thái') ?></td><td>' + status + '</td></tr>';
+    rows += '<tr><td colspan="2"><hr class="my-1"></td></tr>';
+    rows += '<tr><td><?= __('Mã hàng') ?></td><td>' + $('<span>').text(productCode).html() + '</td></tr>';
+    rows += '<tr><td><?= __('Mã vận đơn') ?></td><td><code>' + $('<span>').text(tracking).html() + '</code></td></tr>';
+    rows += '<tr><td><?= __('Tên sản phẩm') ?></td><td>' + $('<span>').text(productName).html() + '</td></tr>';
+    rows += '<tr><td colspan="2"><hr class="my-1"></td></tr>';
+    rows += '<tr><td><?= __('Tổng kiện') ?></td><td>' + pkgCount + '</td></tr>';
+    rows += '<tr><td><?= __('Tổng cân nặng') ?></td><td>' + weight + '</td></tr>';
+    rows += '<tr><td><?= __('Tổng số khối') ?></td><td>' + cbm + '</td></tr>';
+    if (imgCount > 0) rows += '<tr><td><?= __('Ảnh sản phẩm') ?></td><td>' + imgCount + ' <?= __('ảnh') ?></td></tr>';
+
+    $('#summary-body').html(rows);
+}
+
+$(document).on('click', '.btn-wizard-next', function(){
+    var next = parseInt($(this).data('next'));
+    if (next === 2 && !$('#select-customer').val()) {
+        Swal.fire({icon:'warning', text:'<?= __('Vui lòng chọn khách hàng') ?>', timer:2000, showConfirmButton:false});
+        $('#customer-search').focus();
+        return;
+    }
+    showWizardStep(next);
+});
+$(document).on('click', '.btn-wizard-prev', function(){
+    showWizardStep(parseInt($(this).data('prev')));
+});
+
+function showOrderType(type) {
+    $('select[name="product_type"]').val(type);
+    if (type === 'retail') {
         $('.retail-scan-card').show();
+        $('#wholesale-wizard').hide();
         $('#retail-scan-input').focus();
     } else {
-        $('.wholesale-only').show();
         $('.retail-scan-card').hide();
+        $('#wholesale-wizard').show();
+        showWizardStep(1);
         calcPackageSummary();
     }
 }
-$('select[name="product_type"]').on('change', toggleProductType);
 
-// Popup chọn loại hàng khi mở trang
-$('#form-add-order').hide();
-Swal.fire({
-    title: '<?= __('Chọn loại hàng') ?>',
-    html: '<div class="d-flex gap-3 justify-content-center mt-2">'
-        + '<button type="button" class="btn btn-lg btn-outline-primary px-4 py-3 swal-type-btn" data-type="retail">'
-        + '<i class="ri-shopping-bag-line d-block fs-1 mb-2"></i><?= __('Hàng lẻ') ?></button>'
-        + '<button type="button" class="btn btn-lg btn-outline-success px-4 py-3 swal-type-btn" data-type="wholesale">'
-        + '<i class="ri-stack-line d-block fs-1 mb-2"></i><?= __('Hàng lô') ?></button>'
-        + '</div>',
-    showConfirmButton: false,
-    allowOutsideClick: false,
-    allowEscapeKey: false,
-    didOpen: function(){
-        $('.swal-type-btn').on('click', function(){
-            var type = $(this).data('type');
-            $('select[name="product_type"]').val(type);
-            toggleProductType();
-            $('#form-add-order').show();
-            Swal.close();
-        });
-    }
+$('#btn-change-type-retail, #btn-change-type-wholesale').on('click', function(){
+    showTypePopup();
 });
+
+function showTypePopup() {
+    $('.retail-scan-card').hide();
+    $('#wholesale-wizard').hide();
+    Swal.fire({
+        title: '<?= __('Chọn loại hàng') ?>',
+        html: '<div class="d-flex gap-3 justify-content-center mt-2">'
+            + '<button type="button" class="btn btn-lg btn-outline-primary px-4 py-3 swal-type-btn" data-type="retail">'
+            + '<i class="ri-shopping-bag-line d-block fs-1 mb-2"></i><?= __('Hàng lẻ') ?></button>'
+            + '<button type="button" class="btn btn-lg btn-outline-success px-4 py-3 swal-type-btn" data-type="wholesale">'
+            + '<i class="ri-stack-line d-block fs-1 mb-2"></i><?= __('Hàng lô') ?></button>'
+            + '</div>',
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: function(){
+            $('.swal-type-btn').on('click', function(){
+                showOrderType($(this).data('type'));
+                Swal.close();
+            });
+        }
+    });
+}
+
+showTypePopup();
 
 // Compress image using canvas
 function compressImage(file, maxWidth, quality) {
@@ -699,13 +814,16 @@ $('#form-quick-customer').on('submit', function(e){
     });
 });
 
-// Enter key to submit wholesale form
+// Enter key in wizard
 $('#form-add-order').on('keydown', 'input[type="text"], input[type="number"]', function(e){
     if(e.key !== 'Enter') return;
     if($('select[name="product_type"]').val() === 'retail') return;
     if($(this).attr('id') === 'retail-scan-input') return;
     e.preventDefault();
-    $('#form-add-order').submit();
+    var $panel = $(this).closest('.wizard-panel');
+    var $nextBtn = $panel.find('.btn-wizard-next');
+    if ($nextBtn.length) $nextBtn.click();
+    else $('#form-add-order').submit();
 });
 
 $('#form-add-order').on('submit', function(e){
