@@ -70,13 +70,16 @@ $weightMap   = [];
 if (!empty($orderIds)) {
     $ph  = implode(',', array_fill(0, count($orderIds), '?'));
     $pkgs = $ToryHub->get_list_safe(
-        "SELECT po.order_id, p.tracking_cn, p.weight_charged, p.weight_actual FROM `package_orders` po
+        "SELECT po.order_id, p.tracking_cn, p.weight_charged, p.weight_actual,
+                (p.length_cm * p.width_cm * p.height_cm / 1000000) as cbm
+         FROM `package_orders` po
          JOIN `packages` p ON po.package_id = p.id
          WHERE po.order_id IN ($ph)", $orderIds);
     foreach ($pkgs as $pkg) {
         if ($pkg['tracking_cn']) $trackingMap[$pkg['order_id']][] = $pkg['tracking_cn'];
         $weightMap[$pkg['order_id']]['charged'] = ($weightMap[$pkg['order_id']]['charged'] ?? 0) + floatval($pkg['weight_charged']);
         $weightMap[$pkg['order_id']]['actual']  = ($weightMap[$pkg['order_id']]['actual']  ?? 0) + floatval($pkg['weight_actual']);
+        $weightMap[$pkg['order_id']]['cbm']     = ($weightMap[$pkg['order_id']]['cbm']     ?? 0) + floatval($pkg['cbm']);
     }
 }
 
@@ -104,19 +107,20 @@ $cols = [
     'F' => 14,  // Mã khách hàng
     'G' => 28,  // Sản phẩm
     'H' => 14,  // Cân tính phí
-    'I' => 22,  // Trạng thái
-    'J' => 28,  // Ghi chú khách hàng
-    'K' => 28,  // Ghi chú nội bộ
-    'L' => 18,  // Ngày nhập
-    'M' => 18,  // Cập nhật
-    'N' => 16,  // Ảnh 1
+    'I' => 14,  // Số khối (m³)
+    'J' => 22,  // Trạng thái
+    'K' => 28,  // Ghi chú khách hàng
+    'L' => 28,  // Ghi chú nội bộ
+    'M' => 18,  // Ngày nhập
+    'N' => 18,  // Cập nhật
+    'O' => 16,  // Ảnh 1
 ];
 foreach ($cols as $col => $width) {
     $sheet->getColumnDimension($col)->setWidth($width);
 }
 
 // Header row (image columns added after data loop)
-$headers = ['STT', 'Loại hàng', 'Mã hàng', 'Mã vận đơn TQ', 'Khách hàng', 'Mã khách hàng', 'Sản phẩm', 'Cân tính phí (kg)', 'Trạng thái', 'Ghi chú khách hàng', 'Ghi chú nội bộ', 'Ngày nhập', 'Cập nhật'];
+$headers = ['STT', 'Loại hàng', 'Mã hàng', 'Mã vận đơn TQ', 'Khách hàng', 'Mã khách hàng', 'Sản phẩm', 'Cân tính phí (kg)', 'Số khối (m³)', 'Trạng thái', 'Ghi chú khách hàng', 'Ghi chú nội bộ', 'Ngày nhập', 'Cập nhật'];
 $sheet->fromArray($headers, null, 'A1');
 
 $headerStyle = [
@@ -125,13 +129,13 @@ $headerStyle = [
     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
     'borders'   => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN, 'color' => ['rgb' => 'B8CCE4']]],
 ];
-$sheet->getStyle('A1:M1')->applyFromArray($headerStyle);
+$sheet->getStyle('A1:N1')->applyFromArray($headerStyle);
 $sheet->getRowDimension(1)->setRowHeight(22);
 
 $imgPx       = 80;
 $rowHeightPt = $imgPx + 10;
 $projectRoot = realpath(__DIR__ . '/../../');
-$imgCols     = ['N', 'O', 'P', 'Q', 'R'];
+$imgCols     = ['O', 'P', 'Q', 'R', 'S'];
 
 $row = 2;
 foreach ($orders as $stt => $order) {
@@ -156,13 +160,20 @@ foreach ($orders as $stt => $order) {
     $sheet->setCellValue('F' . $row, $order['customer_code'] ?? '');
     $sheet->setCellValue('G' . $row, $order['product_name'] ?? '');
     $sheet->setCellValue('H' . $row, $displayWeight !== '' ? floatval($displayWeight) : '');
-    $sheet->setCellValue('I' . $row, $statusLabel[$order['status']] ?? $order['status']);
-    $sheet->setCellValue('J' . $row, $order['note'] ?? '');
-    $sheet->setCellValue('K' . $row, $order['note_internal'] ?? '');
-    $sheet->setCellValue('L' . $row, date('d/m/Y H:i', strtotime($order['create_date'])));
-    $sheet->setCellValue('M' . $row, $order['update_date'] ? date('d/m/Y H:i', strtotime($order['update_date'])) : '');
 
-    $sheet->getStyle('A' . $row . ':M' . $row)->getAlignment()
+    // Số khối (m³)
+    $cbm = $weightMap[$order['id']]['cbm'] ?? 0;
+    $orderVolumeActual = floatval($order['volume_actual'] ?? 0);
+    if ($orderVolumeActual > 0) $cbm = $orderVolumeActual;
+    $sheet->setCellValue('I' . $row, $cbm > 0 ? round($cbm, 4) : '');
+
+    $sheet->setCellValue('J' . $row, $statusLabel[$order['status']] ?? $order['status']);
+    $sheet->setCellValue('K' . $row, $order['note'] ?? '');
+    $sheet->setCellValue('L' . $row, $order['note_internal'] ?? '');
+    $sheet->setCellValue('M' . $row, date('d/m/Y H:i', strtotime($order['create_date'])));
+    $sheet->setCellValue('N' . $row, $order['update_date'] ? date('d/m/Y H:i', strtotime($order['update_date'])) : '');
+
+    $sheet->getStyle('A' . $row . ':N' . $row)->getAlignment()
         ->setVertical(Alignment::VERTICAL_CENTER)->setWrapText(false);
 
     // Embed all product images (up to 5 columns)
