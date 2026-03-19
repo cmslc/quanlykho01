@@ -222,29 +222,6 @@ require_once(__DIR__.'/sidebar.php');
                 </div>
             </div>
 
-            <!-- Ghi chú -->
-            <div class="card wholesale-only">
-                <div class="card-header">
-                    <h5 class="card-title mb-0"><?= __('Ghi chú') ?></h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label"><?= __('Ghi chú khách hàng') ?></label>
-                                <textarea class="form-control" name="note" rows="2"></textarea>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label"><?= __('Ghi chú nội bộ') ?></label>
-                                <textarea class="form-control" name="note_internal" rows="2"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Actions (wholesale only) -->
             <div class="d-flex gap-2 mb-4 wholesale-only">
                 <button type="submit" class="btn btn-primary"><i class="ri-save-line"></i> <?= __('Tạo đơn hàng') ?></button>
