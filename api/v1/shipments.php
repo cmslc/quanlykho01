@@ -13,22 +13,131 @@ $id = $_GET['id'] ?? null;
 
 // ===== PENDING ITEMS =====
 if ($action === 'pending' && $method === 'GET') {
-    $bags = $ToryHub->get_list_safe(
-        "SELECT b.* FROM `bags` b WHERE b.status = 'sealed'
-         AND b.id NOT IN (SELECT DISTINCT bp2.bag_id FROM `bag_packages` bp2
-           JOIN `shipment_packages` sp ON bp2.package_id = sp.package_id)
-         ORDER BY b.create_date DESC", []
+    $notInShipment = "p.id NOT IN (SELECT sp.package_id FROM `shipment_packages` sp JOIN `shipments` s ON sp.shipment_id = s.id WHERE s.status IN ('preparing','in_transit'))";
+
+    // Summary counts
+    $cntCnWarehouse = $ToryHub->get_row_safe(
+        "SELECT COUNT(*) as cnt FROM `packages` p
+         JOIN `package_orders` po ON p.id = po.package_id
+         JOIN `orders` o ON po.order_id = o.id
+         WHERE p.status = 'cn_warehouse' AND o.product_type = 'wholesale' AND $notInShipment", []
+    );
+    $cntPacked = $ToryHub->get_row_safe(
+        "SELECT COUNT(*) as cnt FROM `packages` p WHERE p.status = 'packed'
+         AND p.id IN (SELECT bp2.package_id FROM `bag_packages` bp2 JOIN `bags` b2 ON bp2.bag_id = b2.id WHERE b2.status = 'sealed')
+         AND $notInShipment", []
     );
 
-    $packages = $ToryHub->get_list_safe(
-        "SELECT p.* FROM `packages` p
-         WHERE p.status IN ('packed','cn_warehouse')
-         AND p.id NOT IN (SELECT package_id FROM `bag_packages`)
-         AND p.id NOT IN (SELECT package_id FROM `shipment_packages`)
-         ORDER BY p.create_date DESC", []
+    // Sealed bags (retail packed)
+    $sealedBags = $ToryHub->get_list_safe(
+        "SELECT b.id as bag_id, b.bag_code,
+            COUNT(p.id) as pkg_count,
+            b.total_weight as bag_weight,
+            COALESCE(b.weight_volume, 0) as bag_cbm,
+            SUM(COALESCE(p.weight_charged, 0)) as pkg_weight_charged,
+            SUM(COALESCE(p.weight_actual, 0)) as pkg_weight_actual,
+            SUM(COALESCE(p.length_cm,0) * COALESCE(p.width_cm,0) * COALESCE(p.height_cm,0) / 1000000) as pkg_cbm,
+            b.create_date
+        FROM `bags` b
+        JOIN `bag_packages` bp ON b.id = bp.bag_id
+        JOIN `packages` p ON bp.package_id = p.id
+        WHERE b.status = 'sealed' AND p.status = 'packed' AND $notInShipment
+        GROUP BY b.id
+        ORDER BY b.create_date DESC", []
     );
 
-    api_success(['bags' => $bags, 'packages' => $packages]);
+    // Get package IDs per bag
+    if (!empty($sealedBags)) {
+        $bagIds = array_column($sealedBags, 'bag_id');
+        $ph = implode(',', array_fill(0, count($bagIds), '?'));
+        $bagPkgs = $ToryHub->get_list_safe(
+            "SELECT bp.bag_id, p.id as package_id FROM `bag_packages` bp
+             JOIN `packages` p ON bp.package_id = p.id
+             WHERE bp.bag_id IN ($ph) AND p.status = 'packed' AND $notInShipment", $bagIds
+        );
+        $bagPkgMap = [];
+        foreach ($bagPkgs as $bp) {
+            $bagPkgMap[$bp['bag_id']][] = $bp['package_id'];
+        }
+        // Get customer info per bag
+        $bagCusts = $ToryHub->get_list_safe(
+            "SELECT DISTINCT bp.bag_id, c.fullname
+             FROM `bag_packages` bp
+             JOIN `packages` p ON bp.package_id = p.id
+             JOIN `package_orders` po ON p.id = po.package_id
+             JOIN `orders` o ON po.order_id = o.id
+             LEFT JOIN `customers` c ON o.customer_id = c.id
+             WHERE bp.bag_id IN ($ph) AND c.id IS NOT NULL", $bagIds
+        );
+        $bagCustMap = [];
+        foreach ($bagCusts as $bc) {
+            $bagCustMap[$bc['bag_id']][] = $bc['fullname'];
+        }
+        foreach ($sealedBags as &$bag) {
+            $bag['package_ids'] = $bagPkgMap[$bag['bag_id']] ?? [];
+            $custs = array_unique($bagCustMap[$bag['bag_id']] ?? []);
+            $bag['customer_names'] = $custs;
+            $bag['customer_name'] = count($custs) == 1 ? $custs[0] : (count($custs) > 1 ? count($custs) . ' khách' : '');
+        }
+        unset($bag);
+    }
+
+    // Wholesale orders (cn_warehouse packages)
+    $wholesaleOrders = $ToryHub->get_list_safe(
+        "SELECT o.id, o.product_code, o.product_name, o.cargo_type, o.customer_id,
+            o.weight_charged as order_weight_charged, o.weight_actual as order_weight_actual, o.volume_actual,
+            c.fullname as customer_name,
+            COUNT(p.id) as pkg_count,
+            SUM(COALESCE(p.weight_charged, 0)) as total_weight_charged,
+            SUM(COALESCE(p.weight_actual, 0)) as total_weight_actual,
+            SUM(p.length_cm * p.width_cm * p.height_cm / 1000000) as total_cbm,
+            o.create_date
+        FROM `packages` p
+        JOIN `package_orders` po ON p.id = po.package_id
+        JOIN `orders` o ON po.order_id = o.id
+        LEFT JOIN `customers` c ON o.customer_id = c.id
+        WHERE o.product_type = 'wholesale' AND p.status = 'cn_warehouse' AND $notInShipment
+        GROUP BY o.id
+        ORDER BY o.create_date DESC", []
+    );
+
+    // Get package IDs per wholesale order
+    if (!empty($wholesaleOrders)) {
+        $woIds = array_column($wholesaleOrders, 'id');
+        $ph = implode(',', array_fill(0, count($woIds), '?'));
+        $orderPkgs = $ToryHub->get_list_safe(
+            "SELECT po.order_id, p.id as package_id FROM `package_orders` po
+             JOIN `packages` p ON po.package_id = p.id
+             WHERE po.order_id IN ($ph) AND p.status = 'cn_warehouse' AND $notInShipment", $woIds
+        );
+        $orderPkgMap = [];
+        foreach ($orderPkgs as $op) {
+            $orderPkgMap[$op['order_id']][] = $op['package_id'];
+        }
+        foreach ($wholesaleOrders as &$order) {
+            $order['package_ids'] = $orderPkgMap[$order['id']] ?? [];
+            // Calculate display weight
+            $wA = floatval($order['total_weight_actual'] ?? 0);
+            $wC = floatval($order['total_weight_charged'] ?? 0);
+            $oWA = floatval($order['order_weight_actual'] ?? 0);
+            $oWC = floatval($order['order_weight_charged'] ?? 0);
+            $order['display_weight'] = $wA > 0 ? $wA : ($oWA > 0 ? $oWA : ($wC > 0 ? $wC : $oWC));
+            $cbm = floatval($order['total_cbm'] ?? 0);
+            if (floatval($order['volume_actual'] ?? 0) > 0) $cbm = floatval($order['volume_actual']);
+            $order['display_cbm'] = $cbm;
+        }
+        unset($order);
+    }
+
+    api_success([
+        'sealed_bags' => $sealedBags,
+        'wholesale_orders' => $wholesaleOrders,
+        'summary' => [
+            'total_pending' => (int)($cntCnWarehouse['cnt'] ?? 0) + (int)($cntPacked['cnt'] ?? 0),
+            'cn_warehouse' => (int)($cntCnWarehouse['cnt'] ?? 0),
+            'packed' => (int)($cntPacked['cnt'] ?? 0),
+        ]
+    ]);
 }
 
 // ===== ADD PACKAGES TO SHIPMENT =====
