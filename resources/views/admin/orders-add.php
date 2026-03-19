@@ -109,10 +109,11 @@ require_once(__DIR__.'/sidebar.php');
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><?= __('Phân loại vận chuyển') ?></label>
-                                    <select class="form-select" name="cargo_type">
-                                        <option value="easy"><?= __('Hàng dễ vận chuyển') ?></option>
-                                        <option value="difficult"><?= __('Hàng khó vận chuyển') ?></option>
-                                    </select>
+                                    <input type="hidden" name="cargo_type" value="easy">
+                                    <div class="btn-group w-100" role="group">
+                                        <button type="button" class="btn btn-primary cargo-type-btn active" data-value="easy"><?= __('Hàng dễ vận chuyển') ?></button>
+                                        <button type="button" class="btn btn-outline-primary cargo-type-btn" data-value="difficult"><?= __('Hàng khó vận chuyển') ?></button>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -338,6 +339,13 @@ require_once(__DIR__.'/sidebar.php');
 $body['footer'] = '';
 ?>
 <script>
+// ===== Cargo type button toggle =====
+$('.cargo-type-btn').on('click', function() {
+    $('.cargo-type-btn').removeClass('btn-primary active').addClass('btn-outline-primary');
+    $(this).removeClass('btn-outline-primary').addClass('btn-primary active');
+    $('input[name="cargo_type"]').val($(this).data('value'));
+});
+
 // ===== Retail scan auto-save =====
 var scanCount = 0;
 var scanBusy = false;
@@ -550,7 +558,7 @@ function showWizardStep(step) {
 function buildSummary() {
     var rows = '';
     var customer = $('#customer-search').val() || '<em class="text-muted"><?= __('Chưa chọn') ?></em>';
-    var cargo = $('select[name="cargo_type"] option:selected').text();
+    var cargo = $('.cargo-type-btn.active').text();
     var status = $('select[name="status"] option:selected').text();
     var productCode = $('input[name="product_code"]').val() || '-';
     var tracking = $('input[name="tracking_number"]').val() || '-';
