@@ -1,0 +1,6 @@
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Allow Authorization header
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
