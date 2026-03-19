@@ -83,7 +83,7 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="card-body">
                         <h6 class="text-muted mb-3"><i class="ri-user-line me-1"></i><?= __('Thông tin cơ bản') ?></h6>
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><?= __('Khách hàng') ?> <span class="text-danger">*</span></label>
                                     <input type="hidden" name="customer_id" id="select-customer" value="<?= htmlspecialchars($preselect_customer) ?>">
@@ -107,7 +107,7 @@ require_once(__DIR__.'/sidebar.php');
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><?= __('Phân loại vận chuyển') ?></label>
                                     <select class="form-select" name="cargo_type">
@@ -116,7 +116,7 @@ require_once(__DIR__.'/sidebar.php');
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><?= __('Trạng thái') ?></label>
                                     <select class="form-select" name="status">
@@ -140,13 +140,13 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="card-body">
                         <h6 class="text-muted mb-3"><i class="ri-box-3-line me-1"></i><?= __('Thông tin sản phẩm') ?></h6>
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><?= __('Mã hàng') ?></label>
                                     <input type="text" class="form-control" name="product_code" placeholder="<?= __('Nhập mã hàng') ?>">
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><?= __('Mã vận đơn') ?></label>
                                     <div class="input-group">
@@ -155,26 +155,26 @@ require_once(__DIR__.'/sidebar.php');
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><?= __('Tên sản phẩm') ?></label>
                                     <input type="text" class="form-control" name="product_name">
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><?= __('Ảnh sản phẩm') ?></label>
                                     <input type="file" class="form-control" name="product_images[]" id="product_image_input" accept="image/*" multiple>
                                     <div id="image-preview" class="mt-2 d-flex flex-wrap gap-2"></div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><?= __('Tổng cân nặng mã hàng') ?> (kg)</label>
                                     <input type="number" class="form-control" name="weight_actual" value="0" step="0.01" min="0">
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label"><?= __('Tổng khối hàng') ?> (m³)</label>
                                     <input type="number" class="form-control" name="volume_actual" value="0" step="0.0001" min="0">
@@ -304,13 +304,13 @@ require_once(__DIR__.'/sidebar.php');
                         <input type="text" class="form-control" name="phone">
                     </div>
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label">WeChat</label>
                                 <input type="text" class="form-control" name="wechat">
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label">Zalo</label>
                                 <input type="text" class="form-control" name="zalo">
