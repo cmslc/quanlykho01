@@ -123,7 +123,7 @@ if ($method === 'GET') {
     $params[] = $pg['per_page'];
     $params[] = $pg['offset'];
     $orders = $ToryHub->get_list_safe(
-        "SELECT o.id, o.order_code, o.product_code, o.product_type, o.status, o.cn_tracking, o.tracking_cn, o.product_name,
+        "SELECT o.id, o.order_code, o.product_code, o.product_type, o.status, o.cn_tracking as tracking_cn, o.product_name,
                 o.weight_actual, o.volume_actual, o.shipping_type, o.total_packages, o.create_date,
                 c.fullname as customer_name, c.customer_code
          FROM `orders` o
