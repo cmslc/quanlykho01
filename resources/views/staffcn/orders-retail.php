@@ -262,18 +262,18 @@ if ($activeTab === 'tracking') {
                                     <?php
                                     $queryParams = $_GET;
                                     unset($queryParams['page'], $queryParams['module'], $queryParams['action']);
-                                    $baseUrl = base_url('staffcn/orders-retail') . ($queryParams ? '&' . http_build_query($queryParams) : '');
+                                    $baseUrl = base_url('staffcn/orders-retail') . ($queryParams ? '?' . http_build_query($queryParams) : '');
                                     ?>
                                     <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
-                                        <a class="page-link" href="<?= $baseUrl ?>&page=<?= $page - 1 ?>">&laquo;</a>
+                                        <a class="page-link" href="<?= $baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') ?>page=<?= $page - 1 ?>">&laquo;</a>
                                     </li>
                                     <?php for ($p = 1; $p <= $totalPages; $p++): ?>
                                     <li class="page-item <?= $p == $page ? 'active' : '' ?>">
-                                        <a class="page-link" href="<?= $baseUrl ?>&page=<?= $p ?>"><?= $p ?></a>
+                                        <a class="page-link" href="<?= $baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') ?>page=<?= $p ?>"><?= $p ?></a>
                                     </li>
                                     <?php endfor; ?>
                                     <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
-                                        <a class="page-link" href="<?= $baseUrl ?>&page=<?= $page + 1 ?>">&raquo;</a>
+                                        <a class="page-link" href="<?= $baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') ?>page=<?= $page + 1 ?>">&raquo;</a>
                                     </li>
                                 </ul>
                             </nav>

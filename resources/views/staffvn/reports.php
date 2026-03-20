@@ -276,13 +276,13 @@ require_once(__DIR__.'/sidebar.php');
                                         <ul class="pagination pagination-sm mb-0">
                                             <?php
                                             $qpPkg = $_GET; unset($qpPkg['page_pkg']);
-                                            $basePkg = base_url('staffvn/reports') . ($qpPkg ? '&' . http_build_query($qpPkg) : '');
+                                            $basePkg = base_url('staffvn/reports') . ($qpPkg ? '?' . http_build_query($qpPkg) : '');
                                             ?>
-                                            <li class="page-item <?= $pagePkg <= 1 ? 'disabled' : '' ?>"><a class="page-link" href="<?= $basePkg . '&page_pkg=' . ($pagePkg - 1) ?>">&laquo;</a></li>
+                                            <li class="page-item <?= $pagePkg <= 1 ? 'disabled' : '' ?>"><a class="page-link" href="<?= $basePkg . (strpos($basePkg, '?') !== false ? '&' : '?') . 'page_pkg=' . ($pagePkg - 1) ?>">&laquo;</a></li>
                                             <?php for ($p = max(1, $pagePkg - 2); $p <= min($totalPagesPkg, $pagePkg + 2); $p++): ?>
-                                            <li class="page-item <?= $p == $pagePkg ? 'active' : '' ?>"><a class="page-link" href="<?= $basePkg . '&page_pkg=' . $p ?>"><?= $p ?></a></li>
+                                            <li class="page-item <?= $p == $pagePkg ? 'active' : '' ?>"><a class="page-link" href="<?= $basePkg . (strpos($basePkg, '?') !== false ? '&' : '?') . 'page_pkg=' . $p ?>"><?= $p ?></a></li>
                                             <?php endfor; ?>
-                                            <li class="page-item <?= $pagePkg >= $totalPagesPkg ? 'disabled' : '' ?>"><a class="page-link" href="<?= $basePkg . '&page_pkg=' . ($pagePkg + 1) ?>">&raquo;</a></li>
+                                            <li class="page-item <?= $pagePkg >= $totalPagesPkg ? 'disabled' : '' ?>"><a class="page-link" href="<?= $basePkg . (strpos($basePkg, '?') !== false ? '&' : '?') . 'page_pkg=' . ($pagePkg + 1) ?>">&raquo;</a></li>
                                         </ul>
                                     </nav>
                                 </div>
@@ -340,13 +340,13 @@ require_once(__DIR__.'/sidebar.php');
                                         <ul class="pagination pagination-sm mb-0">
                                             <?php
                                             $qpOrd = $_GET; unset($qpOrd['page_ord']);
-                                            $baseOrd = base_url('staffvn/reports') . ($qpOrd ? '&' . http_build_query($qpOrd) : '');
+                                            $baseOrd = base_url('staffvn/reports') . ($qpOrd ? '?' . http_build_query($qpOrd) : '');
                                             ?>
-                                            <li class="page-item <?= $pageOrd <= 1 ? 'disabled' : '' ?>"><a class="page-link" href="<?= $baseOrd . '&page_ord=' . ($pageOrd - 1) ?>">&laquo;</a></li>
+                                            <li class="page-item <?= $pageOrd <= 1 ? 'disabled' : '' ?>"><a class="page-link" href="<?= $baseOrd . (strpos($baseOrd, '?') !== false ? '&' : '?') . 'page_ord=' . ($pageOrd - 1) ?>">&laquo;</a></li>
                                             <?php for ($p = max(1, $pageOrd - 2); $p <= min($totalPagesOrd, $pageOrd + 2); $p++): ?>
-                                            <li class="page-item <?= $p == $pageOrd ? 'active' : '' ?>"><a class="page-link" href="<?= $baseOrd . '&page_ord=' . $p ?>"><?= $p ?></a></li>
+                                            <li class="page-item <?= $p == $pageOrd ? 'active' : '' ?>"><a class="page-link" href="<?= $baseOrd . (strpos($baseOrd, '?') !== false ? '&' : '?') . 'page_ord=' . $p ?>"><?= $p ?></a></li>
                                             <?php endfor; ?>
-                                            <li class="page-item <?= $pageOrd >= $totalPagesOrd ? 'disabled' : '' ?>"><a class="page-link" href="<?= $baseOrd . '&page_ord=' . ($pageOrd + 1) ?>">&raquo;</a></li>
+                                            <li class="page-item <?= $pageOrd >= $totalPagesOrd ? 'disabled' : '' ?>"><a class="page-link" href="<?= $baseOrd . (strpos($baseOrd, '?') !== false ? '&' : '?') . 'page_ord=' . ($pageOrd + 1) ?>">&raquo;</a></li>
                                         </ul>
                                     </nav>
                                 </div>

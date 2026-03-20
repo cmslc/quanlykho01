@@ -186,13 +186,13 @@ require_once(__DIR__.'/sidebar.php');
                                     <?php
                                     $queryParams = $_GET;
                                     unset($queryParams['page']);
-                                    $baseUrl = base_url('admin/shipments-list') . ($queryParams ? '&' . http_build_query($queryParams) : '');
+                                    $baseUrl = base_url('admin/shipments-list') . ($queryParams ? '?' . http_build_query($queryParams) : '');
                                     ?>
-                                    <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>"><a class="page-link" href="<?= $baseUrl . '&page=' . ($page - 1) ?>">&laquo;</a></li>
+                                    <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>"><a class="page-link" href="<?= $baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') . 'page=' . ($page - 1) ?>">&laquo;</a></li>
                                     <?php for ($p = max(1, $page - 2); $p <= min($totalPages, $page + 2); $p++): ?>
-                                    <li class="page-item <?= $p == $page ? 'active' : '' ?>"><a class="page-link" href="<?= $baseUrl . '&page=' . $p ?>"><?= $p ?></a></li>
+                                    <li class="page-item <?= $p == $page ? 'active' : '' ?>"><a class="page-link" href="<?= $baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') . 'page=' . $p ?>"><?= $p ?></a></li>
                                     <?php endfor; ?>
-                                    <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>"><a class="page-link" href="<?= $baseUrl . '&page=' . ($page + 1) ?>">&raquo;</a></li>
+                                    <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>"><a class="page-link" href="<?= $baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') . 'page=' . ($page + 1) ?>">&raquo;</a></li>
                                 </ul>
                             </nav>
                         </div>

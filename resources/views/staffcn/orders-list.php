@@ -441,29 +441,29 @@ require_once(__DIR__.'/sidebar.php');
                                     $queryParams = $_GET;
                                     unset($queryParams['page']);
                                     unset($queryParams['module'], $queryParams['action']);
-                                    $baseUrl = base_url('staffcn/' . $_currentAction) . ($queryParams ? '&' . http_build_query($queryParams) : '');
+                                    $baseUrl = base_url('staffcn/' . $_currentAction) . ($queryParams ? '?' . http_build_query($queryParams) : '');
                                     ?>
                                     <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
-                                        <a class="page-link" href="<?= $baseUrl . '&page=' . ($page - 1) ?>">&laquo;</a>
+                                        <a class="page-link" href="<?= $baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') . 'page=' . ($page - 1) ?>">&laquo;</a>
                                     </li>
                                     <?php
                                     $startPage = max(1, $page - 2);
                                     $endPage = min($totalPages, $page + 2);
                                     if ($startPage > 1): ?>
-                                        <li class="page-item"><a class="page-link" href="<?= $baseUrl . '&page=1' ?>">1</a></li>
+                                        <li class="page-item"><a class="page-link" href="<?= $baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') . 'page=1' ?>">1</a></li>
                                         <?php if ($startPage > 2): ?><li class="page-item disabled"><span class="page-link">...</span></li><?php endif; ?>
                                     <?php endif; ?>
                                     <?php for ($p = $startPage; $p <= $endPage; $p++): ?>
                                     <li class="page-item <?= $p == $page ? 'active' : '' ?>">
-                                        <a class="page-link" href="<?= $baseUrl . '&page=' . $p ?>"><?= $p ?></a>
+                                        <a class="page-link" href="<?= $baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') . 'page=' . $p ?>"><?= $p ?></a>
                                     </li>
                                     <?php endfor; ?>
                                     <?php if ($endPage < $totalPages): ?>
                                         <?php if ($endPage < $totalPages - 1): ?><li class="page-item disabled"><span class="page-link">...</span></li><?php endif; ?>
-                                        <li class="page-item"><a class="page-link" href="<?= $baseUrl . '&page=' . $totalPages ?>"><?= $totalPages ?></a></li>
+                                        <li class="page-item"><a class="page-link" href="<?= $baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') . 'page=' . $totalPages ?>"><?= $totalPages ?></a></li>
                                     <?php endif; ?>
                                     <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
-                                        <a class="page-link" href="<?= $baseUrl . '&page=' . ($page + 1) ?>">&raquo;</a>
+                                        <a class="page-link" href="<?= $baseUrl . (strpos($baseUrl, '?') !== false ? '&' : '?') . 'page=' . ($page + 1) ?>">&raquo;</a>
                                     </li>
                                 </ul>
                             </nav>
