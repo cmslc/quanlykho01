@@ -40,7 +40,7 @@ if ($editLangId) {
         if (!$files) continue;
         foreach ($files as $file) {
             $content = file_get_contents($file);
-            preg_match_all("/__\\(['\"](.+?)['\"]\\)/", $content, $matches);
+            preg_match_all("/__$queryParams['pg'](['\"](.+?)['\"]$queryParams['pg'])/", $content, $matches);
             foreach ($matches[1] as $key) {
                 $allKeys[$key] = true;
             }
@@ -67,7 +67,7 @@ if ($editLangId) {
     $filterSearch = trim(input_get('search') ?? '');
     $filterStatus = input_get('status') ?: '';
     $perPage = 10;
-    $currentPage = max(1, intval(input_get('page') ?: 1));
+    $currentPage = max(1, intval(input_get('pg') ?: 1));
 
     $filteredKeys = $allKeys;
     if ($filterSearch) {
@@ -238,20 +238,20 @@ if ($editLangId) {
                             <nav>
                                 <ul class="pagination pagination-sm mb-0">
                                     <li class="page-item <?= $currentPage <= 1 ? 'disabled' : '' ?>">
-                                        <a class="page-link" href="<?= buildTrUrl(array_merge($currentFilters, ['page' => $currentPage - 1]), $baseUrl) ?>">&laquo;</a>
+                                        <a class="page-link" href="<?= buildTrUrl(array_merge($currentFilters, ['pg' => $currentPage - 1]), $baseUrl) ?>">&laquo;</a>
                                     </li>
                                     <?php
                                     $startP = max(1, $currentPage - 2);
                                     $endP = min($totalPages, $currentPage + 2);
-                                    if ($startP > 1): ?><li class="page-item"><a class="page-link" href="<?= buildTrUrl(array_merge($currentFilters, ['page' => 1]), $baseUrl) ?>">1</a></li><?php if ($startP > 2): ?><li class="page-item disabled"><span class="page-link">...</span></li><?php endif; endif;
+                                    if ($startP > 1): ?><li class="page-item"><a class="page-link" href="<?= buildTrUrl(array_merge($currentFilters, ['pg' => 1]), $baseUrl) ?>">1</a></li><?php if ($startP > 2): ?><li class="page-item disabled"><span class="page-link">...</span></li><?php endif; endif;
                                     for ($p = $startP; $p <= $endP; $p++): ?>
                                     <li class="page-item <?= $p == $currentPage ? 'active' : '' ?>">
-                                        <a class="page-link" href="<?= buildTrUrl(array_merge($currentFilters, ['page' => $p]), $baseUrl) ?>"><?= $p ?></a>
+                                        <a class="page-link" href="<?= buildTrUrl(array_merge($currentFilters, ['pg' => $p]), $baseUrl) ?>"><?= $p ?></a>
                                     </li>
                                     <?php endfor;
-                                    if ($endP < $totalPages): ?><?php if ($endP < $totalPages - 1): ?><li class="page-item disabled"><span class="page-link">...</span></li><?php endif; ?><li class="page-item"><a class="page-link" href="<?= buildTrUrl(array_merge($currentFilters, ['page' => $totalPages]), $baseUrl) ?>"><?= $totalPages ?></a></li><?php endif; ?>
+                                    if ($endP < $totalPages): ?><?php if ($endP < $totalPages - 1): ?><li class="page-item disabled"><span class="page-link">...</span></li><?php endif; ?><li class="page-item"><a class="page-link" href="<?= buildTrUrl(array_merge($currentFilters, ['pg' => $totalPages]), $baseUrl) ?>"><?= $totalPages ?></a></li><?php endif; ?>
                                     <li class="page-item <?= $currentPage >= $totalPages ? 'disabled' : '' ?>">
-                                        <a class="page-link" href="<?= buildTrUrl(array_merge($currentFilters, ['page' => $currentPage + 1]), $baseUrl) ?>">&raquo;</a>
+                                        <a class="page-link" href="<?= buildTrUrl(array_merge($currentFilters, ['pg' => $currentPage + 1]), $baseUrl) ?>">&raquo;</a>
                                     </li>
                                 </ul>
                             </nav>
@@ -404,7 +404,7 @@ foreach ($scanPatterns as $pattern) {
     if (!$files) continue;
     foreach ($files as $file) {
         $content = file_get_contents($file);
-        preg_match_all("/__\\(['\"](.+?)['\"]\\)/", $content, $matches);
+        preg_match_all("/__$queryParams['pg'](['\"](.+?)['\"]$queryParams['pg'])/", $content, $matches);
         foreach ($matches[1] as $key) {
             $allKeys[$key] = true;
         }

@@ -21,7 +21,7 @@ if ($filterSearch) {
 
 // Pagination
 $perPage = 10;
-$page = max(1, intval(input_get('page') ?: 1));
+$page = max(1, intval(input_get('pg') ?: 1));
 $totalBags = $ToryHub->num_rows_safe("SELECT b.id FROM `bags` b WHERE $where", $params);
 $totalPages = max(1, ceil($totalBags / $perPage));
 if ($page > $totalPages) $page = $totalPages;
@@ -186,7 +186,7 @@ require_once(__DIR__.'/sidebar.php');
                                 <ul class="pagination pagination-sm mb-0">
                                     <?php
                                     $queryParams = $_GET;
-                                    unset($queryParams['page']);
+                                    unset($queryParams['pg']);
                                     $baseUrl = base_url('admin/bags-list') . ($queryParams ? '?' . http_build_query($queryParams) : '');
                                     ?>
                                     <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">

@@ -20,7 +20,7 @@ if ($activeTab === 'tracking') {
 
     // Pagination
     $perPage = 10;
-    $page = max(1, intval(input_get('page') ?? 1));
+    $page = max(1, intval(input_get('pg') ?? 1));
     $offset = ($page - 1) * $perPage;
 
     $bagWhere = "1=1";
@@ -261,7 +261,7 @@ if ($activeTab === 'tracking') {
                                 <ul class="pagination pagination-sm mb-0">
                                     <?php
                                     $queryParams = $_GET;
-                                    unset($queryParams['page'], $queryParams['module'], $queryParams['action']);
+                                    unset($queryParams['pg'], $queryParams['module'], $queryParams['action']);
                                     $baseUrl = base_url('staffcn/orders-retail') . ($queryParams ? '?' . http_build_query($queryParams) : '');
                                     ?>
                                     <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">

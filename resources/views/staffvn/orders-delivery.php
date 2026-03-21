@@ -47,7 +47,7 @@ if ($filterCustomer) {
 $totalOrders = $ToryHub->get_row_safe("SELECT COUNT(*) as cnt FROM `orders` o LEFT JOIN `customers` c ON o.customer_id = c.id WHERE $where", $params)['cnt'] ?? 0;
 
 $perPage = 10;
-$page = max(1, intval(input_get('page') ?? 1));
+$page = max(1, intval(input_get('pg') ?? 1));
 $totalPages = max(1, ceil($totalOrders / $perPage));
 if ($page > $totalPages) $page = $totalPages;
 $offset = ($page - 1) * $perPage;
@@ -264,7 +264,7 @@ require_once(__DIR__.'/sidebar.php');
                                 <ul class="pagination pagination-sm mb-0">
                                     <?php
                                     $queryParams = $_GET;
-                                    unset($queryParams['page']);
+                                    unset($queryParams['pg']);
                                     $baseUrl = base_url('staffvn/orders-delivery') . '?' . http_build_query($queryParams);
                                     ?>
                                     <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">

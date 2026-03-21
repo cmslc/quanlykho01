@@ -49,7 +49,7 @@ if ($filterSearch) {
 
 // Pagination
 $perPage = 10;
-$page = max(1, intval(input_get('page') ?: 1));
+$page = max(1, intval(input_get('pg') ?: 1));
 $totalOrders = $ToryHub->num_rows_safe("SELECT o.id FROM `orders` o WHERE $where", $params);
 $totalPages = max(1, ceil($totalOrders / $perPage));
 if ($page > $totalPages) $page = $totalPages;
@@ -443,7 +443,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <?php
                                     // Build base URL with current filters
                                     $queryParams = $_GET;
-                                    unset($queryParams['page']);
+                                    unset($queryParams['pg']);
                                     unset($queryParams['module'], $queryParams['action']);
                                     $baseUrl = base_url('staffcn/' . $_currentAction) . ($queryParams ? '?' . http_build_query($queryParams) : '');
                                     ?>

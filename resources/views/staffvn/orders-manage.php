@@ -26,7 +26,7 @@ $filterDelivery = input_get('delivery') ?: '';
 
 // Pagination
 $perPage = 10;
-$page = max(1, intval(input_get('page') ?? 1));
+$page = max(1, intval(input_get('pg') ?? 1));
 $offset = ($page - 1) * $perPage;
 
 // === BAGS (Mã bao) ===
@@ -433,7 +433,7 @@ require_once(__DIR__.'/sidebar.php');
                                 <ul class="pagination pagination-sm mb-0">
                                     <?php
                                     $queryParams = $_GET;
-                                    unset($queryParams['page']);
+                                    unset($queryParams['pg']);
                                     $baseUrl = base_url('staffvn/' . $_formAction) . '?' . http_build_query($queryParams);
                                     ?>
                                     <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">

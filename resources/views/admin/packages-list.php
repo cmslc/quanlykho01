@@ -47,7 +47,7 @@ if ($filterDateTo) {
 
 // Pagination
 $perPage = 20;
-$page = max(1, intval(input_get('page') ?: 1));
+$page = max(1, intval(input_get('pg') ?: 1));
 $totalPackages = $ToryHub->num_rows_safe("SELECT p.id FROM `packages` p WHERE $where", $params);
 $totalPages = max(1, ceil($totalPackages / $perPage));
 if ($page > $totalPages) $page = $totalPages;
@@ -297,7 +297,7 @@ require_once(__DIR__.'/sidebar.php');
                                 <ul class="pagination pagination-sm mb-0">
                                     <?php
                                     $queryParams = $_GET;
-                                    unset($queryParams['page']);
+                                    unset($queryParams['pg']);
                                     $baseUrl = base_url('admin/packages-list') . ($queryParams ? '?' . http_build_query($queryParams) : '');
                                     ?>
                                     <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">

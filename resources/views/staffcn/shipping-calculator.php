@@ -19,7 +19,7 @@ $filterDateTo = input_get('date_to') ?: '';
 $filterSort = input_get('sort') ?: '';
 $filterSortDir = input_get('dir') ?: 'asc';
 $perPage = intval(input_get('per_page') ?: 10);
-$currentPage = max(1, intval(input_get('page') ?: 1));
+$currentPage = max(1, intval(input_get('pg') ?: 1));
 
 $notInShipment = "p.id NOT IN (SELECT sp.package_id FROM `shipment_packages` sp JOIN `shipments` s ON sp.shipment_id = s.id WHERE s.status IN ('preparing','in_transit'))";
 
@@ -596,7 +596,7 @@ require_once(__DIR__.'/sidebar.php');
                         <div class="d-flex align-items-center justify-content-between mt-3">
                             <div class="d-flex align-items-center gap-2">
                                 <span class="text-muted fs-12"><?= __('Hiển thị') ?></span>
-                                <select class="form-select" style="width:auto;" onchange="location.href='<?= buildFilterUrl(array_merge($currentFilters, ['page' => 1, 'per_page' => '']), $baseUrl) ?>&per_page='+this.value">
+                                <select class="form-select" style="width:auto;" onchange="location.href='<?= buildFilterUrl(array_merge($currentFilters, ['pg' => 1, 'per_page' => '']), $baseUrl) ?>&per_page='+this.value">
                                     <?php foreach ([10, 20, 50, 100, 200] as $pp): ?>
                                     <option value="<?= $pp ?>" <?= $perPage == $pp ? 'selected' : '' ?>><?= $pp ?></option>
                                     <?php endforeach; ?>
@@ -608,18 +608,18 @@ require_once(__DIR__.'/sidebar.php');
                             <nav>
                                 <ul class="pagination pagination-sm mb-0">
                                     <li class="page-item <?= $currentPage <= 1 ? 'disabled' : '' ?>">
-                                        <a class="page-link" href="<?= buildFilterUrl(array_merge($currentFilters, ['page' => $currentPage - 1]), $baseUrl) ?>">&laquo;</a>
+                                        <a class="page-link" href="<?= buildFilterUrl(array_merge($currentFilters, ['pg' => $currentPage - 1]), $baseUrl) ?>">&laquo;</a>
                                     </li>
                                     <?php
                                     $startP = max(1, $currentPage - 2);
                                     $endP = min($totalPages, $currentPage + 2);
-                                    if ($startP > 1): ?><li class="page-item"><a class="page-link" href="<?= buildFilterUrl(array_merge($currentFilters, ['page' => 1]), $baseUrl) ?>">1</a></li><?php if ($startP > 2): ?><li class="page-item disabled"><span class="page-link">...</span></li><?php endif; endif;
+                                    if ($startP > 1): ?><li class="page-item"><a class="page-link" href="<?= buildFilterUrl(array_merge($currentFilters, ['pg' => 1]), $baseUrl) ?>">1</a></li><?php if ($startP > 2): ?><li class="page-item disabled"><span class="page-link">...</span></li><?php endif; endif;
                                     for ($p = $startP; $p <= $endP; $p++): ?>
-                                    <li class="page-item <?= $p == $currentPage ? 'active' : '' ?>"><a class="page-link" href="<?= buildFilterUrl(array_merge($currentFilters, ['page' => $p]), $baseUrl) ?>"><?= $p ?></a></li>
+                                    <li class="page-item <?= $p == $currentPage ? 'active' : '' ?>"><a class="page-link" href="<?= buildFilterUrl(array_merge($currentFilters, ['pg' => $p]), $baseUrl) ?>"><?= $p ?></a></li>
                                     <?php endfor;
-                                    if ($endP < $totalPages): ?><?php if ($endP < $totalPages - 1): ?><li class="page-item disabled"><span class="page-link">...</span></li><?php endif; ?><li class="page-item"><a class="page-link" href="<?= buildFilterUrl(array_merge($currentFilters, ['page' => $totalPages]), $baseUrl) ?>"><?= $totalPages ?></a></li><?php endif; ?>
+                                    if ($endP < $totalPages): ?><?php if ($endP < $totalPages - 1): ?><li class="page-item disabled"><span class="page-link">...</span></li><?php endif; ?><li class="page-item"><a class="page-link" href="<?= buildFilterUrl(array_merge($currentFilters, ['pg' => $totalPages]), $baseUrl) ?>"><?= $totalPages ?></a></li><?php endif; ?>
                                     <li class="page-item <?= $currentPage >= $totalPages ? 'disabled' : '' ?>">
-                                        <a class="page-link" href="<?= buildFilterUrl(array_merge($currentFilters, ['page' => $currentPage + 1]), $baseUrl) ?>">&raquo;</a>
+                                        <a class="page-link" href="<?= buildFilterUrl(array_merge($currentFilters, ['pg' => $currentPage + 1]), $baseUrl) ?>">&raquo;</a>
                                     </li>
                                 </ul>
                             </nav>

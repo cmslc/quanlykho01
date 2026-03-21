@@ -139,7 +139,7 @@ $totalRows = count($sealedBags) + count($wholesaleOrders);
 
 // === Pagination ===
 $perPage = 10;
-$page = max(1, intval(input_get('page') ?: 1));
+$page = max(1, intval(input_get('pg') ?: 1));
 $totalPages = max(1, ceil($totalRows / $perPage));
 if ($page > $totalPages) $page = $totalPages;
 $offset = ($page - 1) * $perPage;
@@ -447,7 +447,7 @@ require_once(__DIR__.'/sidebar.php');
                                 <ul class="pagination pagination-sm mb-0">
                                     <?php
                                     $queryParams = $_GET;
-                                    unset($queryParams['page'], $queryParams['module'], $queryParams['action']);
+                                    unset($queryParams['pg'], $queryParams['module'], $queryParams['action']);
                                     $baseUrl = base_url('admin/shipments-pending') . ($queryParams ? '?' . http_build_query($queryParams) : '');
                                     ?>
                                     <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
@@ -531,7 +531,7 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="tab-pane fade show active" id="tab-existing-shipment">
                         <div id="existing-shipments-loading" class="text-center py-3"><i class="ri-loader-4-line ri-spin fs-24"></i></div>
                         <div id="existing-shipments-empty" class="text-center text-muted py-3 d-none">
-                            <?= __('Chưa có chuyến xe nào đang chuẩn bị') ?>. <a href="#" onclick="$('a[href=\'#tab-new-shipment\']').tab('show'); return false;"><?= __('Tạo mới') ?></a>
+                            <?= __('Chưa có chuyến xe nào đang chuẩn bị') ?>. <a href="#" onclick="$('a[href=$queryParams['pg']#tab-new-shipment$queryParams['pg']]').tab('show'); return false;"><?= __('Tạo mới') ?></a>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-sm table-hover mb-0 d-none" id="tbl-existing-shipments">
