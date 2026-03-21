@@ -556,7 +556,7 @@ require_once(__DIR__.'/sidebar.php');
                                         </td>
                                         <td class="align-middle text-center">
                                             <?php if (!empty($order['product_image'])):
-                                                $orderImgArr = array_filter(array_map('trim', explode(',', $order['product_image'])));
+                                                $orderImgArr = parse_product_images($order['product_image']);
                                                 $orderImgUrls = array_map('get_upload_url', $orderImgArr); $thumbUrl = $orderImgUrls[0]; $imgCount = count($orderImgArr);
                                             ?>
                                             <a href="#" class="btn-view-images position-relative d-inline-block" data-images="<?= htmlspecialchars(json_encode(array_values($orderImgUrls))) ?>">

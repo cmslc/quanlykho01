@@ -216,6 +216,17 @@ function input_get($key)
     return isset($_GET[$key]) ? trim($_GET[$key]) : false;
 }
 
+/**
+ * Parse product_image field - hỗ trợ JSON array, JSON string, CSV
+ */
+function parse_product_images($val) {
+    if (empty($val)) return [];
+    $list = @json_decode($val, true);
+    if (is_array($list)) return array_values(array_filter(array_map('trim', $list)));
+    if (is_string($list) && trim($list)) return [trim($list)];
+    return array_values(array_filter(array_map('trim', explode(',', $val))));
+}
+
 function is_submit($key)
 {
     return (isset($_POST['request_name']) && $_POST['request_name'] == $key);

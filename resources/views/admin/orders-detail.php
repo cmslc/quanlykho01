@@ -381,7 +381,7 @@ require_once(__DIR__.'/sidebar.php');
 
                         <?php if (!empty($order['product_image'])): ?>
                         <div class="mt-3 d-flex flex-wrap gap-2">
-                            <?php $imgIndex = 0; foreach (explode(',', $order['product_image']) as $img): ?>
+                            <?php $imgIndex = 0; foreach (parse_product_images($order['product_image']) as $img): ?>
                             <?php if (trim($img)): ?>
                             <a href="javascript:void(0)" onclick="openImagePopup(<?= $imgIndex ?>)" class="img-lightbox">
                                 <img src="<?= get_upload_url(trim($img)) ?>" alt="Product" class="img-thumbnail" style="max-height: 150px; cursor:pointer;">

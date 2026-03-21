@@ -346,7 +346,7 @@ require_once(__DIR__.'/sidebar.php');
                                         $pkgReceived = intval($order['pkg_received'] ?? 0);
                                         $missingCount = intval($order['missing_count'] ?? 0);
                                         $pctReceived = $pkgCount > 0 ? round($pkgReceived / $pkgCount * 100) : 0;
-                                        $orderImgArr = !empty($order['product_image']) ? array_filter(array_map('trim', explode(',', $order['product_image']))) : [];
+                                        $orderImgArr = parse_product_images($order['product_image']);
                                         $orderImgUrls = array_map('get_upload_url', $orderImgArr);
                                     ?>
                                     <tr class="order-row" data-order-id="<?= $order['id'] ?>" data-pkg-count="<?= $pkgCount ?>" data-pkg-received="<?= $pkgReceived ?>" style="cursor:pointer;">

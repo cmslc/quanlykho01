@@ -233,7 +233,7 @@ require_once(__DIR__.'/sidebar.php');
                                         <td><?= $totalCbm > 0 ? fnum($totalCbm, 2) . ' m³' : '' ?></td>
                                         <td class="text-center">
                                             <?php if (!empty($group['product_image'])):
-                                                $grpImgArr = array_filter(array_map('trim', explode(',', $group['product_image'])));
+                                                $grpImgArr = parse_product_images($group['product_image']);
                                                 $grpImgUrls = array_map('get_upload_url', $grpImgArr);
                                                 $grpThumb = $grpImgUrls[0];
                                                 $grpImgCount = count($grpImgArr);

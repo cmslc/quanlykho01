@@ -141,7 +141,7 @@ require_once(__DIR__.'/sidebar.php');
                         <input type="hidden" name="current_images" value="<?= htmlspecialchars($order['product_image'] ?? '') ?>">
                         <?php if (!empty($order['product_image'])): ?>
                         <div id="current-images" class="mt-2 d-flex flex-wrap gap-2">
-                            <?php foreach (explode(',', $order['product_image']) as $img): ?>
+                            <?php foreach (parse_product_images($order['product_image']) as $img): ?>
                             <?php if (trim($img)): ?>
                             <div class="position-relative d-inline-block current-img-wrap">
                                 <img src="<?= get_upload_url(trim($img)) ?>" class="img-thumbnail" style="max-height:100px;">

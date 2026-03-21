@@ -180,7 +180,7 @@ require_once(__DIR__.'/sidebar.php');
                                         $pkgDelivered = intval($order['pkg_delivered'] ?? 0);
                                         $pkgInTransit = intval($order['pkg_in_transit'] ?? 0);
                                         $pkgReady = $pkgReceived - $pkgDelivered; // kiện ở kho VN, chưa giao
-                                        $imgArr = !empty($order['product_image']) ? array_filter(array_map('trim', explode(',', $order['product_image']))) : [];
+                                        $imgArr = parse_product_images($order['product_image']);
                                         $imgUrls = array_map('get_upload_url', $imgArr);
                                     ?>
                                     <tr>
