@@ -223,7 +223,7 @@ if ($method === 'PUT' && $id) {
 
     $updateData = ['update_date' => gettime()];
     $allowed = ['status', 'product_name', 'product_code', 'cargo_type', 'customer_id',
-                'weight_actual', 'volume_actual', 'cn_tracking'];
+                'weight_actual', 'volume_actual', 'cn_tracking', 'product_image'];
 
     foreach ($allowed as $field) {
         if (isset($input[$field])) {
