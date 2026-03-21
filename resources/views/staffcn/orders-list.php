@@ -309,15 +309,19 @@ require_once(__DIR__.'/sidebar.php');
                                         ?>
                                         <td>
                                             <?php if ($isRetail): ?>
-                                                <?php if (!empty($orderTrackings)): ?>
-                                                    <?php foreach ($orderTrackings as $tk): ?>
-                                                        <?php if ($tk): ?>
-                                                        <a href="<?= base_url('staffcn/orders-detail?id=' . $order['id']) ?>"><strong><?= htmlspecialchars($tk) ?></strong></a><br>
-                                                        <?php endif; ?>
-                                                    <?php endforeach; ?>
-                                                <?php else: ?>
-                                                    <a href="<?= base_url('staffcn/orders-detail?id=' . $order['id']) ?>" class="text-muted">#<?= $order['id'] ?></a>
-                                                <?php endif; ?>
+                                                <?php
+                                                    $displayCn = $order['cn_tracking'] ?? '';
+                                                    if (empty($displayCn) && !empty($orderTrackings)) {
+                                                        $displayCn = implode(', ', array_filter($orderTrackings));
+                                                    }
+                                                    $displayCode = $order['order_code'] ?: '#' . $order['id'];
+                                                ?>
+                                                <a href="<?= base_url('staffcn/orders-detail?id=' . $order['id']) ?>">
+                                                    <?php if (!empty($displayCn)): ?>
+                                                    <strong><?= htmlspecialchars($displayCn) ?></strong>
+                                                    <?php endif; ?>
+                                                    <div><small class="text-muted"><?= htmlspecialchars($displayCode) ?></small></div>
+                                                </a>
                                             <?php else: ?>
                                                 <?php if ($order['product_code'] ?? ''): ?>
                                                 <a href="<?= base_url('staffcn/orders-detail?id=' . $order['id']) ?>"><strong><?= htmlspecialchars($order['product_code']) ?></strong></a>

@@ -299,7 +299,7 @@ require_once(__DIR__.'/sidebar.php');
                                 <thead class="table-light">
                                     <tr>
                                         <th style="width:50px;" class="text-center">#</th>
-                                        <th><?= __('Mã vận đơn') ?></th>
+                                        <th><?= __('Mã hàng / Mã vận đơn') ?></th>
                                         <th><?= __('Sản phẩm') ?></th>
                                         <th><?= __('Khách hàng') ?></th>
                                         <th><?= __('Mã bao') ?></th>
@@ -321,7 +321,17 @@ require_once(__DIR__.'/sidebar.php');
                                     <tr>
                                         <td class="text-center text-muted"><?= $rowIdx ?></td>
                                         <td>
-                                            <strong><?= htmlspecialchars($trackingCode) ?></strong>
+                                            <?php
+                                                $displayCn = $order['cn_tracking'] ?? '';
+                                                if (empty($displayCn) && !empty($order['pkg_tracking_cn'])) {
+                                                    $displayCn = $order['pkg_tracking_cn'];
+                                                }
+                                                $displayCode = $order['order_code'] ?: '#' . $order['id'];
+                                            ?>
+                                            <?php if (!empty($displayCn)): ?>
+                                            <strong><?= htmlspecialchars($displayCn) ?></strong>
+                                            <?php endif; ?>
+                                            <div><small class="text-muted"><?= htmlspecialchars($displayCode) ?></small></div>
                                         </td>
                                         <td>
                                             <small><?= htmlspecialchars(mb_strimwidth($order['product_name'] ?? '', 0, 40, '...')) ?: '<span class="text-muted">-</span>' ?></small>
