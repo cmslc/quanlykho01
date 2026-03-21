@@ -201,6 +201,11 @@ if ($method === 'POST' && !$action) {
             ]);
         }
 
+        // Cập nhật total_packages
+        if (count($packages) > 0) {
+            $ToryHub->update_safe('orders', ['total_packages' => count($packages)], "`id` = ?", [$order_id]);
+        }
+
         $ToryHub->commit();
         api_success(['order_id' => $order_id, 'order_code' => $order_code], 'Tạo đơn hàng thành công');
     } catch (\Exception $e) {
