@@ -38,9 +38,9 @@ $totalCustomers = $ToryHub->get_row_safe(
     "SELECT COUNT(*) as cnt FROM `customers`"
 );
 
-// Doanh thu tháng
+// Doanh thu tháng (từ giao dịch thanh toán)
 $revenueThisMonth = $ToryHub->get_row_safe(
-    "SELECT COALESCE(SUM(grand_total),0) as total FROM `orders` WHERE `status` != 'cancelled' AND DATE(create_date) >= ?",
+    "SELECT COALESCE(SUM(ABS(amount)),0) as total FROM `transactions` WHERE `type` = 'payment' AND DATE(create_date) >= ?",
     [$monthStart]
 )['total'];
 
