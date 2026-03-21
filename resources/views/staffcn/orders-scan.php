@@ -73,8 +73,8 @@ require_once(__DIR__.'/sidebar.php');
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold"><?= __('Chế độ quét') ?></label>
                                 <select id="scan-mode" class="form-select form-select-lg">
-                                    <option value="cn_warehouse"><?= __('Nhập kho Trung Quốc') ?> (→ <?= __('Đã về kho Trung Quốc') ?>)</option>
-                                    <option value="shipping"><?= __('Xuất kho Trung Quốc') ?> (→ <?= __('Đang vận chuyển') ?>)</option>
+                                    <option value="cn_warehouse"><?= __('Nhập kho Trung Quốc') ?> (→ <?= __('Kho TQ') ?>)</option>
+                                    <option value="shipping"><?= __('Xuất kho Trung Quốc') ?> (→ <?= __('Vận chuyển') ?>)</option>
                                 </select>
                             </div>
                             <div class="col-md-6 d-flex align-items-end">

@@ -43,7 +43,7 @@ $shipments = $ToryHub->get_list_safe("SELECT s.*, u.fullname as creator_name
 
 $statusLabel = [
     'preparing'  => 'Đang chuẩn bị',
-    'in_transit' => 'Đang vận chuyển',
+    'in_transit' => 'Vận chuyển',
     'arrived'    => 'Đã đến',
     'completed'  => 'Hoàn thành',
 ];

@@ -298,11 +298,11 @@ require_once(__DIR__.'/sidebar.php');
                             <span class="badge bg-warning fs-13"><?= $cnWarehouseOrders ?></span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span><i class="ri-truck-line me-1 text-purple"></i><?= __('Đang vận chuyển') ?></span>
+                            <span><i class="ri-truck-line me-1 text-purple"></i><?= __('Vận chuyển') ?></span>
                             <span class="badge bg-purple fs-13"><?= $shippingOrders ?></span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span><i class="ri-home-4-line me-1 text-success"></i><?= __('Đã về kho Việt Nam') ?></span>
+                            <span><i class="ri-home-4-line me-1 text-success"></i><?= __('Kho VN') ?></span>
                             <span class="badge bg-success fs-13"><?= $vnWarehouseOrders ?></span>
                         </div>
                         <hr>
@@ -439,12 +439,12 @@ $(document).ready(function(){
     // ===== 2. Order Status Donut =====
     var orderStatusData = <?= json_encode($orderStatusData ?: []) ?>;
     var statusLabels = {
-        'cn_warehouse': '<?= __("Đã về kho Trung Quốc") ?>',
+        'cn_warehouse': '<?= __("Kho TQ") ?>',
         'packed': '<?= __("Đã đóng bao") ?>',
-        'loading': '<?= __("Đang xếp xe") ?>',
-        'shipping': '<?= __("Đang vận chuyển") ?>',
-        'vn_warehouse': '<?= __("Đã về kho Việt Nam") ?>',
-        'delivered': '<?= __("Đã giao hàng") ?>'
+        'loading': '<?= __("Xếp xe") ?>',
+        'shipping': '<?= __("Vận chuyển") ?>',
+        'vn_warehouse': '<?= __("Kho VN") ?>',
+        'delivered': '<?= __("Đã giao") ?>'
     };
     var statusColors = {
         'cn_warehouse': '#f7b84b', 'packed': '#405189', 'loading': '#e9a032', 'shipping': '#6f42c1', 'vn_warehouse': '#0ab39c', 'delivered': '#2a9d50'

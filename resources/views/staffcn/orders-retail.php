@@ -102,8 +102,8 @@ if ($activeTab === 'tracking') {
     $bagStatusLabels = [
         'open'      => ['label' => 'Đang mở', 'bg' => 'info', 'icon' => 'ri-folder-open-line'],
         'sealed'    => ['label' => 'Đã niêm phong', 'bg' => 'warning', 'icon' => 'ri-lock-line'],
-        'loading'   => ['label' => 'Đang xếp xe', 'bg' => 'secondary', 'icon' => 'ri-truck-line'],
-        'shipping'  => ['label' => 'Đang vận chuyển', 'bg' => 'primary', 'icon' => 'ri-ship-line'],
+        'loading'   => ['label' => 'Xếp xe', 'bg' => 'secondary', 'icon' => 'ri-truck-line'],
+        'shipping'  => ['label' => 'Vận chuyển', 'bg' => 'primary', 'icon' => 'ri-ship-line'],
         'arrived'   => ['label' => 'Đã đến kho Việt Nam', 'bg' => 'success', 'icon' => 'ri-check-double-line'],
         'completed' => ['label' => 'Đã nhận đủ', 'bg' => 'success', 'icon' => 'ri-checkbox-circle-line'],
     ];

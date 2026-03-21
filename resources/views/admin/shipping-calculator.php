@@ -205,8 +205,8 @@ $shippingRates = [
 $bagStatusLabels = [
     'open' => ['label' => 'Đang mở', 'bg' => 'info-subtle', 'text' => 'info', 'icon' => 'ri-lock-unlock-line'],
     'sealed' => ['label' => 'Chờ vận chuyển', 'bg' => 'secondary-subtle', 'text' => 'secondary', 'icon' => 'ri-time-line'],
-    'loading' => ['label' => 'Đang xếp xe', 'bg' => 'secondary-subtle', 'text' => 'secondary', 'icon' => 'ri-truck-line'],
-    'shipping' => ['label' => 'Đang vận chuyển', 'bg' => 'primary-subtle', 'text' => 'primary', 'icon' => 'ri-ship-line'],
+    'loading' => ['label' => 'Xếp xe', 'bg' => 'secondary-subtle', 'text' => 'secondary', 'icon' => 'ri-truck-line'],
+    'shipping' => ['label' => 'Vận chuyển', 'bg' => 'primary-subtle', 'text' => 'primary', 'icon' => 'ri-ship-line'],
     'arrived' => ['label' => 'Đã đến kho VN', 'bg' => 'success-subtle', 'text' => 'success', 'icon' => 'ri-check-double-line'],
 ];
 function calcShippingCost($weight, $cbm, $method, $cargoType, $rates) {
@@ -1078,7 +1078,7 @@ $(function(){
 
         $.post(pkgAjaxUrl, { request_name: 'get_order_packages', order_id: orderId, csrf_token: csrfToken }, function(res){
             if (res.status === 'success') {
-                var statusLabels = { 'cn_warehouse': '<?= __('Đã về kho Trung Quốc') ?>', 'vn_warehouse': '<?= __('Đã về kho Việt Nam') ?>', 'packed': '<?= __('Đã đóng bao') ?>', 'loading': '<?= __('Đang xếp xe') ?>', 'shipping': '<?= __('Đang vận chuyển') ?>', 'delivered': '<?= __('Đã giao') ?>', 'returned': '<?= __('Đã trả') ?>', 'damaged': '<?= __('Hư hỏng') ?>' };
+                var statusLabels = { 'cn_warehouse': '<?= __('Kho TQ') ?>', 'vn_warehouse': '<?= __('Kho VN') ?>', 'packed': '<?= __('Đã đóng bao') ?>', 'loading': '<?= __('Xếp xe') ?>', 'shipping': '<?= __('Vận chuyển') ?>', 'delivered': '<?= __('Đã giao') ?>', 'returned': '<?= __('Đã trả') ?>', 'damaged': '<?= __('Hư hỏng') ?>' };
                 var pendingPkgs = res.packages.filter(function(p){ return p.status === 'cn_warehouse'; });
 
                 var html = '<table class="table table-sm table-borderless mb-0 text-start"><thead><tr>';
@@ -1185,7 +1185,7 @@ $(function(){
                 html += '<th><?= __('Mã kiện') ?></th><th><?= __('Cân nặng / Số khối') ?></th><th><?= __('Kích thước') ?></th><th><?= __('Trạng thái') ?></th>';
                 html += '</tr></thead><tbody>';
 
-                var statusLabels = { 'cn_warehouse': '<?= __('Đã về kho Trung Quốc') ?>', 'vn_warehouse': '<?= __('Đã về kho Việt Nam') ?>', 'packed': '<?= __('Đã đóng bao') ?>', 'loading': '<?= __('Đang xếp xe') ?>', 'shipping': '<?= __('Đang vận chuyển') ?>', 'delivered': '<?= __('Đã giao') ?>', 'returned': '<?= __('Đã trả') ?>', 'damaged': '<?= __('Hư hỏng') ?>' };
+                var statusLabels = { 'cn_warehouse': '<?= __('Kho TQ') ?>', 'vn_warehouse': '<?= __('Kho VN') ?>', 'packed': '<?= __('Đã đóng bao') ?>', 'loading': '<?= __('Xếp xe') ?>', 'shipping': '<?= __('Vận chuyển') ?>', 'delivered': '<?= __('Đã giao') ?>', 'returned': '<?= __('Đã trả') ?>', 'damaged': '<?= __('Hư hỏng') ?>' };
 
                 res.packages.forEach(function(pkg, i){
                     var pkgCode = pkg.package_code || ('#' + pkg.id);

@@ -73,7 +73,7 @@ $totalDebt = max(0, $totalShipCost - $totalPaid);
 
 $statusLabel = [
     'cn_warehouse' => __('Tại kho TQ'), 'packed' => __('Đã đóng bao'),
-    'shipping' => __('Đang vận chuyển'), 'vn_warehouse' => __('Đã về kho Việt Nam'),
+    'shipping' => __('Vận chuyển'), 'vn_warehouse' => __('Kho VN'),
     'delivered' => __('Đã giao'), 'cancelled' => __('Đã hủy')
 ];
 $typeLabel = ['wholesale' => __('Hàng lô'), 'retail' => __('Hàng lẻ')];

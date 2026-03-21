@@ -182,12 +182,12 @@ require_once(__DIR__.'/sidebar.php');
                         <div class="d-flex align-items-center gap-2">
                             <select class="form-select" id="bulk-status" style="width:220px;">
                                 <option value=""><?= __('-- Chọn trạng thái --') ?></option>
-                                <option value="cn_warehouse"><?= __('Đã về kho Trung Quốc') ?></option>
+                                <option value="cn_warehouse"><?= __('Kho TQ') ?></option>
                                 <option value="packed"><?= __('Đã đóng bao') ?></option>
-                                <option value="loading"><?= __('Đang xếp xe') ?></option>
-                                <option value="shipping"><?= __('Đang vận chuyển') ?></option>
-                                <option value="vn_warehouse"><?= __('Đã về kho Việt Nam') ?></option>
-                                <option value="delivered"><?= __('Đã giao hàng') ?></option>
+                                <option value="loading"><?= __('Xếp xe') ?></option>
+                                <option value="shipping"><?= __('Vận chuyển') ?></option>
+                                <option value="vn_warehouse"><?= __('Kho VN') ?></option>
+                                <option value="delivered"><?= __('Đã giao') ?></option>
                             </select>
                             <button class="btn btn-primary" id="btn-bulk-apply"><i class="ri-check-line me-1"></i><?= __('Cập nhật') ?></button>
                         </div>

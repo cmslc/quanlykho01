@@ -371,12 +371,12 @@ require_once(__DIR__.'/sidebar.php');
                                             $opkgMap = $pkgStatusMap[$order['id']] ?? [];
                                             if (!empty($opkgMap)):
                                                 $opkgLabels = [
-                                                    'cn_warehouse' => ['label' => 'Đã về kho Trung Quốc', 'bg' => 'info'],
+                                                    'cn_warehouse' => ['label' => 'Kho TQ', 'bg' => 'info'],
                                                     'packed'       => ['label' => 'Đã đóng bao', 'bg' => 'dark'],
-                                                    'loading'      => ['label' => 'Đang xếp xe', 'bg' => 'secondary'],
-                                                    'shipping'     => ['label' => 'Đang vận chuyển', 'bg' => 'primary'],
-                                                    'vn_warehouse' => ['label' => 'Đã về kho Việt Nam', 'bg' => 'success'],
-                                                    'delivered'    => ['label' => 'Đã giao hàng', 'bg' => 'success'],
+                                                    'loading'      => ['label' => 'Xếp xe', 'bg' => 'secondary'],
+                                                    'shipping'     => ['label' => 'Vận chuyển', 'bg' => 'primary'],
+                                                    'vn_warehouse' => ['label' => 'Kho VN', 'bg' => 'success'],
+                                                    'delivered'    => ['label' => 'Đã giao', 'bg' => 'success'],
                                                     'cancelled'    => ['label' => 'Đã hủy', 'bg' => 'danger'],
                                                     'returned'     => ['label' => 'Hoàn hàng', 'bg' => 'secondary'],
                                                     'damaged'      => ['label' => 'Hỏng hàng', 'bg' => 'danger'],
@@ -543,12 +543,12 @@ $(function(){
         }, function(res){
             if (res.status === 'success') {
                 var statusLabels = {
-                    'cn_warehouse': '<?= __('Đã về kho Trung Quốc') ?>',
+                    'cn_warehouse': '<?= __('Kho TQ') ?>',
                     'packed': '<?= __('Đã đóng bao') ?>',
-                    'loading': '<?= __('Đang xếp xe') ?>',
-                    'shipping': '<?= __('Đang vận chuyển') ?>',
-                    'vn_warehouse': '<?= __('Đã về kho Việt Nam') ?>',
-                    'delivered': '<?= __('Đã giao hàng') ?>',
+                    'loading': '<?= __('Xếp xe') ?>',
+                    'shipping': '<?= __('Vận chuyển') ?>',
+                    'vn_warehouse': '<?= __('Kho VN') ?>',
+                    'delivered': '<?= __('Đã giao') ?>',
                     'cancelled': '<?= __('Đã hủy') ?>',
                     'returned': '<?= __('Hoàn hàng') ?>',
                     'damaged': '<?= __('Hỏng hàng') ?>'

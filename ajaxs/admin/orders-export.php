@@ -84,12 +84,12 @@ if (!empty($orderIds)) {
 }
 
 $statusLabel = [
-    'cn_warehouse' => 'Đã về kho Trung Quốc',
+    'cn_warehouse' => 'Kho TQ',
     'packed'       => 'Đã đóng bao',
-    'loading'      => 'Đang xếp xe',
-    'shipping'     => 'Đang vận chuyển',
-    'vn_warehouse' => 'Đã về kho Việt Nam',
-    'delivered'    => 'Đã giao hàng',
+    'loading'      => 'Xếp xe',
+    'shipping'     => 'Vận chuyển',
+    'vn_warehouse' => 'Kho VN',
+    'delivered'    => 'Đã giao',
     'cancelled'    => 'Đã hủy',
 ];
 

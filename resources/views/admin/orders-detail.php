@@ -63,10 +63,10 @@ require_once(__DIR__.'/sidebar.php');
         <!-- Status Timeline -->
         <?php
         $statusLabels = [
-            'cn_warehouse' => 'Đã về kho Trung Quốc',
-            'shipping'     => 'Đang vận chuyển',
-            'vn_warehouse' => 'Đã về kho Việt Nam',
-            'delivered'    => 'Đã giao hàng',
+            'cn_warehouse' => 'Kho TQ',
+            'shipping'     => 'Vận chuyển',
+            'vn_warehouse' => 'Kho VN',
+            'delivered'    => 'Đã giao',
         ];
         $flowKeys = array_keys($statusLabels);
         $currentIdx = array_search($order['status'], $flowKeys);

@@ -247,10 +247,10 @@ require_once(__DIR__.'/sidebar.php');
                         <h5 class="card-title mb-0">
                             <?= $page_title ?> (<?= $totalPendingPkgs ?> <?= __('kiện') ?> / <?= $totalRows ?> <?= __('dòng') ?>)
                             <?php if ($cntLoading > 0): ?>
-                            <span class="badge bg-secondary-subtle text-secondary fs-12 px-2 py-1 ms-2"><i class="ri-truck-line me-1"></i><?= __('Đang xếp xe') ?>: <?= $cntLoading ?></span>
+                            <span class="badge bg-secondary-subtle text-secondary fs-12 px-2 py-1 ms-2"><i class="ri-truck-line me-1"></i><?= __('Xếp xe') ?>: <?= $cntLoading ?></span>
                             <?php endif; ?>
                             <?php if ($cntShipping > 0): ?>
-                            <span class="badge bg-primary-subtle text-primary fs-12 px-2 py-1 ms-1"><i class="ri-ship-line me-1"></i><?= __('Đang vận chuyển') ?>: <?= $cntShipping ?></span>
+                            <span class="badge bg-primary-subtle text-primary fs-12 px-2 py-1 ms-1"><i class="ri-ship-line me-1"></i><?= __('Vận chuyển') ?>: <?= $cntShipping ?></span>
                             <?php endif; ?>
                         </h5>
                         <div class="d-flex align-items-center gap-2">
@@ -411,12 +411,12 @@ require_once(__DIR__.'/sidebar.php');
                                             <?php
                                             $opkgMap = $pkgStatusMap[$order['id']] ?? [];
                                             $opkgLabels = [
-                                                'cn_warehouse' => ['label' => 'Đã về kho Trung Quốc', 'bg' => 'info'],
+                                                'cn_warehouse' => ['label' => 'Kho TQ', 'bg' => 'info'],
                                                 'packed'       => ['label' => 'Đã đóng bao', 'bg' => 'dark'],
-                                                'loading'      => ['label' => 'Đang xếp xe', 'bg' => 'secondary'],
-                                                'shipping'     => ['label' => 'Đang vận chuyển', 'bg' => 'primary'],
-                                                'vn_warehouse' => ['label' => 'Đã về kho Việt Nam', 'bg' => 'success'],
-                                                'delivered'    => ['label' => 'Đã giao hàng', 'bg' => 'success'],
+                                                'loading'      => ['label' => 'Xếp xe', 'bg' => 'secondary'],
+                                                'shipping'     => ['label' => 'Vận chuyển', 'bg' => 'primary'],
+                                                'vn_warehouse' => ['label' => 'Kho VN', 'bg' => 'success'],
+                                                'delivered'    => ['label' => 'Đã giao', 'bg' => 'success'],
                                             ];
                                             ?>
                                             <div class="d-flex flex-column align-items-start gap-1">
@@ -841,7 +841,7 @@ $(function(){
 
         $.post(pkgAjaxUrl, { request_name: 'get_order_packages', order_id: orderId, csrf_token: csrfToken }, function(res){
             if (res.status === 'success') {
-                var statusLabels = { 'cn_warehouse': '<?= __('Đã về kho Trung Quốc') ?>', 'packed': '<?= __('Đã đóng bao') ?>', 'loading': '<?= __('Đang xếp xe') ?>', 'shipping': '<?= __('Đang vận chuyển') ?>' };
+                var statusLabels = { 'cn_warehouse': '<?= __('Kho TQ') ?>', 'packed': '<?= __('Đã đóng bao') ?>', 'loading': '<?= __('Xếp xe') ?>', 'shipping': '<?= __('Vận chuyển') ?>' };
                 var pendingPkgs = res.packages.filter(function(p){ return p.status === 'cn_warehouse'; });
 
                 var html = '<table class="table table-sm table-borderless mb-0"><thead><tr>';

@@ -51,7 +51,7 @@ $shipments = $ToryHub->get_list_safe(
 
 $statuses = ['in_transit', 'arrived', 'completed'];
 $statusLabels = [
-    'in_transit' => ['label' => 'Đang vận chuyển', 'bg' => 'primary-subtle', 'text' => 'primary', 'icon' => 'ri-truck-line'],
+    'in_transit' => ['label' => 'Vận chuyển', 'bg' => 'primary-subtle', 'text' => 'primary', 'icon' => 'ri-truck-line'],
     'arrived'    => ['label' => 'Đã đến', 'bg' => 'success-subtle', 'text' => 'success', 'icon' => 'ri-map-pin-2-line'],
     'completed'  => ['label' => 'Hoàn thành', 'bg' => 'secondary-subtle', 'text' => 'secondary', 'icon' => 'ri-check-double-line'],
 ];

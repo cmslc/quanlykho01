@@ -17,7 +17,7 @@ $packages = $ShipmentsDB->getPackages($id);
 
 $statusLabels = [
     'preparing'  => ['label' => 'Đang chuẩn bị', 'bg' => 'info-subtle', 'text' => 'info', 'icon' => 'ri-loader-4-line'],
-    'in_transit' => ['label' => 'Đang vận chuyển', 'bg' => 'primary-subtle', 'text' => 'primary', 'icon' => 'ri-truck-line'],
+    'in_transit' => ['label' => 'Vận chuyển', 'bg' => 'primary-subtle', 'text' => 'primary', 'icon' => 'ri-truck-line'],
     'arrived'    => ['label' => 'Đã đến', 'bg' => 'success-subtle', 'text' => 'success', 'icon' => 'ri-map-pin-2-line'],
     'completed'  => ['label' => 'Hoàn thành', 'bg' => 'secondary-subtle', 'text' => 'secondary', 'icon' => 'ri-check-double-line'],
 ];
@@ -147,8 +147,8 @@ require_once(__DIR__.'/sidebar.php');
                     $colSpan = $isPreparing ? 11 : 10;
                     $bagStatusLabels = [
                         'sealed' => ['label' => 'Chờ vận chuyển', 'bg' => 'warning', 'icon' => 'ri-time-line'],
-                        'loading' => ['label' => 'Đang xếp xe', 'bg' => 'secondary', 'icon' => 'ri-truck-line'],
-                        'shipping' => ['label' => 'Đang vận chuyển', 'bg' => 'primary', 'icon' => 'ri-ship-line'],
+                        'loading' => ['label' => 'Xếp xe', 'bg' => 'secondary', 'icon' => 'ri-truck-line'],
+                        'shipping' => ['label' => 'Vận chuyển', 'bg' => 'primary', 'icon' => 'ri-ship-line'],
                         'arrived' => ['label' => 'Đã đến kho VN', 'bg' => 'success', 'icon' => 'ri-check-double-line'],
                     ];
                     $grouped = [];

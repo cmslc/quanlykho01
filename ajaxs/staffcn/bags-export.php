@@ -41,8 +41,8 @@ $bags = $ToryHub->get_list_safe("SELECT b.*, u.fullname as creator_name
 $bagStatusLabels = [
     'open'     => 'Đang mở',
     'sealed'   => 'Chờ vận chuyển',
-    'loading'  => 'Đang xếp xe',
-    'shipping' => 'Đang vận chuyển',
+    'loading'  => 'Xếp xe',
+    'shipping' => 'Vận chuyển',
     'arrived'  => 'Đã đến kho VN',
 ];
 

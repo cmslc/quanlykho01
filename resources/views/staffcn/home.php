@@ -143,7 +143,7 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
-                                <p class="text-uppercase fw-medium text-muted text-truncate mb-0"><?= __('Đang xếp xe') ?></p>
+                                <p class="text-uppercase fw-medium text-muted text-truncate mb-0"><?= __('Xếp xe') ?></p>
                             </div>
                         </div>
                         <div class="d-flex align-items-end justify-content-between mt-4">
@@ -165,7 +165,7 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
-                                <p class="text-uppercase fw-medium text-muted text-truncate mb-0"><?= __('Đang vận chuyển') ?></p>
+                                <p class="text-uppercase fw-medium text-muted text-truncate mb-0"><?= __('Vận chuyển') ?></p>
                             </div>
                         </div>
                         <div class="d-flex align-items-end justify-content-between mt-4">

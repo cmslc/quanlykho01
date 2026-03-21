@@ -66,7 +66,7 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1 overflow-hidden">
-                                <p class="text-uppercase fw-medium text-muted text-truncate mb-0"><?= __('Đang vận chuyển') ?></p>
+                                <p class="text-uppercase fw-medium text-muted text-truncate mb-0"><?= __('Vận chuyển') ?></p>
                             </div>
                         </div>
                         <div class="d-flex align-items-end justify-content-between mt-4">
@@ -83,7 +83,7 @@ require_once(__DIR__.'/sidebar.php');
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1 overflow-hidden">
-                                <p class="text-uppercase fw-medium text-muted text-truncate mb-0"><?= __('Đã giao hàng') ?></p>
+                                <p class="text-uppercase fw-medium text-muted text-truncate mb-0"><?= __('Đã giao') ?></p>
                             </div>
                         </div>
                         <div class="d-flex align-items-end justify-content-between mt-4">
@@ -251,7 +251,7 @@ require_once(__DIR__.'/sidebar.php');
                     </div>
                     <div class="card-body">
                         <div class="d-flex justify-content-between mb-3">
-                            <span><?= __('Đang vận chuyển') ?></span>
+                            <span><?= __('Vận chuyển') ?></span>
                             <span class="badge bg-warning"><?= $shipping_orders ?></span>
                         </div>
                         <div class="d-flex justify-content-between mb-3">
@@ -259,7 +259,7 @@ require_once(__DIR__.'/sidebar.php');
                             <span class="badge bg-success"><?= $vn_warehouse_orders ?></span>
                         </div>
                         <div class="d-flex justify-content-between mb-3">
-                            <span><?= __('Đã giao hàng') ?></span>
+                            <span><?= __('Đã giao') ?></span>
                             <span class="badge bg-primary"><?= $delivered_orders ?></span>
                         </div>
                         <hr>

@@ -206,10 +206,10 @@ require_once(__DIR__.'/sidebar.php');
                                             <?php if ($order['product_type'] === 'wholesale' && $pkgTotal > 0): ?>
                                             <div><span class="badge bg-secondary-subtle text-secondary fs-12"><?= __('Tổng số kiện') ?>: <?= $pkgTotal ?></span></div>
                                             <?php if ($pkgInTransit > 0): ?>
-                                            <div class="mt-1"><span class="badge bg-primary-subtle text-primary fs-12"><?= __('Đang vận chuyển') ?>: <?= $pkgInTransit ?></span></div>
+                                            <div class="mt-1"><span class="badge bg-primary-subtle text-primary fs-12"><?= __('Vận chuyển') ?>: <?= $pkgInTransit ?></span></div>
                                             <?php endif; ?>
                                             <?php if ($pkgReceived > 0): ?>
-                                            <div class="mt-1"><span class="badge bg-success-subtle text-success fs-12"><?= __('Đã về kho Việt Nam') ?>: <?= $pkgReceived ?></span></div>
+                                            <div class="mt-1"><span class="badge bg-success-subtle text-success fs-12"><?= __('Kho VN') ?>: <?= $pkgReceived ?></span></div>
                                             <?php endif; ?>
                                             <?php if ($pkgDelivered > 0): ?>
                                             <div class="mt-1"><span class="badge bg-info-subtle text-info fs-12"><?= __('Đã giao') ?>: <?= $pkgDelivered ?></span></div>

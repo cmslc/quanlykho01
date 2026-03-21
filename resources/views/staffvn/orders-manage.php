@@ -157,8 +157,8 @@ if ($page > $totalPages) $page = $totalPages;
 
 $bagStatusLabels = [
     'sealed' => ['label' => 'Chờ vận chuyển', 'bg' => 'warning', 'icon' => 'ri-time-line'],
-    'loading' => ['label' => 'Đang xếp xe', 'bg' => 'secondary', 'icon' => 'ri-truck-line'],
-    'shipping' => ['label' => 'Đang vận chuyển', 'bg' => 'primary', 'icon' => 'ri-ship-line'],
+    'loading' => ['label' => 'Xếp xe', 'bg' => 'secondary', 'icon' => 'ri-truck-line'],
+    'shipping' => ['label' => 'Vận chuyển', 'bg' => 'primary', 'icon' => 'ri-ship-line'],
     'arrived' => ['label' => 'Đã đến kho VN', 'bg' => 'success', 'icon' => 'ri-check-double-line'],
     'completed' => ['label' => 'Đã nhận đủ', 'bg' => 'success', 'icon' => 'ri-checkbox-circle-line'],
 ];
@@ -384,10 +384,10 @@ require_once(__DIR__.'/sidebar.php');
                                             ?>
                                             <div><span class="badge bg-secondary-subtle text-secondary fs-12"><?= __('Tổng số kiện') ?>: <?= $pkgTotalNum ?></span></div>
                                             <?php if ($pkgInTransit > 0): ?>
-                                            <div class="mt-1"><span class="badge bg-primary-subtle text-primary fs-12"><?= __('Đang vận chuyển') ?>: <?= $pkgInTransit ?></span></div>
+                                            <div class="mt-1"><span class="badge bg-primary-subtle text-primary fs-12"><?= __('Vận chuyển') ?>: <?= $pkgInTransit ?></span></div>
                                             <?php endif; ?>
                                             <?php if ($pkgReceived > 0): ?>
-                                            <div class="mt-1"><span class="badge bg-success-subtle text-success fs-12"><?= __('Đã về kho Việt Nam') ?>: <?= $pkgReceived ?></span></div>
+                                            <div class="mt-1"><span class="badge bg-success-subtle text-success fs-12"><?= __('Kho VN') ?>: <?= $pkgReceived ?></span></div>
                                             <?php endif; ?>
                                             <?php if ($order['is_paid']): ?>
                                             <div class="mt-1"><span class="badge bg-success-subtle text-success fs-12"><?= __('Đã thanh toán') ?></span></div>

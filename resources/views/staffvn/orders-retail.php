@@ -131,8 +131,8 @@ if ($page > $totalPages) $page = $totalPages;
 
 $bagStatusLabels = [
     'sealed' => ['label' => 'Chờ vận chuyển', 'bg' => 'warning', 'icon' => 'ri-time-line'],
-    'loading' => ['label' => 'Đang xếp xe', 'bg' => 'secondary', 'icon' => 'ri-truck-line'],
-    'shipping' => ['label' => 'Đang vận chuyển', 'bg' => 'primary', 'icon' => 'ri-ship-line'],
+    'loading' => ['label' => 'Xếp xe', 'bg' => 'secondary', 'icon' => 'ri-truck-line'],
+    'shipping' => ['label' => 'Vận chuyển', 'bg' => 'primary', 'icon' => 'ri-ship-line'],
     'arrived' => ['label' => 'Đã đến kho VN', 'bg' => 'success', 'icon' => 'ri-check-double-line'],
     'completed' => ['label' => 'Đã nhận đủ', 'bg' => 'success', 'icon' => 'ri-checkbox-circle-line'],
 ];

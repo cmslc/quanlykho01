@@ -371,11 +371,11 @@ require_once(__DIR__.'/sidebar.php');
 // Map raw status -> tiếng Việt cho log description
 $_statusVi = [
     'pending' => 'Chờ xử lý', 'cn_warehouse' => 'Kho TQ', 'packed' => 'Đã đóng gói',
-    'loading' => 'Đang xếp xe', 'shipping' => 'Đang vận chuyển', 'vn_warehouse' => 'Kho VN',
+    'loading' => 'Xếp xe', 'shipping' => 'Vận chuyển', 'vn_warehouse' => 'Kho VN',
     'delivered' => 'Đã giao', 'returned' => 'Hoàn trả', 'damaged' => 'Hư hỏng',
     'arrived' => 'Đã đến', 'completed' => 'Hoàn tất', 'sealed' => 'Đã niêm phong',
     'purchased' => 'Đã mua', 'cn_shipped' => 'Shop đã gửi', 'cancelled' => 'Đã hủy',
-    'preparing' => 'Chuẩn bị', 'in_transit' => 'Đang vận chuyển', 'open' => 'Đang mở',
+    'preparing' => 'Chuẩn bị', 'in_transit' => 'Vận chuyển', 'open' => 'Đang mở',
 ];
 function _humanize_log_desc($desc, $map) {
     return preg_replace_callback('/(\w+)\s*->\s*(\w+)/', function($m) use ($map) {

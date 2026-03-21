@@ -90,7 +90,7 @@ require_once(__DIR__.'/sidebar.php');
                                     $bagStatusLabels = [
                                         'open' => ['label' => 'Đang mở', 'bg' => 'info', 'icon' => 'ri-lock-unlock-line'],
                                         'sealed' => ['label' => 'Đã đóng', 'bg' => 'dark', 'icon' => 'ri-lock-line'],
-                                        'shipping' => ['label' => 'Đang vận chuyển', 'bg' => 'primary', 'icon' => 'ri-ship-line'],
+                                        'shipping' => ['label' => 'Vận chuyển', 'bg' => 'primary', 'icon' => 'ri-ship-line'],
                                         'arrived' => ['label' => 'Đã đến kho Việt Nam', 'bg' => 'success', 'icon' => 'ri-check-double-line'],
                                     ];
                                     $sl = $bagStatusLabels[$bag['status']] ?? $bagStatusLabels['open'];

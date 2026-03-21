@@ -238,7 +238,7 @@ foreach ($wholesaleOrders as $order) {
     $sheet->setCellValue('F' . $row, intval($order['pkg_count']));
     $sheet->setCellValue('G' . $row, $weight > 0 ? round($weight, 2) : '');
     $sheet->setCellValue('H' . $row, $cbm > 0 ? round($cbm, 4) : '');
-    $sheet->setCellValue('I' . $row, 'Đã về kho Trung Quốc');
+    $sheet->setCellValue('I' . $row, 'Kho TQ');
     $sheet->setCellValue('J' . $row, $dateStr);
 
     $sheet->getStyle('A' . $row . ':J' . $row)->getAlignment()
