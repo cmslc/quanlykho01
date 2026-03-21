@@ -352,9 +352,12 @@ require_once(__DIR__.'/sidebar.php');
         <!-- Filter Bar -->
         <?php
         $baseUrl = base_url('admin/shipping-calculator');
-        function buildFilterUrl($params, $baseUrl) {
-            $q = http_build_query(array_filter($params, function($v){ return $v !== '' && $v !== null; }));
-            return $baseUrl . ($q ? '?' . $q : '');
+        if (!function_exists('buildFilterUrl')) {
+            function buildFilterUrl($params, $baseUrl) {
+                $filtered = array_filter($params, function($v){ return $v !== '' && $v !== null; });
+                if (empty($filtered)) return $baseUrl;
+                return $baseUrl . '?' . http_build_query($filtered);
+            }
         }
         $currentFilters = [
             'search' => $filterSearch, 'customer_id' => $filterCustomer,
