@@ -134,7 +134,8 @@ if ($method === 'GET') {
     $params[] = $pg['per_page'];
     $params[] = $pg['offset'];
     $orders = $ToryHub->get_list_safe(
-        "SELECT o.*, c.fullname as customer_name, c.customer_code
+        "SELECT o.*, c.fullname as customer_name, c.customer_code,
+                (SELECT COUNT(*) FROM `package_orders` po WHERE po.order_id = o.id) as total_packages
          FROM `orders` o
          LEFT JOIN `customers` c ON o.customer_id = c.id
          WHERE $where
@@ -223,7 +224,7 @@ if ($method === 'PUT' && $id) {
 
     $updateData = ['update_date' => gettime()];
     $allowed = ['status', 'product_name', 'product_code', 'cargo_type', 'customer_id',
-                'weight_actual', 'volume_actual', 'cn_tracking', 'product_image'];
+                'weight_actual', 'volume_actual', 'total_packages', 'cn_tracking', 'product_image'];
 
     foreach ($allowed as $field) {
         if (isset($input[$field])) {
