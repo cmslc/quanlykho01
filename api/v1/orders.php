@@ -27,7 +27,7 @@ if ($action === 'scan' && $method === 'POST') {
 
     // Tạo đơn hàng lẻ
     $order_code = 'ORD' . date('ymd') . strtoupper(substr(uniqid(), -5));
-    $ToryHub->insert_safe('orders', [
+    $result = $ToryHub->insert_safe('orders', [
         'order_code'    => $order_code,
         'order_type'    => 'shipping',
         'product_type'  => 'retail',
@@ -37,30 +37,41 @@ if ($action === 'scan' && $method === 'POST') {
         'create_date'   => gettime(),
         'update_date'   => gettime()
     ]);
+    if (!$result) api_error('Lỗi tạo đơn hàng');
     $order_id = $ToryHub->insert_id();
+    if (!$order_id) api_error('Lỗi tạo đơn hàng (no ID)');
 
     // Tạo package
     $package_code = 'PKG' . date('ymd') . strtoupper(substr(uniqid(), -5));
-    $ToryHub->insert_safe('packages', [
+    $result = $ToryHub->insert_safe('packages', [
         'package_code' => $package_code,
         'tracking_cn'  => strtoupper($tracking),
         'status'       => 'cn_warehouse',
-        'qty'          => 1,
+        'created_by'   => $user['id'],
         'create_date'  => gettime(),
         'update_date'  => gettime()
     ]);
+    if (!$result) api_error('Lỗi tạo kiện hàng');
     $package_id = $ToryHub->insert_id();
+    if (!$package_id) api_error('Lỗi tạo kiện hàng (no ID)');
 
     // Link package to order
-    $ToryHub->insert_safe('package_orders', [
+    $link = $ToryHub->insert_safe('package_orders', [
         'package_id' => $package_id,
         'order_id'   => $order_id
     ]);
+    if (!$link) {
+        // Fallback: thử insert trực tiếp bằng raw query
+        $ToryHub->connect();
+        mysqli_query($ToryHub->ketnoi, "INSERT INTO `package_orders` (`package_id`, `order_id`) VALUES ($package_id, $order_id)");
+    }
 
     api_success([
         'order_id'   => $order_id,
-        'order_code' => $order_code
-    ], 'Đã tạo đơn hàng');
+        'order_code' => $order_code,
+        'package_id' => $package_id,
+        'package_code' => $package_code
+    ], 'Đã tạo đơn hàng + kiện');
 }
 
 // ===== GET: Danh sách hoặc chi tiết =====
