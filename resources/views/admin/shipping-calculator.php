@@ -354,7 +354,7 @@ require_once(__DIR__.'/sidebar.php');
         $baseUrl = base_url('admin/shipping-calculator');
         function buildFilterUrl($params, $baseUrl) {
             $q = http_build_query(array_filter($params, function($v){ return $v !== '' && $v !== null; }));
-            return $baseUrl . ($q ? '&' . $q : '');
+            return $baseUrl . ($q ? '?' . $q : '');
         }
         $currentFilters = [
             'search' => $filterSearch, 'customer_id' => $filterCustomer,
