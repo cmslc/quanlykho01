@@ -119,9 +119,9 @@ class EmailService
         if (empty($customer_email)) return false;
 
         $status_labels = [
-            'cn_warehouse' => 'Đã về kho Trung Quốc',
-            'shipping' => 'Đang vận chuyển', 'vn_warehouse' => 'Đã về kho Việt Nam',
-            'delivered' => 'Đã giao hàng', 'cancelled' => 'Đã hủy'
+            'cn_warehouse' => 'Kho TQ', 'packed' => 'Đã đóng bao',
+            'loading' => 'Xếp xe', 'shipping' => 'Vận chuyển',
+            'vn_warehouse' => 'Kho VN', 'delivered' => 'Đã giao', 'cancelled' => 'Đã hủy'
         ];
 
         $subject = __('Cập nhật đơn hàng') . ': ' . $order['order_code'];
