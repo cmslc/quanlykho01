@@ -58,7 +58,7 @@ if ($method === 'PUT' && $id) {
     if (!$package) api_error('Kiện hàng không tồn tại', 404);
 
     $updateData = ['update_date' => gettime()];
-    $allowed = ['weight_actual', 'weight_volume', 'weight_charged', 'length_cm', 'width_cm', 'height_cm', 'status', 'note'];
+    $allowed = ['tracking_cn', 'weight_actual', 'weight_volume', 'weight_charged', 'length_cm', 'width_cm', 'height_cm', 'status', 'note'];
 
     foreach ($allowed as $field) {
         if (isset($input[$field])) $updateData[$field] = $input[$field];
@@ -78,6 +78,66 @@ if ($method === 'PUT' && $id) {
 
     $ToryHub->update_safe('packages', $updateData, "`id` = ?", [$id]);
     api_success([], 'Cập nhật kiện hàng thành công');
+}
+
+// ===== POST: Create Package =====
+if ($method === 'POST') {
+    $input = api_input();
+    $order_id = intval($input['order_id'] ?? 0);
+
+    $pkg_code = 'PKG' . date('ymd') . strtoupper(substr(uniqid(), -5));
+    $result = $ToryHub->insert_safe('packages', [
+        'package_code'  => $pkg_code,
+        'tracking_cn'   => strtoupper(trim($input['tracking_cn'] ?? '')),
+        'status'        => $input['status'] ?? 'cn_warehouse',
+        'weight_actual' => floatval($input['weight_actual'] ?? 0),
+        'length_cm'     => floatval($input['length_cm'] ?? 0),
+        'width_cm'      => floatval($input['width_cm'] ?? 0),
+        'height_cm'     => floatval($input['height_cm'] ?? 0),
+        'created_by'    => $user['id'],
+        'create_date'   => gettime(),
+        'update_date'   => gettime()
+    ]);
+    if (!$result) api_error('Lỗi tạo kiện hàng');
+    $pkg_id = $ToryHub->insert_id();
+
+    // Link to order
+    if ($order_id > 0) {
+        $ToryHub->insert_safe('package_orders', [
+            'package_id' => $pkg_id,
+            'order_id'   => $order_id
+        ]);
+        // Update total_packages
+        $count = $ToryHub->get_row_safe(
+            "SELECT COUNT(*) as cnt FROM `package_orders` WHERE `order_id` = ?", [$order_id]
+        );
+        $ToryHub->update_safe('orders', ['total_packages' => (int)($count['cnt'] ?? 0)], "`id` = ?", [$order_id]);
+    }
+
+    api_success(['package_id' => $pkg_id, 'package_code' => $pkg_code], 'Tạo kiện hàng thành công');
+}
+
+// ===== DELETE: Delete Package =====
+if ($method === 'DELETE' && $id) {
+    $package = $ToryHub->get_row_safe("SELECT * FROM `packages` WHERE `id` = ?", [$id]);
+    if (!$package) api_error('Kiện hàng không tồn tại', 404);
+
+    // Get order_id before delete
+    $po = $ToryHub->get_row_safe("SELECT `order_id` FROM `package_orders` WHERE `package_id` = ?", [$id]);
+    $order_id = $po ? (int)$po['order_id'] : 0;
+
+    $ToryHub->remove_safe('package_orders', "`package_id` = ?", [$id]);
+    $ToryHub->remove_safe('packages', "`id` = ?", [$id]);
+
+    // Update total_packages
+    if ($order_id > 0) {
+        $count = $ToryHub->get_row_safe(
+            "SELECT COUNT(*) as cnt FROM `package_orders` WHERE `order_id` = ?", [$order_id]
+        );
+        $ToryHub->update_safe('orders', ['total_packages' => (int)($count['cnt'] ?? 0)], "`id` = ?", [$order_id]);
+    }
+
+    api_success([], 'Đã xóa kiện hàng');
 }
 
 api_error('Method not allowed', 405);
