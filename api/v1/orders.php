@@ -183,16 +183,16 @@ if ($method === 'POST' && !$action) {
         foreach ($packages as $pkg) {
             $pkg_code = 'PKG' . date('ymd') . strtoupper(substr(uniqid(), -5));
             $ToryHub->insert_safe('packages', [
-                'package_code' => $pkg_code,
-                'tracking_cn'  => strtoupper($pkg['tracking_cn'] ?? ''),
-                'status'       => $data['status'],
-                'qty'          => $pkg['qty'] ?? 1,
-                'weight'       => $pkg['weight'] ?? 0,
-                'length_cm'    => $pkg['length_cm'] ?? 0,
-                'width_cm'     => $pkg['width_cm'] ?? 0,
-                'height_cm'    => $pkg['height_cm'] ?? 0,
-                'create_date'  => gettime(),
-                'update_date'  => gettime()
+                'package_code'  => $pkg_code,
+                'tracking_cn'   => strtoupper($pkg['tracking_cn'] ?? ''),
+                'status'        => $data['status'],
+                'weight_actual' => $pkg['weight'] ?? 0,
+                'length_cm'     => $pkg['length_cm'] ?? 0,
+                'width_cm'      => $pkg['width_cm'] ?? 0,
+                'height_cm'     => $pkg['height_cm'] ?? 0,
+                'created_by'    => $user['id'],
+                'create_date'   => gettime(),
+                'update_date'   => gettime()
             ]);
             $pkg_id = $ToryHub->insert_id();
             $ToryHub->insert_safe('package_orders', [
